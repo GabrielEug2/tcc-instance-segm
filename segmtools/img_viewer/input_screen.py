@@ -1,21 +1,22 @@
 
-
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout
-from PySide6.QtCore import Qt
-
-from output_widget import OutputWidget
+from PySide6.QtCore import Qt, Signal
 
 
-class InputMessage(QLabel):
-    def __init__(self):
-        super().__init__()
+class InputArea(QLabel):
+    image_selected = Signal(str)
+
+    def __init__(self, parent):
+        super().__init__(parent)
 
         self.setAcceptDrops(True)
 
-        self.setAlignment(Qt.AlignCenter)
         self.setText('Arraste uma imagem aqui para visualizar as detecções')
+        self.setAlignment(Qt.AlignCenter)
+        self.setWordWrap(True)
+        self.setMargin(10)
         self.setStyleSheet('''
-            QLabel{
+            InputArea {
                 border: 4px dashed #aaa
             }
         ''')
@@ -34,26 +35,20 @@ class InputMessage(QLabel):
 
     def dropEvent(self, event):
         if event.mimeData().hasImage:
-            event.accept()
-            event.setDropAction(Qt.CopyAction)
-
             file_path = event.mimeData().urls()[0].toLocalFile()
-            print(f"\n\n{file_path}\n\n")
 
-            # raise signal to main window
-            # how?
+            self.image_selected.emit(file_path)
+
+            event.accept()
         else:
             event.ignore()
 
-class InputWidget(QWidget):
+class InputScreen(QWidget):
     def __init__(self):
         super().__init__()
+      
+        self.inputArea = InputArea(self)
 
         layout = QVBoxLayout()
-
-        self.inputBox = InputMessage()
-        layout.addWidget(self.inputBox)
-
+        layout.addWidget(self.inputArea)
         self.setLayout(layout)
-
-        self.show()

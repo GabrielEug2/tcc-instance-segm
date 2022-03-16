@@ -5,8 +5,8 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
 
 
-class OutputWindow(QWidget):
-    def __init__(self, file_path):
+class OutputScreen(QWidget):
+    def __init__(self):
         super().__init__()
 
         mainLayout = QVBoxLayout()
