@@ -6,24 +6,28 @@ from segmtools.img_viewer.output_screen import OutputScreen
 
 class ImgViewer(QMainWindow):
     @Slot(str)
-    def show_detections(self, file_path):
-        print(file_path)
+    def show_detections(self, img_path):
+        self.mainWidget.setCurrentWidget(self.outputScreen)
+        self.resize(400, 400)
+        
+        self.outputScreen.show_detections(img_path)
 
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle('ImgViewer')
-        self.resize(230, 150)
+        self.resize(530, 340)
 
         self.inputScreen = InputScreen()
         self.outputScreen = OutputScreen()
 
-        mainWidget = QStackedWidget()
-        mainWidget.addWidget(self.inputScreen)
-        mainWidget.addWidget(self.outputScreen)
-        self.setCentralWidget(mainWidget)
+        self.mainWidget = QStackedWidget()
+        self.mainWidget.addWidget(self.inputScreen)
+        self.mainWidget.addWidget(self.outputScreen)
+        self.setCentralWidget(self.mainWidget)
 
-        self.inputScreen.inputArea.image_selected.connect(self.show_detections)
+        self.inputScreen.imgDropped.connect(self.show_detections)
+        self.outputScreen.imgDropped.connect(self.show_detections)
 
 
 def run():
@@ -32,4 +36,4 @@ def run():
     mainWindow = ImgViewer()
     mainWindow.show()
     
-    app.exec()
+    sys.exit(app.exec())

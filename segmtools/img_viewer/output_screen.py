@@ -1,24 +1,28 @@
-
-from logging.config import valid_ident
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from PySide6.QtGui import QPixmap
-from PySide6.QtCore import Qt
-
+from PySide6.QtCore import Qt, Signal, Slot
 
 class OutputScreen(QWidget):
+    imgDropped = Signal(str)
+
+    @Slot(str)
+    def show_detections(self, img_path):
+        # TODO: matplotlib plots --> image
+        # 1st img = open(img_path)
+        # 2nd img = ground_truth
+        # 3rd/4th/5th = predictions
+        print(img_path)
+
     def __init__(self):
         super().__init__()
 
+        # TODO: Gallery app
+        # Começa mostrando a imagem normal, e muda pras outras com as setinhas
+
         mainLayout = QVBoxLayout()
-
-        # img = open(file_path)
-        # ground_truth = plot annotations
-        # predictions = []
-        # for model with corresponding file in results folder:
-        #     predictions[model_name] = []
-        #     plot predictions
-
         self.setLayout(mainLayout)
+
+        self.setAcceptDrops(True)
 
     def next():
         pass
