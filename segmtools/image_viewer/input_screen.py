@@ -9,9 +9,8 @@ class InputArea(QLabel):
 
         self.setText('Arraste uma imagem aqui para visualizar as detecções')
         self.setWordWrap(True)
-        self.setMargin(10)
         self.setAlignment(Qt.AlignCenter)
-        self.setStyleSheet('''border: 4px dashed #aaa''')
+
         self.setAcceptDrops(True)
 
     def dragEnterEvent(self, event):
@@ -20,21 +19,10 @@ class InputArea(QLabel):
         else:
             event.ignore()
     
-    def dragMoveEvent(self, event):
-        if event.mimeData().hasImage:
-            event.accept()
-        else:
-            event.ignore()
-
     def dropEvent(self, event):
-        if event.mimeData().hasImage:
-            img_path = event.mimeData().urls()[0].toLocalFile()
+        img_path = event.mimeData().urls()[0].toLocalFile()
 
-            self.imgDropped.emit(img_path)
-
-            event.accept()
-        else:
-            event.ignore()
+        self.imgDropped.emit(img_path)
     
 
 class InputScreen(QWidget):
@@ -43,8 +31,6 @@ class InputScreen(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.resize(530, 340)
-        
         self.inputArea = InputArea()
 
         layout = QVBoxLayout()

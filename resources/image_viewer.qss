@@ -1,0 +1,11 @@
+InputArea {
+    margin: 10px;
+    border: 4px dashed #b6c1cc;
+    padding: 100px;
+}
+
+/* Porque isso não funciona? */
+QLabel#imgDescription {
+    font-weight: bold;
+    padding: 10px;
+}

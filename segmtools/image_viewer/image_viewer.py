@@ -1,37 +1,35 @@
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 from PySide6.QtCore import Slot
-from segmtools.img_viewer.input_screen import InputScreen
-from segmtools.img_viewer.output_screen import OutputScreen
+from segmtools.image_viewer.input_screen import InputScreen
+from segmtools.image_viewer.output_screen import OutputScreen
 from segmtools.core import utils
 
-class ImgViewer(QMainWindow):
+class ImageViewer(QMainWindow):
     @Slot(str)
     def show_predictions(self, img_path):
         raw_img = utils.load_img(img_path)
         ground_truth = utils.load_ground_truth(img_path)
         predictions = utils.load_predictions(img_path)
 
-        new_height, new_width, _ = raw_img.shape
-        new_height += 30
-        print(new_width, new_height)
-        print(self.size())
-        self.resize(new_width, new_height)
-        print(self.size())
+        imgs = [raw_img, ground_truth, *predictions]
+        img_descriptions = ["Imagem original", "Ground truth", "Predições do Mask R-CNN",
+                            "Predições do YOLACT", "Predições do SOLO"]
 
-        self.outputScreen.set_images([raw_img, ground_truth, *predictions])
+        self.outputScreen.set_imgs(imgs, img_descriptions)
         self.mainWidget.setCurrentWidget(self.outputScreen)
+        self.outputScreen.show_first_image()
 
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle('ImgViewer')
-        self.layout().setContentsMargins(0, 0, 0, 0)
-        self.setStyleSheet('''
-            background-color: #242a30;
-            color: #b6c1cc;
-            font-size: 15px;
-        }''')
+        appSpecificStylesheet = ""
+        with open('./resources/image_viewer.qss') as f:
+            appSpecificStylesheet = f.read()
+
+        self.setWindowTitle('ImageViewer')
+        self.setStyleSheet(appSpecificStylesheet)
+
         self.inputScreen = InputScreen()
         self.outputScreen = OutputScreen()
 
@@ -41,8 +39,9 @@ class ImgViewer(QMainWindow):
         self.setCentralWidget(self.mainWidget)
 
         self.mainWidget.setCurrentWidget(self.inputScreen)
-        self.resize(530, 340)
 
+        # Abre com a janela um pouco pra esquerda, pra facilitar
+        # arrastar as imagens do Explorer
         screen_center = self.screen().geometry().center()
         x_offset = 600
         y_offset = 300
@@ -55,7 +54,14 @@ class ImgViewer(QMainWindow):
 def run():
     app = QApplication(sys.argv)
 
-    mainWindow = ImgViewer()
-    mainWindow.show()
+    mainStylesheet = ""
+    with open('./resources/segmtools.qss') as f:
+        mainStylesheet = f.read()
     
+    app.setStyleSheet(mainStylesheet)
+
+    imageViewer = ImageViewer()
+    imageViewer.show()
+    
+    print(imageViewer.styleSheet())
     sys.exit(app.exec())

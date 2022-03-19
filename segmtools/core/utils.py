@@ -1,5 +1,12 @@
+import os
+
 import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+from pycocotools.coco import COCO
 from PySide6.QtGui import QImage, QPixmap
+
+COCO_DIR = 'E:\Desktop\TCC\COCO'
 
 def load_img(img_path):
     img = cv2.imread(img_path)
@@ -7,7 +14,85 @@ def load_img(img_path):
     return rgb_image
 
 def load_ground_truth(img_path):
-    return []
+    # Se encontrar annotations, plota e retorna a imagem resultante.
+    # Se não encontrar, retorna uma imagem preta.
+
+    full_dir, img_filename = os.path.split(img_path)
+    data_split = os.path.basename(full_dir)   
+
+    if data_split == 'val2017' or data_split == 'train2017':
+        segmentation_file = 'instances_' + data_split + '.json'
+
+        # Demora 30s pra carregar essa jossa na memória. Vou ter que separar
+        # os arquivos de annotations em arquivos menores se quiser mostrar
+        # rápido. Mas foda-se, por enquanto fica assim. Tem outras coisas mais
+        # importantes no momento.
+        # 
+        # TODO: 
+        # * Em um arquivo separado: 
+        #     for each file in valfolder:
+        #         img_id = X # extrai do filename
+        #         annIds = coco.getAnnIds(img_id)
+        #         ann = coco.loadAnns(annIds)
+        #         save_ann_ids(output_folder, img_filename)
+        #
+        # * Depois, com esses arquivos prontos:
+        #     annotations = read file
+        #     custom_showAnnotations() # copy paste da do COCO
+        coco = COCO(os.path.join(COCO_DIR, 'annotations', segmentation_file))
+
+        img_id = int(img_filename.rstrip('.jpg'))
+        annIds = coco.getAnnIds(imgIds=img_id)
+        anns = coco.loadAnns(annIds)
+
+        img = load_img(img_path)
+
+        # ==============================================================
+        # https://stackoverflow.com/questions/34768717/matplotlib-unable-to-save-image-in-same-resolution-as-original-image
+        # https://stackoverflow.com/questions/47633546/relationship-between-dpi-and-figure-size
+        # ==============================================================
+
+        # What size does the figure need to be in inches to fit the image?
+        #
+        #   dpi * inches = n_pixels
+        #
+        # logo...
+        #
+        #   inches = n_pixels * dpi
+        #
+        # Eu tenho o número de pixels (img.shape), é só fixar um dpi e
+        # calcular o tamanho em inches.
+        height, width, _ = img.shape
+        dpi = plt.rcParams['figure.dpi'] # padrão do matlab
+        figsize = width / float(dpi), height / float(dpi)
+
+        # Create a figure of the right size with one axes that takes up the full figure
+        fig = plt.figure(figsize=figsize, dpi=dpi)
+        ax = fig.add_axes([0, 0, 1, 1])
+
+        # Hide spines, ticks, etc.
+        ax.axis('off')
+
+        # Show image
+        plt.imshow(img)
+        plt.axis('off')
+
+        # Plot something
+        coco.showAnns(anns)
+
+        fig.savefig('test.jpg', dpi=dpi)
+
+        # ==============================================================
+
+        img_with_segmentations = load_img('test.jpg')
+
+        return img_with_segmentations
+    else:
+        # Não tá na pasta certa ou é uma imagem sem annotations
+        img = cv2.imread(img_path)
+        black_img = np.zeros(img.shape, dtype=np.uint8)
+
+        return black_img
 
 def load_predictions(img_path):
     return [[], [], []]
@@ -20,45 +105,8 @@ def numpy_to_pixmap(img):
 
 
 # =====================================================================
-# TO DO: plotar o resultado com a própria API do Detectron e 
-#        as ground truths com a API do COCO
+# TO DO: plotar o resultado com a própria API do Detectron
 # =====================================================================
-
-# =====================================================================
-
-# %matplotlib inline
-# from pycocotools.coco import COCO
-# import numpy as np
-# import skimage.io as io
-# import matplotlib.pyplot as plt
-# import pylab
-# pylab.rcParams['figure.figsize'] = (8.0, 10.0)
-
-# dataDir='..'
-# dataType='val2017'
-# annFile='{}/annotations/instances_{}.json'.format(dataDir,dataType)
-
-# # initialize COCO api for instance annotations
-# coco=COCO(annFile)
-
-# # load and display image
-# # I = io.imread('%s/images/%s/%s'%(dataDir,dataType,img['file_name']))
-# # use url to load image
-# I = io.imread(img['coco_url'])
-# plt.axis('off')
-# plt.imshow(I)
-# plt.show()
-
-# # load and display instance annotations
-# plt.imshow(I); plt.axis('off')
-# annIds = coco.getAnnIds(imgIds=img['id'], catIds=catIds, iscrowd=None)
-# anns = coco.loadAnns(annIds)
-# coco.showAnns(anns)
-
-
-
-# # =====================================================================
-
 
 # from detectron2.utils.visualizer import Visualizer
 # from detectron2.data import MetadataCatalog
