@@ -4,8 +4,7 @@ InputArea {
     padding: 100px;
 }
 
-/* Porque isso não funciona? */
 QLabel#imgDescription {
     font-weight: bold;
     padding: 10px;
-}
+}  

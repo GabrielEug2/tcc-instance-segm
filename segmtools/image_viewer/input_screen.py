@@ -23,7 +23,9 @@ class InputArea(QLabel):
         img_path = event.mimeData().urls()[0].toLocalFile()
 
         self.imgDropped.emit(img_path)
-    
+
+        event.accept()
+
 
 class InputScreen(QWidget):
     imgDropped = Signal(str)
@@ -37,4 +39,6 @@ class InputScreen(QWidget):
         layout.addWidget(self.inputArea)
         self.setLayout(layout)
 
+        # A MainWindow não precisa saber de que widget veio o sinal.
+        # Só o que importa é que ele veio da InputScreen.
         self.inputArea.imgDropped.connect(self.imgDropped)

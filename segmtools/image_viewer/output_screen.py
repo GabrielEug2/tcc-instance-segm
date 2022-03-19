@@ -1,5 +1,7 @@
+
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
 from PySide6.QtCore import Qt, Signal
+
 from segmtools.core import utils
 
 class OutputScreen(QWidget):
@@ -23,15 +25,12 @@ class OutputScreen(QWidget):
         self.imgs = []
         self.imgDescriptions = []
 
-        self.setFocusPolicy(Qt.TabFocus)
+        self.setFocusPolicy(Qt.StrongFocus)
         self.setAcceptDrops(True)
 
     def set_imgs(self, imgs, img_descriptions):
         self.imgs = imgs
         self.imgDescriptions = img_descriptions
-
-    def show_first_image(self):
-        self.show_image(0)
 
     def show_image(self, i):
         valid_index = i in range(0, len(self.imgs))
@@ -50,6 +49,15 @@ class OutputScreen(QWidget):
             # Fica na mesma
             pass
 
+    def show_first_image(self):
+        self.show_image(0)
+
+    def show_next_image(self):
+        self.show_image(self.currentIndex + 1)
+        
+    def show_previous_image(self):
+        self.show_image(self.currentIndex - 1)
+
     def keyPressEvent(self, event):
         match event.key():
             case Qt.Key_Right | Qt.Key_Down:
@@ -60,12 +68,6 @@ class OutputScreen(QWidget):
                 self.show_previous_image()
             case _:
                 event.ignore()
-
-    def show_next_image(self):
-        self.show_image(self.currentIndex + 1)
-        
-    def show_previous_image(self):
-        self.show_image(self.currentIndex - 1)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasImage:

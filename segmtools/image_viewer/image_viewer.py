@@ -30,6 +30,13 @@ class ImageViewer(QMainWindow):
         self.setWindowTitle('ImageViewer')
         self.setStyleSheet(appSpecificStylesheet)
 
+        # Abre com a janela um pouco pra esquerda, pra facilitar
+        # arrastar as imagens do Explorer
+        screen_center = self.screen().geometry().center()
+        x_offset = 600
+        y_offset = 300
+        self.move(screen_center.x() - x_offset, screen_center.y() - y_offset)
+
         self.inputScreen = InputScreen()
         self.outputScreen = OutputScreen()
 
@@ -39,13 +46,6 @@ class ImageViewer(QMainWindow):
         self.setCentralWidget(self.mainWidget)
 
         self.mainWidget.setCurrentWidget(self.inputScreen)
-
-        # Abre com a janela um pouco pra esquerda, pra facilitar
-        # arrastar as imagens do Explorer
-        screen_center = self.screen().geometry().center()
-        x_offset = 600
-        y_offset = 300
-        self.move(screen_center.x() - x_offset, screen_center.y() - y_offset)
 
         self.inputScreen.imgDropped.connect(self.show_predictions)
         self.outputScreen.imgDropped.connect(self.show_predictions)
@@ -63,5 +63,4 @@ def run():
     imageViewer = ImageViewer()
     imageViewer.show()
     
-    print(imageViewer.styleSheet())
     sys.exit(app.exec())
