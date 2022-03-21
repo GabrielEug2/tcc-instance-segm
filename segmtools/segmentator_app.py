@@ -1,34 +1,32 @@
 import sys
+
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 from PySide6.QtCore import Slot
-from segmtools.image_viewer.input_screen import InputScreen
-from segmtools.image_viewer.output_screen import OutputScreen
+
+from segmtools.core import ImgInput
+from segmtools.core import ImgViewer
 from segmtools.core import utils
 
-class ImageViewer(QMainWindow):
+class Segmentator(QMainWindow):
+    """
+    App que recebe uma imagem como entrada, roda nos 3 modelos e mostra os resultados
+    """
+
     @Slot(str)
     def show_predictions(self, img_path):
+        predictions = utils.run_on_all_models(img_path)
         raw_img = utils.load_img(img_path)
-        ground_truth = utils.load_ground_truth(img_path)
-        predictions = utils.load_predictions(img_path)
 
-        imgs = [raw_img, ground_truth, *predictions]
-        img_descriptions = ["Imagem original", "Ground truth", "Predições do Mask R-CNN",
-                            "Predições do YOLACT", "Predições do SOLO"]
+        imgs = [*predictions, raw_img]
 
-        self.outputScreen.set_imgs(imgs, img_descriptions)
+        self.outputScreen.set_images(imgs)
         self.mainWidget.setCurrentWidget(self.outputScreen)
-        self.outputScreen.show_first_image()
+        self.outputScreen.show_image(0)
 
     def __init__(self):
         super().__init__()
 
-        appSpecificStylesheet = ""
-        with open('./resources/image_viewer.qss') as f:
-            appSpecificStylesheet = f.read()
-
-        self.setWindowTitle('ImageViewer')
-        self.setStyleSheet(appSpecificStylesheet)
+        self.setWindowTitle('Segmentator')
 
         # Abre com a janela um pouco pra esquerda, pra facilitar
         # arrastar as imagens do Explorer
@@ -37,8 +35,8 @@ class ImageViewer(QMainWindow):
         y_offset = 300
         self.move(screen_center.x() - x_offset, screen_center.y() - y_offset)
 
-        self.inputScreen = InputScreen()
-        self.outputScreen = OutputScreen()
+        self.inputScreen = ImgInput('Arraste uma imagem aqui para rodar nos 3 modelos')
+        self.outputScreen = ImgViewer()
 
         self.mainWidget = QStackedWidget()
         self.mainWidget.addWidget(self.inputScreen)
@@ -54,13 +52,12 @@ class ImageViewer(QMainWindow):
 def run():
     app = QApplication(sys.argv)
 
-    mainStylesheet = ""
-    with open('./resources/segmtools.qss') as f:
-        mainStylesheet = f.read()
-    
-    app.setStyleSheet(mainStylesheet)
+    stylesheet = ""
+    with open('./resources/stylesheet.qss') as f:
+        stylesheet = f.read()
+    app.setStyleSheet(stylesheet)
 
-    imageViewer = ImageViewer()
-    imageViewer.show()
+    segmentator = Segmentator()
+    segmentator.show()
     
     sys.exit(app.exec())

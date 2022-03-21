@@ -1,0 +1,19 @@
+QMainWindow {
+    background-color: #242a30;
+}
+
+QLabel {
+    color: #b6c1cc;
+    font-size: 15px;
+}
+
+ImgInput {
+    margin: 10px;
+    border: 4px dashed #b6c1cc;
+    padding: 100px 50px 100px 50px;
+}
+
+QLabel#imgDescription {
+    font-weight: bold;
+    padding: 10px;
+}

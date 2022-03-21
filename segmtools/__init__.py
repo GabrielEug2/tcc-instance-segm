@@ -1,1 +1,0 @@
-from segmtools.image_viewer import image_viewer

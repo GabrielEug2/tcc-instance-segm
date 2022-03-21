@@ -1,10 +1,11 @@
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PySide6.QtCore import Qt, Signal
 
-from segmtools.core import utils
+class ImgViewer(QWidget):
+    """Widget para visualização de imagens. Para configurar as imagens que
+    serão exibidas, use o método `set_images`."""
 
-class OutputScreen(QWidget):
     imgDropped = Signal(str)
 
     def __init__(self):
@@ -22,41 +23,27 @@ class OutputScreen(QWidget):
         layout.addWidget(self.imgDescription)
         self.setLayout(layout)
 
-        self.imgs = []
-        self.imgDescriptions = []
+        self.images = []
 
         self.setFocusPolicy(Qt.StrongFocus)
         self.setAcceptDrops(True)
 
-    def set_imgs(self, imgs, img_descriptions):
-        self.imgs = imgs
-        self.imgDescriptions = img_descriptions
+    def set_images(self, images):
+        self.images = images
 
     def show_image(self, i):
-        valid_index = i in range(0, len(self.imgs))
+        valid_index = i in range(0, len(self.images))
 
         if valid_index:
             # Mostra a respectiva imagem
-            img = self.imgs[i]
-            description = self.imgDescriptions[i]
+            requested_image = self.images[i]
 
-            pixmap = utils.numpy_to_pixmap(img)
-
-            self.imgArea.setPixmap(pixmap)
-            self.imgDescription.setText(description)
+            self.imgArea.setPixmap(requested_image.to_pixmap())
+            self.imgDescription.setText(requested_image.description)
             self.currentIndex = i
         else:
             # Fica na mesma
             pass
-
-    def show_first_image(self):
-        self.show_image(0)
-
-    def show_next_image(self):
-        self.show_image(self.currentIndex + 1)
-        
-    def show_previous_image(self):
-        self.show_image(self.currentIndex - 1)
 
     def keyPressEvent(self, event):
         match event.key():
@@ -68,6 +55,12 @@ class OutputScreen(QWidget):
                 self.show_previous_image()
             case _:
                 event.ignore()
+
+    def show_next_image(self):
+        self.show_image(self.currentIndex + 1)
+        
+    def show_previous_image(self):
+        self.show_image(self.currentIndex - 1)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasImage:
