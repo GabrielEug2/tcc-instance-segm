@@ -8,10 +8,10 @@ class ImgInput(QLabel):
     
     imgDropped = Signal(str)
 
-    def __init__(self, text):
+    def __init__(self, instructions):
         super().__init__()
 
-        self.setText(text)
+        self.setText(instructions)
         self.setWordWrap(True)
         self.setAlignment(Qt.AlignCenter)
 

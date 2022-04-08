@@ -5,7 +5,8 @@ from PySide6.QtCore import Slot
 
 from segmtools.core import ImgInput
 from segmtools.core import ImgViewer
-from segmtools.core import utils
+from . import backend_logic
+
 
 class CocoViewer(QMainWindow):
     """
@@ -14,10 +15,10 @@ class CocoViewer(QMainWindow):
 
     @Slot(str)
     def show_annotations(self, img_path):
-        ground_truth = utils.load_ground_truth(img_path)
-        raw_img = utils.load_img(img_path)
+        annotations = backend_logic.load_annotations(img_path)
+        original_img = backend_logic.load_img(img_path)
 
-        imgs = [ground_truth, raw_img]
+        imgs = [annotations, original_img]
 
         self.outputScreen.set_images(imgs)
         self.mainWidget.setCurrentWidget(self.outputScreen)

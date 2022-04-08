@@ -2,7 +2,7 @@
 from PySide6.QtGui import QImage, QPixmap
 
 class Image():
-    """Classe que representa uma imagem pro meu programa. Além da imagem
+    """Classe que representa uma imagem plotável no ImgViewer. Além da imagem
     em si, tem que ter uma descrição pra mostrar junto ("Imagem original",
     "Predictions do modelo tal" ou algo assim)"""
 

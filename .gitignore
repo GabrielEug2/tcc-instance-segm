@@ -1,2 +1,6 @@
 __pycache__/
-test.jpg
+*.json
+*.jpg
+
+detectron2/
+yolact/

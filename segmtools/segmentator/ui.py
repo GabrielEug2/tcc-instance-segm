@@ -5,7 +5,7 @@ from PySide6.QtCore import Slot
 
 from segmtools.core import ImgInput
 from segmtools.core import ImgViewer
-from segmtools.core import utils
+from . import backend_logic
 
 class Segmentator(QMainWindow):
     """
@@ -14,10 +14,10 @@ class Segmentator(QMainWindow):
 
     @Slot(str)
     def show_predictions(self, img_path):
-        predictions = utils.run_on_all_models(img_path)
-        raw_img = utils.load_img(img_path)
+        predictions = backend_logic.run_on_all_models(img_path)
+        original_img = backend_logic.load_img(img_path)
 
-        imgs = [*predictions, raw_img]
+        imgs = [*predictions, original_img]
 
         self.outputScreen.set_images(imgs)
         self.mainWidget.setCurrentWidget(self.outputScreen)
