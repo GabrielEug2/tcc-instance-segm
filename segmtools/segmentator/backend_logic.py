@@ -18,6 +18,10 @@ from segmtools.core import utils
 
 
 SCORE_THRESH_TEST = 0.5
+MASK_RCNN_CONFIG_FILE = "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
+YOLACT_SCRIPT_FILE = 'models/yolact/eval.py'
+YOLACT_WEIGHTS_FILE = 'models/yolact/yolact_base_54_800000.pth'
+
 
 class Model(Enum):
     MASK_RCNN = 1
@@ -30,38 +34,62 @@ def run_on_all_models(img_path):
     Roda a imagem especificada em todos os modelos e retorna as imagens
     resultantes em um array.
     """
-    img = cv2.imread(img_path)
-    predictions = []
+    img = utils.open_as_rgb(img_path)
+    results = []
+
+    description_template = ("Predições do {model}\n"
+                         "{inference_time:.3f}s de inferência – {n_instances} objetos encontrados")
 
     # =====================================================
     # Mask R-CNN
     # =====================================================
 
+    print("Running Mask RCNN...")
     start_time = time.time()
     raw_predictions = _run_on_maskrcnn(img)
     inference_time = time.time() - start_time
+    print(f"Done {inference_time}")
 
-    img = _plot_predictions(raw_predictions, img, Model.MASK_RCNN)
+    print("Plotting...")
+    start_time = time.time()
+    resulting_img, n_instances = _plot_predictions(raw_predictions, img, Model.MASK_RCNN)
+    plotting_time = time.time() - start_time
+    print(f"Done {plotting_time}\n")
 
-    predictions.append(Image(img, f"Predições do Mask R-CNN ({inference_time:.3f}s de inferência)"))
+    description = description_template.format(model='Mask R-CNN',
+                                              inference_time=inference_time,
+                                              n_instances=n_instances)
+
+    results.append(Image(resulting_img, description))
 
     # =====================================================
     # YOLACT
     # =====================================================
     
+    print("Running YOLACT...")
     start_time = time.time()
     raw_predictions = _run_on_yolact(img_path)
     inference_time = time.time() - start_time
+    print(f"Done {inference_time}")
 
-    img = _plot_predictions(raw_predictions, img, Model.YOLACT)
+    print("Plotting...")
+    start_time = time.time()
+    resulting_img, n_instances = _plot_predictions(raw_predictions, img, Model.YOLACT)
+    plotting_time = time.time() - start_time
+    print(f"Done {plotting_time}\n")
 
-    predictions.append(Image(img, f"Predições do YOLACT ({inference_time:.3f}s de inferência)"))
+    description = description_template.format(model='YOLACT',
+                                              inference_time=inference_time,
+                                              n_instances=n_instances)
+
+    results.append(Image(resulting_img, description))
+    print("\nDone")
 
     # =====================================================
     # SOLO
     # =====================================================
 
-    return predictions
+    return results
 
 def load_img(img_path):
     img = utils.open_as_rgb(img_path)
@@ -71,11 +99,9 @@ def load_img(img_path):
 
 
 def _run_on_maskrcnn(img):
-    config_file = "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
-
     cfg = get_cfg()
-    cfg.merge_from_file(model_zoo.get_config_file(config_file))
-    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(config_file)
+    cfg.merge_from_file(model_zoo.get_config_file(MASK_RCNN_CONFIG_FILE))
+    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(MASK_RCNN_CONFIG_FILE)
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = SCORE_THRESH_TEST
     cfg.MODEL.DEVICE = 'cpu'
 
@@ -86,8 +112,8 @@ def _run_on_maskrcnn(img):
     return output
 
 def _run_on_yolact(img_path):
-    subprocess.run(["python", "yolact/eval.py", "--trained_model=yolact/yolact_base_54_800000.pth",
-                    f"--score_threshold={SCORE_THRESH_TEST}", "--top_k=15", f"--image={img_path}"])
+    subprocess.run(["python", YOLACT_SCRIPT_FILE, f"--trained_model={YOLACT_WEIGHTS_FILE}",
+                    f"--score_threshold={SCORE_THRESH_TEST}", f"--image={img_path}"])
 
     with open('temp.json') as f:
         output = json.load(f)
@@ -106,13 +132,13 @@ def _plot_predictions(predictions, img, predictions_format:Model):
     # Converte a saída pro formato usado no Visualizer
     match predictions_format:
         case Model.MASK_RCNN:
-            instances = predictions['instances']
+            instances = _maskrcnn_to_instances(predictions)
 
         case Model.YOLACT:
-            instances = _yolact_to_instances(predictions)
+            instances = _yolact_to_instances(predictions, img.shape)
 
         case Model.SOLO:
-            instances = _solo_to_instances(predictions, img.shape)
+            instances = _solo_to_instances(predictions)
 
     # O Metadata é só pra saber o nome das classes
     v = Visualizer(img, MetadataCatalog.get('coco_2017_test'))
@@ -122,19 +148,22 @@ def _plot_predictions(predictions, img, predictions_format:Model):
     # imagem. Felizmente eles já implementaram a conversão.
     TEMP_FILENAME = 'test.jpg'
     vis_output.save(TEMP_FILENAME)
-
     img = utils.open_as_rgb(TEMP_FILENAME)
-    # img = cv2.imread(TEMP_FILENAME)
     os.remove(TEMP_FILENAME)
 
-    return img
+    n_instances = len(instances)
+
+    return img, n_instances
+
+def _maskrcnn_to_instances(predictions):
+    instances = predictions['instances']
+
+    return instances
 
 def _yolact_to_instances(predictions, img_shape):
-    import pdb; pdb.set_trace()
-    
-    masks = torch.Tensor(predictions['masks'])
-    classes = torch.Tensor(predictions['classes'])
-    scores = torch.Tensor(predictions['scores'])
+    masks = torch.tensor(predictions['masks'], dtype=torch.uint8)
+    classes = torch.tensor(predictions['classes'], dtype=torch.uint8)
+    scores = torch.tensor(predictions['scores'], dtype=torch.float32)
 
     # instances object
     instances = Instances(image_size=img_shape[:2])
