@@ -1,5 +1,5 @@
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QScrollArea
 from PySide6.QtCore import Qt, Signal
 
 class ImgViewer(QWidget):
@@ -11,10 +11,17 @@ class ImgViewer(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.imgArea = QLabel()
+        self.imgLabel = QLabel()
+        # self.imgLabel.setScaledContents(True)
+        self.imgArea = QScrollArea()
+        self.imgArea.setWidget(self.imgLabel)
+        self.imgArea.setWidgetResizable(True)
+        self.imgArea.setMinimumSize(1200, 720)
+
         self.imgDescription = QLabel()
         self.imgDescription.setObjectName('imgDescription')
 
+        self.imgLabel.setAlignment(Qt.AlignCenter)
         self.imgArea.setAlignment(Qt.AlignCenter)
         self.imgDescription.setAlignment(Qt.AlignCenter)
 
@@ -38,8 +45,9 @@ class ImgViewer(QWidget):
             # Mostra a respectiva imagem
             requested_image = self.images[i]
 
-            self.imgArea.setPixmap(requested_image.to_pixmap())
+            self.imgLabel.setPixmap(requested_image.to_pixmap())
             self.imgDescription.setText(requested_image.description)
+
             self.currentIndex = i
         else:
             # Fica na mesma
@@ -74,3 +82,32 @@ class ImgViewer(QWidget):
         self.imgDropped.emit(img_path)
 
         event.accept()
+
+    def wheelEvent(self, event):
+        if event.modifiers() == Qt.ControlModifier:
+            n_steps = round(event.angleDelta().y() / 15)
+
+            if event.angleDelta().y() > 0:
+                self.zoom_in(n_steps)
+            else:
+                self.zoom_out(n_steps)
+
+            event.accept()
+        else:
+            event.ignore()
+
+    def zoom_in(self, n_steps):
+        zoom_factor = 1.1
+
+        for step in range(0, n_steps):
+            self.imgLabel.resize(zoom_factor * self.imgLabel.pixmap().size())
+            # adjustScrollBar(scrollArea.horizontalScrollBar(), factor)
+            # adjustScrollBar(scrollArea.verticalScrollBar(), factor)
+    
+    def zoom_out(self, n_steps):
+        zoom_factor = 0.9
+
+        for step in range(0, n_steps):
+            self.imgLabel.resize(zoom_factor * self.imgLabel.pixmap().size())
+            # adjustScrollBar(scrollArea.horizontalScrollBar(), factor)
+            # adjustScrollBar(scrollArea.verticalScrollBar(), factor)

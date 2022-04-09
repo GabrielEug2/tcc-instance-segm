@@ -1,10 +1,11 @@
 import sys
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget
+from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6.QtCore import Slot
 
 from segmtools.core import ImgInput
 from segmtools.core import ImgViewer
+from segmtools.core.stacked_widget import StackedWidget
 from . import backend_logic
 
 class Segmentator(QMainWindow):
@@ -38,7 +39,7 @@ class Segmentator(QMainWindow):
         self.inputScreen = ImgInput('Arraste uma imagem aqui para rodar nos 3 modelos')
         self.outputScreen = ImgViewer()
 
-        self.mainWidget = QStackedWidget()
+        self.mainWidget = StackedWidget()
         self.mainWidget.addWidget(self.inputScreen)
         self.mainWidget.addWidget(self.outputScreen)
         self.setCentralWidget(self.mainWidget)

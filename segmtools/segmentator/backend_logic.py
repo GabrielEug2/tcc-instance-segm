@@ -36,14 +36,16 @@ def run_on_all_models(img_path):
     """
     img = utils.open_as_rgb(img_path)
     results = []
+    return results
 
     description_template = ("Predições do {model}\n"
-                         "{inference_time:.3f}s de inferência – {n_instances} objetos encontrados")
+                            "{inference_time:.3f}s de inferência – {n_instances} objetos encontrados")
 
     # =====================================================
     # Mask R-CNN
     # =====================================================
 
+    print('=' * 20)
     print("Running Mask RCNN...")
     start_time = time.time()
     raw_predictions = _run_on_maskrcnn(img)
@@ -66,6 +68,7 @@ def run_on_all_models(img_path):
     # YOLACT
     # =====================================================
     
+    print('=' * 20)
     print("Running YOLACT...")
     start_time = time.time()
     raw_predictions = _run_on_yolact(img_path)
