@@ -1,3 +1,3 @@
-from segmtools import coco_viewer_app
+from coco_viewer import app
 
-coco_viewer_app.run()
+app.run()

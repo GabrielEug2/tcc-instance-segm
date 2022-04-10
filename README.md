@@ -1,1 +1,1 @@
-# SegmTools
+# SegmentationTools

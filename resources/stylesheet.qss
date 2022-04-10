@@ -2,21 +2,18 @@ QMainWindow {
     background-color: #242a30;
 }
 
-QLabel {
+ImgInput {
     color: #b6c1cc;
     font-size: 15px;
-}
-
-ImgInput {
     margin: 10px;
     border: 4px dashed #b6c1cc;
     padding: 100px 50px 100px 50px;
 }
 
-QLabel#imgDescription {
-    font-weight: bold;
-    padding: 10px;
+FigureCanvas {
+    background-color: #242a30;
 }
 
-QScrollArea { background-color: transparent; }
-QScrollArea QWidget { background-color: transparent; }
+NavigationToolbar2QT {
+    background-color: #5b6773; /* um pouco mais claro, porque os botões são escuros*/
+}
