@@ -1,6 +1,6 @@
 # SegmentationTools
 
-### coco_viewer
+## COCO Viewer
 
 Para visualizar as anotações do COCO.
 
@@ -23,7 +23,7 @@ Como usar:
     python coco_viewer.py
     ```
 
-### inference
+## Inference
 
 Para rodar uma imagem em vários modelos e comparar os resultados.
 
@@ -43,24 +43,27 @@ Como usar:
         ```
 
     * YOLACT
-
+        ```bash
+        ```
 
     * SOLO
-
-
+        ```bash
+        ```
 
 * Instale as dependências.
     ```bash
-    conda install pyyaml
     pip install opencv-python
     ```
 
-* Execute os modelos.
+* Rode o programa nas imagens desejadas.
     ```bash
-    python mask_rcnn.py '<img_path>'
-    python yolact.py '<img_path>'
-    python solo.py '<img_path>'
+    cd inference
+    python inference.py --models <maskrcnn, yolact, solo> --images <path1> <path2> <path3>
     ```
+
+* Use (`python inference.py -h`) para ver a lista completa de parâmetros.
+
+
 
 ## Temp
 
