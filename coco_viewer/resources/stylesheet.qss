@@ -1,0 +1,19 @@
+QMainWindow {
+    background-color: #242a30;
+}
+
+ImgInput {
+    color: #b6c1cc;
+    font-size: 15px;
+    margin: 10px;
+    border: 4px dashed #b6c1cc;
+    padding: 100px 50px 100px 50px;
+}
+
+FigureCanvas {
+    background-color: #242a30;
+}
+
+NavigationToolbar2QT {
+    background-color: #5b6773; /* um pouco mais claro, porque os botões são escuros*/
+}

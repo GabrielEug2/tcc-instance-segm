@@ -1,0 +1,1 @@
+python mask_rcnn.py $1 --wsl
