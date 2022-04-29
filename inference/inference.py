@@ -7,23 +7,27 @@ import os
 
 import cv2
 
-VALID_MODELS = ['maskrcnn', 'yolact', 'solo']
-MODEL_TO_MODULE = {
-    'maskrcnn': 'mask_rcnn',
-    'yolact': 'yolact',
-    'solo': 'solo'
+VALID_MODELS = {
+    'maskrcnn': {
+        'internal_name': 'Mask-RCNN',
+        'module_name': 'inference.mask_rcnn'
+    },
+    'yolact': {
+        'internal_name': 'Yolact',
+        'module_name': 'inference.yolact'
+    },
+    'solo': {
+        'internal_name': 'SOLO',
+        'module_name': 'inference.solo'
+    }
 }
-MODEL_TO_PRINTABLE_NAME = {
-    'maskrcnn': 'MaskRCNN',
-    'yolact': 'Yolact',
-    'solo': 'SOLO'
-}
+OUTPUT_DIR = './results'
 
 def build_parser():
     parser = argparse.ArgumentParser(description='Runs instance segmentation on a set of images.')
 
-    parser.add_argument('--images', nargs='*', help='Images to be segmented.')
     parser.add_argument('--models', nargs='*', help='Models to be used.')
+    parser.add_argument('--images', nargs='*', help='Images to be segmented.')
     parser.add_argument('--threshold', type=float, default=0.5,
                         help='Confidence threshold to be used. Only predictions with '
                              'a score higher than this value will be kept.')
@@ -47,34 +51,40 @@ if __name__ == '__main__':
     if args.wsl:
         # Convert Windows paths to access from WSL
         wslpaths = []
-        for image in args.images:
-            wslpaths.append(subprocess.run(['wslpath', image], stdout=subprocess.PIPE).stdout.decode().rstrip('\n'))
-        args.image = wslpaths
+        for img_path in args.images:
+            wslpaths.append(subprocess.run(['wslpath', img_path], stdout=subprocess.PIPE).stdout.decode().rstrip('\n'))
+        args.images = wslpaths
 
-
+    if not os.path.isdir(OUTPUT_DIR):
+        os.mkdir(OUTPUT_DIR)
+    
     print(f"Running {len(args.images)} images on models: {args.models}...\n")
     for model in args.models:
-        module = importlib.import_module(MODEL_TO_MODULE[model], package='inference')
+        module = importlib.import_module(VALID_MODELS[model]['module_name'])
+        model_name = VALID_MODELS[model]['internal_name']
 
         start_time = time.time()
-        print(MODEL_TO_PRINTABLE_NAME[model])
+        print(model_name)
 
         inference_time_on_each_image = []
-        for image in args.images:
-            print(f"\t{image}...", end='')
+        i = 1
+        for img_path in args.images:
+            print(f"  ({i}/{len(args.images)}) {img_path}...", end='', flush=True)
 
-            out_img, inference_time = module.run(args.image, args.threshold)
+            out_img, inference_time = module.run(img_path, args.threshold)
 
-            img_id, extension = os.path.basename(image).split('.')
-            out_filename = f"{img_id}_{MODEL_TO_PRINTABLE_NAME[model]}.{extension}"
-            cv2.imwrite(os.path.join('results', out_filename), out_img)
+            img_id, extension = os.path.basename(img_path).split('.')
+            out_filename = f"{img_id}_{model_name}.{extension}"
+            cv2.imwrite(os.path.join(OUTPUT_DIR, out_filename), out_img)
 
             inference_time_on_each_image.append(inference_time)
 
-            print("Done.")
+            print(" done")
+            i += 1
 
         average_inference_time = sum(inference_time_on_each_image) / len(args.images)
         elapsed_time = time.time() - start_time
 
-        print(f"\n\tDone. ({elapsed_time:.3f}s)")
-        print(f"\tAverage inference time: {average_inference_time:.3f}")
+        print()
+        print(f"  Done. ({elapsed_time:.3f}s)")
+        print(f"  Average inference time: {average_inference_time:.3f}s")

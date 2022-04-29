@@ -14,13 +14,13 @@ with open('config.yaml') as f:
 coco_api = None # Global pra não ter que carregar de novo a cada função
 
 
-def load_image(img_path):
+def _load_image(img_path):
     img = cv2.imread(img_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     return img
 
-def load_annotations(img_path):
+def _load_annotations(img_path):
     # Usa o diretório da imagem pra encontrar o arquivo certo. Só funciona
     # se a imagem estiver na pasta original (train2017, test2017...)
     full_dir, img_filename = os.path.split(img_path)
@@ -36,7 +36,7 @@ def load_annotations(img_path):
 
     return anns
 
-def plot(annotations, img):
+def _plot(annotations, img):
     fig = plt.figure()
     fig.add_axes([0, 0, 1, 1])
     plt.axis('off')
@@ -63,9 +63,9 @@ def plot(annotations, img):
     return fig
 
 def plot_annotations(img_path):
-    img = load_image(img_path)
-    annotations = load_annotations(img_path)
+    img = _load_image(img_path)
+    annotations = _load_annotations(img_path)
 
-    matplot_fig = plot(annotations, img)
+    matplot_fig = _plot(annotations, img)
 
     return matplot_fig

@@ -1,12 +1,14 @@
 
 import time
+import warnings
+warnings.filterwarnings("ignore")
 
 import cv2
 from detectron2.config import get_cfg
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 
-from plot import plot
+from .plot import plot
 
 
 MASK_RCNN_CONFIG_FILE = "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
@@ -21,7 +23,7 @@ def run(img_filename, threshold):
     cfg.MODEL.DEVICE = 'cpu'
 
     model = DefaultPredictor(cfg)
-    
+
     # Leitura da imagem
     img = cv2.imread(img_filename)
 
