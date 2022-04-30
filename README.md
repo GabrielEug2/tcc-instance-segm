@@ -63,7 +63,7 @@ Como usar:
 * Rode o programa nas imagens desejadas.
     ```bash
     cd inference
-    python inference.py --models <maskrcnn, yolact, solo> --images <path1> <path2> <path3>
+    python inference.py ~/input ./results
     ```
 
 * Use (`python inference.py -h`) para ver a lista completa de parâmetros.
