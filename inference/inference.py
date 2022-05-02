@@ -90,4 +90,4 @@ if __name__ == '__main__':
 
         print()
         print(f"  Done. ({elapsed_time:.3f}s)")
-        print(f"  Average inference time: {average_inference_time:.3f}s")
+        print(f"  Average inference time: {average_inference_time:.3f}s\n")
