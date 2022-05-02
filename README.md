@@ -32,11 +32,8 @@ Como usar:
     pip install opencv-python
     ```
 
-* Instale os modelos que você deseja fazer inferência.
+* Instale os modelos.
     * Mask R-CNN
-
-        Precisa instalar mesmo que não vá usar. Eu uso a API deles pra plotar os resultados.
-
         ```bash
         sudo apt install gcc g++
         sudo apt install ninja-build
@@ -58,6 +55,12 @@ Como usar:
 
     * SOLO
         ```bash
+        cd inference
+        git clone https://github.com/aim-uofa/AdelaiDet.git
+        cd AdelaiDet
+        python setup.py build develop
+
+        wget https://cloudstor.aarnet.edu.au/plus/s/chF3VKQT4RDoEqC/download -O SOLOv2_R50_3x.pth
         ```
 
 * Rode o programa nas imagens desejadas.
@@ -66,11 +69,7 @@ Como usar:
     python inference.py ~/input ./results
     ```
 
-* Use (`python inference.py -h`) para ver a lista completa de parâmetros.
-
-
-## Temp
-
-Eu preciso fazer os 3 modelos rodarem na CPU. 
-A versão do PyTorch não importa, é só usar environments diferentes se precisar de uma versão específica.
-Como alguns modelos não funcionam no Windows, eu preciso rodar tudo no Subsistema do Windows pra Linux (WSL).
+* Para ver a lista completa de parâmetros:
+    ```
+    python inference.py -h
+    ```

@@ -1,8 +1,5 @@
-QMainWindow {
-    background-color: #242a30;
-}
-
 ImgInput {
+    background-color: #242a30;
     color: #b6c1cc;
     font-size: 15px;
     margin: 10px;

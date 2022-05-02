@@ -23,7 +23,7 @@ MODEL_INFO = {
 }
 
 def build_parser():
-    parser = argparse.ArgumentParser(description='Runs instance segmentation on a set of images. By default, uses Mask RCNN')
+    parser = argparse.ArgumentParser(description='Runs instance segmentation on a set of images. By default, uses Mask RCNN.')
 
     parser.add_argument('input_dir', help='directory containing the images to segment')
     parser.add_argument('output_dir', help='directory to save the output of the models')
