@@ -28,7 +28,7 @@ def _load_annotations(img_path):
     annotations_filename = 'instances_' + dataset_name + '.json'
 
     global coco_api
-    coco_api = COCO(os.path.join(CONFIG.ANNOTATIONS_FOLDER, annotations_filename))
+    coco_api = COCO(os.path.join(CONFIG['ANNOTATIONS_FOLDER'], annotations_filename))
 
     img_id = int(img_filename.rstrip('.jpg'))
     annIds = coco_api.getAnnIds(imgIds=img_id)
