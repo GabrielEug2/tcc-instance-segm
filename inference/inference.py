@@ -5,11 +5,9 @@ import glob
 import importlib
 import time
 
-import cv2
-
-MODEL_INFO = {
+MODELS = {
     'maskrcnn': {
-        'internal_name': 'Mask-RCNN',
+        'print_name': 'Mask-RCNN',
         'module_name': 'inference.mask_rcnn'
     },
     'yolact': {
@@ -22,17 +20,12 @@ MODEL_INFO = {
     }
 }
 
+
 def build_parser():
     parser = argparse.ArgumentParser(description='Runs instance segmentation on a set of images. By default, uses Mask RCNN.')
 
     parser.add_argument('input_dir', help='directory containing the images to segment')
     parser.add_argument('output_dir', help='directory to save the output of the models')
-    parser.add_argument('-y', '--yolact', action='store_true', help='run only on Yolact')
-    parser.add_argument('-s', '--solo', action='store_true', help='run only on SOLO')
-    parser.add_argument('-a', '--all', action='store_true', help='runs on all available models')
-    parser.add_argument('-t', '--threshold', type=float, default=0.5,
-                        help='Confidence threshold to be used. Only predictions with '
-                             'a score higher than this value will be kept. Defaults to 0.5')
     return parser
 
 
@@ -50,35 +43,24 @@ if __name__ == '__main__':
         print(f"No images found on {args.input_dir}")
         exit()
 
-    models = ['maskrcnn']
-    if args.yolact:
-        models = ['yolact']
-    if args.solo:
-        models = ['solo']
-    if args.all:
-        models = ['maskrcnn', 'yolact', 'solo']
-
     if not os.path.isdir(args.output_dir):
         os.mkdir(args.output_dir)
 
-    print(f"Running {n_images} images on models: {models}...\n")
-    for model in models:
-        module = importlib.import_module(MODEL_INFO[model]['module_name'])
-        model_name = MODEL_INFO[model]['internal_name']
 
-        start_time = time.time()
+    print(f"Running on {n_images} images...\n")
+    for model in MODELS:
+        module = importlib.import_module(MODELS[model]['module_name'])
+        model_name = MODELS[model]['print_name']
         print(model_name)
 
+        start_time = time.time()
         inference_time_on_each_image = []
         i = 1
         for img_path in img_paths:
             print(f"  ({i}/{n_images}) {img_path}...", end='', flush=True)
 
-            out_img, inference_time = module.run(img_path, args.threshold)
-
-            img_id, extension = os.path.basename(img_path).split('.')
-            out_filename = f"{img_id}_{model_name}.{extension}"
-            cv2.imwrite(os.path.join(args.output_dir, out_filename), out_img)
+            json_out, inference_time = module.run(img_path)
+            # concat all then write only once
 
             inference_time_on_each_image.append(inference_time)
 

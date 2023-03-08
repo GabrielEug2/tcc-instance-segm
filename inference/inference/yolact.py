@@ -22,7 +22,7 @@ YOLACT_WEIGHTS = 'yolact/yolact_base_54_800000.pth'
 # Should be similar to:
 # https://github.com/dbolya/yolact/issues/256#issuecomment-567371328
 
-def run(img_filename, threshold):
+def run(img_filename):
     # Criação do modelo
     set_cfg(YOLACT_CONFIG_FILE)
     cfg.mask_proto_debug = False
@@ -45,7 +45,7 @@ def run(img_filename, threshold):
         # as máscaras pro formato certo.
 
     h, w, _ = img.shape
-    classes, scores, boxes, masks = postprocess(preds, w, h, score_threshold = threshold)
+    classes, scores, boxes, masks = postprocess(preds, w, h, score_threshold = 0.5)
 
     inference_time = time.time() - start_time
 

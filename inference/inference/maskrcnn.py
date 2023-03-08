@@ -14,12 +14,12 @@ from .plot import plot
 MASK_RCNN_CONFIG_FILE = "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
 
 
-def run(img_filename, threshold):
+def run(img_filename):
     # Construção do modelo
     cfg = get_cfg()
     cfg.merge_from_file(model_zoo.get_config_file(MASK_RCNN_CONFIG_FILE))
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(MASK_RCNN_CONFIG_FILE)
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = threshold
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
     cfg.MODEL.DEVICE = 'cpu'
 
     model = DefaultPredictor(cfg)

@@ -16,12 +16,12 @@ SOLO_CONFIG_FILE = "AdelaiDet/configs/SOLOv2/R50_3x.yaml"
 SOLO_WEIGHTS = "AdelaiDet/SOLOv2_R50_3x.pth"
 
 
-def run(img_filename, threshold):
+def run(img_filename):
     # Construção do modelo
     cfg = get_cfg()
     cfg.merge_from_file(SOLO_CONFIG_FILE)
     cfg.MODEL.WEIGHTS = SOLO_WEIGHTS
-    cfg.MODEL.SOLOV2.SCORE_THR = threshold
+    cfg.MODEL.SOLOV2.SCORE_THR = 0.5
     cfg.MODEL.DEVICE = 'cpu'
 
     model = DefaultPredictor(cfg)
@@ -37,11 +37,11 @@ def run(img_filename, threshold):
     # Plot
     instances = predictions['instances']
 
-    # Por algum motivo além da minha compreensão, o SOLO compara os
-    # scores com os thresholds ANTES de ter os scores "definitivos".
-    # Isso faz com que ele retorne resultados abaixo do que foi 
-    # solicitado. Pra consertar isso:
-    inds = (instances.scores > threshold)
+    # Por algum motivo além da minha compreensão, o SOLO testa o score
+    # de classificação ANTES de ter os scores "definitivos". Isso faz
+    # com que ele retorne resultados abaixo do que foi solicitado.
+    # Pra consertar isso:
+    inds = (instances.scores > 0.5)
     instances = instances[inds]
 
     # O SOLO prediz as máscaras direto, sem calcular bounding boxes.
