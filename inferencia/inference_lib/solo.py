@@ -3,8 +3,6 @@ import os
 import time
 import sys
 sys.path.append('./AdelaiDet/')
-import warnings
-warnings.filterwarnings("ignore")
 
 import cv2
 from adet.config import get_cfg

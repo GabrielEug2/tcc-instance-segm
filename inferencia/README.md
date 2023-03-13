@@ -1,5 +1,5 @@
 
-## O que precisa
+## Instalação
 
 * [Mask R-CNN](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
     * Instruções no link
@@ -29,8 +29,12 @@
     cd cocoapi/PythonApi
     make
     ```
+* Outras dependências (Opencv, tqdm...):
+```bash
+python -m pip install -r segmentation-tools/inferencia/requirements.txt
+```
 
-## Usage
+## Para rodar
 
 ```bash
 python inference.py <input_dir> <output_dir>

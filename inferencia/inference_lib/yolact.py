@@ -2,10 +2,10 @@
 import time
 import os
 import copy
-
-import cv2
 import sys
 sys.path.append('./yolact/')
+
+import cv2
 from data import set_cfg
 from data import cfg
 import torch
@@ -13,7 +13,7 @@ from yolact import Yolact
 from utils.augmentations import FastBaseTransform
 from layers.output_utils import postprocess
 
-from inference_lib.format_utils import bin_to_rle
+from inference_lib.format_utils import bin_mask_to_rle
 
 
 YOLACT_CONFIG_FILE = 'yolact_base_config'
@@ -61,7 +61,7 @@ def yolact_to_coco(predictions, img_id):
 
         temp_coco_prediction['image_id'] = img_id
         temp_coco_prediction['category_id'] = pred_class
-        temp_coco_prediction['segmentation'] = bin_to_rle(bin_mask)
+        temp_coco_prediction['segmentation'] = bin_mask_to_rle(bin_mask)
         temp_coco_prediction['score'] = score
 
         coco_style_predictions.append(copy.copy(temp_coco_prediction))

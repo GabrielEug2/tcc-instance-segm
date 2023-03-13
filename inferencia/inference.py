@@ -5,6 +5,10 @@ import glob
 import importlib
 import time
 import json
+import warnings
+warnings.filterwarnings("ignore") # o Yolact e o SOLO mostram um monte de avisos
+                                  # de deprecated, acaba poluindo o terminal
+
 from tqdm import tqdm
 
 
@@ -13,7 +17,6 @@ MODELS = [
     {'name': 'yolact', 'module': 'inference_lib.yolact'},
     {'name': 'solo', 'module': 'inference_lib.solo'}
 ]
-
 
 def build_parser():
     parser = argparse.ArgumentParser(

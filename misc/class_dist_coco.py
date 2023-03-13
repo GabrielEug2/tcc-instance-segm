@@ -17,6 +17,7 @@ for file in ANN_FILES:
     for ann in anns["annotations"]:
         class_dist[ann["category_id"]] = class_dist.get(ann["category_id"], 0) + 1
 
+# Eu quero o nome, não o id
 for category in anns["categories"]:
     n_occurences = class_dist.pop(category["id"])
     class_dist[category["name"]] = n_occurences
