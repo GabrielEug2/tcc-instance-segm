@@ -8,14 +8,14 @@ import cv2
 from adet.config import get_cfg
 from detectron2.engine.defaults import DefaultPredictor
 
-from inference_lib.format_utils import detectron_to_coco
+from . import format_utils
 
 
 SOLO_CONFIG_FILE = "AdelaiDet/configs/SOLOv2/R50_3x.yaml"
 SOLO_WEIGHTS = "AdelaiDet/SOLOv2_R50_3x.pth"
 
 
-def run(img_path):
+def predict(img_path):
     cfg = get_cfg()
     cfg.merge_from_file(SOLO_CONFIG_FILE)
     cfg.MODEL.WEIGHTS = SOLO_WEIGHTS
@@ -38,10 +38,10 @@ def run(img_path):
     predictions['instances'] = predictions['instances'][inds]
 
     img_id, _ = os.path.basename(img_path).split('.')
-    formatted_output = solo_to_coco(predictions, img_id)
+    predictions = format_output(predictions, img_id)
 
-    return formatted_output, inference_time
+    return predictions, inference_time
 
-def solo_to_coco(predictions, img_id):
+def format_output(predictions, img_id):
     # O formato é igual o do Detectron, porque foi feito encima dele
-    return detectron_to_coco(predictions, img_id)
+    return format_utils.detectron_to_coco(predictions, img_id)

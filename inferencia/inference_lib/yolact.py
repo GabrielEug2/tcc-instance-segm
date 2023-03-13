@@ -13,14 +13,14 @@ from yolact import Yolact
 from utils.augmentations import FastBaseTransform
 from layers.output_utils import postprocess
 
-from inference_lib.format_utils import bin_mask_to_rle
+from .format_utils import bin_mask_to_rle
 
 
 YOLACT_CONFIG_FILE = 'yolact_base_config'
 YOLACT_WEIGHTS = 'yolact/yolact_base_54_800000.pth'
 
 
-def run(img_path):
+def predict(img_path):
     # Based on:
     # https://github.com/dbolya/yolact/issues/256#issuecomment-567371328
     set_cfg(YOLACT_CONFIG_FILE)
@@ -44,11 +44,11 @@ def run(img_path):
     inference_time = time.time() - start_time
 
     img_id, _ = os.path.basename(img_path).split('.')
-    formatted_output = yolact_to_coco(predictions, img_id)
+    predictions = format_output(predictions, img_id)
 
-    return formatted_output, inference_time
+    return predictions, inference_time
 
-def yolact_to_coco(predictions, img_id):   
+def format_output(predictions, img_id):   
     # Model output - https://github.com/dbolya/yolact/blob/master/layers/output_utils.py
     # COCO format - https://cocodataset.org/#format-results
     coco_style_predictions = []

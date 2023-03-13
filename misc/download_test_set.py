@@ -1,8 +1,8 @@
 
+import argparse
+
 import fiftyone as fo
 import fiftyone.zoo as foz
-
-import argparse
 
 def download(out_dir):
 	dataset = foz.load_zoo_dataset(
