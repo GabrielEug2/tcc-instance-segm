@@ -1,7 +1,7 @@
 
 import argparse
 
-import inference_lib.core
+import inference_lib
 
 def build_parser():
     parser = argparse.ArgumentParser(
@@ -16,7 +16,4 @@ if __name__ == '__main__':
     parser = build_parser()
     args = parser.parse_args()
 
-    args.input_dir = args.input_dir.rstrip('/')
-    args.output_dir = args.input_dir.rstrip('/')
-
-    inference_lib.core.run_on_all_models(args.input_dir, args.output_dir)
+    inference_lib.run_on_all_models(args.input_dir, args.output_dir)

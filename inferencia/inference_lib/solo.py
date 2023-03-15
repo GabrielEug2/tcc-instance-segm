@@ -1,30 +1,24 @@
-
+from pathlib import Path
 import os
 import time
-import sys
-sys.path.append('./AdelaiDet/')
 
 import cv2
 from adet.config import get_cfg
 from detectron2.engine.defaults import DefaultPredictor
 
+from .config import config
 from . import format_utils
-
-
-SOLO_CONFIG_FILE = "AdelaiDet/configs/SOLOv2/R50_3x.yaml"
-SOLO_WEIGHTS = "AdelaiDet/SOLOv2_R50_3x.pth"
-
 
 def predict(img_path):
     cfg = get_cfg()
-    cfg.merge_from_file(SOLO_CONFIG_FILE)
-    cfg.MODEL.WEIGHTS = SOLO_WEIGHTS
+    cfg.merge_from_file(str(Path(config['solo']['dir'], config['solo']['config_file'])))
+    cfg.MODEL.WEIGHTS = str(Path(config['solo']['dir'], config['solo']['weights_file']))
     cfg.MODEL.SOLOV2.SCORE_THR = 0.5
     cfg.MODEL.DEVICE = 'cpu'
 
     model = DefaultPredictor(cfg)
 
-    img = cv2.imread(img_path)
+    img = cv2.imread(str(img_path))
 
     start_time = time.time()
     predictions = model(img)

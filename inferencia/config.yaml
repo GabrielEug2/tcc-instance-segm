@@ -1,0 +1,20 @@
+
+maskrcnn:
+  # Configurações padrão (não mude)
+  config_file: COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml
+
+yolact:
+  # Diretório onde você clonou o repositório
+  dir: /home/gabriel/tcc/segmentation-tools/inferencia/yolact_pkg
+  
+  # Configurações padrão (não mude)
+  config_name: yolact_base_config
+  weights_file: yolact_base_54_800000.pth
+
+solo:
+  # Diretório onde você clonou o repositório
+  dir: /home/gabriel/tcc/segmentation-tools/inferencia/AdelaiDet
+
+  # Configurações padrão (não mude)
+  config_file: configs/SOLOv2/R50_3x.yaml
+  weights_file: SOLOv2_R50_3x.pth

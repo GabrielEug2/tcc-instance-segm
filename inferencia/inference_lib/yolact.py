@@ -1,36 +1,33 @@
-
+from pathlib import Path
 import time
-import os
 import copy
-import sys
-sys.path.append('./yolact/')
 
 import cv2
+import torch
+
+from .config import config
+from .format_utils import bin_mask_to_rle
+
+import sys
+sys.path.insert(0, config['yolact']['dir'])
 from data import set_cfg
 from data import cfg
-import torch
 from yolact import Yolact
 from utils.augmentations import FastBaseTransform
 from layers.output_utils import postprocess
-
-from .format_utils import bin_mask_to_rle
-
-
-YOLACT_CONFIG_FILE = 'yolact_base_config'
-YOLACT_WEIGHTS = 'yolact/yolact_base_54_800000.pth'
 
 
 def predict(img_path):
     # Based on:
     # https://github.com/dbolya/yolact/issues/256#issuecomment-567371328
-    set_cfg(YOLACT_CONFIG_FILE)
+    set_cfg(config['yolact']['config_name'])
     cfg.mask_proto_debug = False
 
     model = Yolact()
-    model.load_weights(YOLACT_WEIGHTS)
+    model.load_weights(str(Path(config['yolact']['dir'], config['yolact']['weights_file'])))
     model.eval()
 
-    img = cv2.imread(img_path)
+    img = cv2.imread(str(img_path))
 
     start_time = time.time()
     with torch.no_grad():
@@ -40,24 +37,25 @@ def predict(img_path):
         # Essas predições ainda não são finais, falta converter
         # as máscaras pro formato certo.
     h, w, _ = img.shape
-    predictions = postprocess(preds, w, h, score_threshold = 0.5)
+    classes, scores, _, masks = postprocess(preds, w, h, score_threshold = 0.5)
+    predictions = {'classes': classes, 'scores': scores, 'masks': masks}
     inference_time = time.time() - start_time
 
-    img_id, _ = os.path.basename(img_path).split('.')
+    img_id = img_path.stem
     predictions = format_output(predictions, img_id)
 
     return predictions, inference_time
 
-def format_output(predictions, img_id):   
+def format_output(predictions, img_id):
     # Model output - https://github.com/dbolya/yolact/blob/master/layers/output_utils.py
     # COCO format - https://cocodataset.org/#format-results
     coco_style_predictions = []
     temp_coco_prediction = {}
 
-    for i in range(len(predictions[0])):
-        pred_class = predictions[0][i].item()
-        score = predictions[1][i].item()
-        bin_mask = predictions[3][i]
+    for i in range(len(predictions['masks'])):
+        pred_class = predictions['classes'][i].item()
+        score = predictions['scores'][i].item()
+        bin_mask = predictions['masks'][i]
 
         temp_coco_prediction['image_id'] = img_id
         temp_coco_prediction['category_id'] = pred_class
