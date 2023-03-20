@@ -11,9 +11,9 @@ Scripts aleatórios que eu usei durante o desenvolvimento.
         * Edite no arquivo o caminho das annotations.
         * `python class_dist_coco.py`
 
-* `download_test_set.py`: baixa 200 imagens e anotações do OpenImages, com algumas das classes que tem mais objetos no COCO.
+* `download_test_set.py`: baixa imagens e anotações do OpenImages, com algumas das classes que tem mais objetos no COCO.
     * Requer:
         * [FiftyOne](https://docs.voxel51.com/getting_started/install.html)
 
     * Como usar:
-        * `python download_test_set.py <output_dir>`
+        * `python download_test_set.py <n_imgs> <output_dir>`

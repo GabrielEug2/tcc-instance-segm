@@ -2,14 +2,15 @@
 ## Inferência
 
 Requisitos:
+* Linux
 * [Mask R-CNN](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
     * Instruções no link
 * [YOLACT](https://github.com/dbolya/yolact)
     * [Esse fork](https://github.com/jerpint/yolact.git) roda na CPU. Pra instalar:
     ```bash
     cd inferencia
-    git clone https://github.com/jerpint/yolact.git yolact_pkg # Você pode clonar onde você quiser, só edite o caminho na config
-    cd yolact
+    git clone https://github.com/jerpint/yolact.git yolact_pkg
+    cd yolact_pkg
     git checkout yolact-cpu
 
     pip install gdown
