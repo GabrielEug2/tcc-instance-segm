@@ -1,0 +1,1 @@
+cp ~/tcc/data/input-4/ /mnt/e/Desktop/TCC/Código/segmentation-tools/analises/sample_data/images -r
