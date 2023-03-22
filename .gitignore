@@ -1,8 +1,8 @@
 __pycache__/
 *.egg-info/
 
-.vscode/
-
 yolact_pkg/
 AdelaiDet/
 cocoapi/
+
+tmp/

@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "download_test_set.py",
+            "type": "python",
+            "request": "launch",
+            "program": "1-misc/download_test_set.py",
+            "args": [
+                "-n", "10",
+                "-o", "${workspaceFolder}\\tmp\\10-sample",
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "evaluate.py",
+            "type": "python",
+            "request": "launch",
+            "program": "3-analises/evaluate.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}
