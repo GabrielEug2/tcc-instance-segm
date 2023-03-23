@@ -4,16 +4,17 @@ import sys
 
 import cv2
 import torch
+
+from .predictor import Predictor
+from . import format_utils
+from ..config import config
+
 sys.path.insert(0, config['yolact']['dir'])
 from data import set_cfg
 from data import cfg
 from yolact import Yolact as YolactLib
 from utils.augmentations import FastBaseTransform
 from layers.output_utils import postprocess
-
-from .predictor import Predictor
-from .config import config
-from . import format_utils
 
 # import warnings
 # warnings.filterwarnings("ignore") # o Yolact e o SOLO mostram um monte de avisos

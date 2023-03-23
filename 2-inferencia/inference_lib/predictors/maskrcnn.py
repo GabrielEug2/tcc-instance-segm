@@ -7,8 +7,8 @@ from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 
 from .predictor import Predictor
-from .config import config
 from . import format_utils
+from ..config import config
 
 class MaskrcnnPred(Predictor):
     def __init__(self):

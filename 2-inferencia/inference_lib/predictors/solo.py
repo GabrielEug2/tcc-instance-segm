@@ -6,8 +6,8 @@ from adet.config import get_cfg
 from detectron2.engine.defaults import DefaultPredictor
 
 from .predictor import Predictor
-from .config import config
 from . import format_utils
+from ..config import config
 
 # import warnings
 # warnings.filterwarnings("ignore") # o Yolact e o SOLO mostram um monte de avisos

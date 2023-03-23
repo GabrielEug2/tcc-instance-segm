@@ -5,7 +5,7 @@ maskrcnn:
 
 yolact:
   # Diretório onde você clonou o repositório
-  dir: /home/gabriel/tcc/segmentation-tools/inferencia/yolact_pkg
+  dir: /home/gabriel/tcc/segmentation-tools/2-inferencia/yolact_pkg
   
   # Configurações padrão (não mude)
   config_name: yolact_base_config
@@ -13,7 +13,7 @@ yolact:
 
 solo:
   # Diretório onde você clonou o repositório
-  dir: /home/gabriel/tcc/segmentation-tools/inferencia/AdelaiDet
+  dir: /home/gabriel/tcc/segmentation-tools/2-inferencia/AdelaiDet
 
   # Configurações padrão (não mude)
   config_file: configs/SOLOv2/R50_3x.yaml

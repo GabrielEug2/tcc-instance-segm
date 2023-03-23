@@ -1,0 +1,1 @@
+python 2-inferencia/inference.py ~/tcc/data/openim_200/data ~/tcc/data/openim_200_output
