@@ -2,8 +2,8 @@
 import json
 
 ANN_FILES = [
-    r"E:\Desktop\TCC\Datasets\COCO\annotations\instances_train2017.json",
-    r"E:\Desktop\TCC\Datasets\COCO\annotations\instances_val2017.json"
+    r"E:\Desktop\TCC\Dados\COCO\annotations\instances_train2017.json",
+    r"E:\Desktop\TCC\Dados\COCO\annotations\instances_val2017.json"
 ]
 OUT_FILE = "class_dist_coco.json"
 
