@@ -1,17 +1,14 @@
 
-import time
-
-import cv2
 from detectron2.config import get_cfg
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 
-from .predictor import Predictor
+from .base_pred import BasePred
 from .config import config
 from inference_lib.format_utils import bin_mask_to_rle
 
 
-class MaskrcnnPred(Predictor):
+class MaskrcnnPred(BasePred):
     def __init__(self):
         cfg = get_cfg()
         cfg.merge_from_file(model_zoo.get_config_file(config['maskrcnn']['config_file']))
@@ -21,22 +18,18 @@ class MaskrcnnPred(Predictor):
 
         self._model = DefaultPredictor(cfg)
 
-    def predict(self, img_path):
-        super().predict(img_path)
-
-        img = cv2.imread(str(img_path))
-
-        start_time = time.time()
+    def predict(self, img):
         raw_predictions = self._model(img)
-        inference_time = time.time() - start_time
 
+        formatted_predictions = self._to_custom_format(raw_predictions)
+        return formatted_predictions
+
+    def _to_custom_format(self, raw_predictions):
         # Formato da saída do modelo:
-        # https://detectron2.readthedocs.io/en/latest/tutorials/models.html#model-output-format
-        predictions = self._to_dict(raw_predictions)
-
-        return predictions, inference_time
-
-    def _to_dict(self, raw_predictions):
+        #   https://detectron2.readthedocs.io/en/latest/tutorials/models.html#model-output-format
+        #
+        # Formato esperado:
+        #   see inference_lib.predictors.base_pred
         formatted_predictions = []
 
         instances = raw_predictions['instances']
@@ -52,6 +45,7 @@ class MaskrcnnPred(Predictor):
                 'mask': bin_mask_to_rle(mask),
                 'bbox': bbox,
             }
+            # TODO: inspect mask
             formatted_predictions.append(pred)
 
         return formatted_predictions

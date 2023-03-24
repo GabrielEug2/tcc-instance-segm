@@ -28,23 +28,15 @@ Requisitos:
     wget https://cloudstor.aarnet.edu.au/plus/s/chF3VKQT4RDoEqC/download -O SOLOv2_R50_3x.pth
     ```
 * [COCO Api](https://github.com/cocodataset/cocoapi.git)
-
-    Windows:
-    ```posh
-    pip install pycocotools
-    ```
-
-    Linux:
     ```bash
     git clone https://github.com/cocodataset/cocoapi.git
     cd cocoapi/PythonApi
     make
     ```
-
-* Minha biblioteca de inferência que usa os modelos acima:
-```bash
-pip install -e inferencia
-```
+* Minha biblioteca de inferência que usa tudo isso:
+    ```bash
+    pip install -e inferencia
+    ```
 
 Como usar:
 * Edite no arquivo `config.yaml` o local onde você instalou os modelos.

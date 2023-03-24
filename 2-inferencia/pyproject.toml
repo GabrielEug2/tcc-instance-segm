@@ -8,7 +8,7 @@ version = "1"
 dependencies = [
     "pyyaml",
     "tqdm",
-    "opencv-python",
+    "opencv-python"
 ]
 
 [tool.setuptools.packages.find]

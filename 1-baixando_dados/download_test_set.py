@@ -18,7 +18,7 @@ def download(n_imgs, out_dir):
     common_classes = [x for x in coco_class_dist if x in openimages_classes]
 
     class_dist = {}
-    for class_name in class_dist:
+    for class_name in common_classes:
         class_dist[class_name] = coco_class_dist.pop(class_name)
 
     # Pega só as 10 que mais tem no COCO

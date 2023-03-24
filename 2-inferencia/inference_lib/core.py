@@ -1,5 +1,6 @@
 from pathlib import Path
 import time
+import datetime
 import json
 
 from tqdm import tqdm
@@ -35,25 +36,26 @@ def run_on_all_models(img_dir_str, output_dir_str, save_masks=False):
         exit()
     
     result_str = (f"{n_images} imagens\n"
-                   "Modelo -- Tempo total (s) -- Tempo médio por imagem (s)\n")
+                  f"{'Modelo'.ljust(8)} {'Tempo total (s)'.ljust(20)} Tempo médio por imagem (s)\n")
 
     print(f"Running on {n_images} images...\n")
     for model in MODELS:
         predictor = model['predictor']
-        inference_time_on_each_image = []
 
         print(model['name'])
         start_time = time.time()
 
         for img_path in tqdm(img_paths):
-            predictions, inference_time = predictor.predict(img_path)
+            img = cv2.imread(str(img_path))
+            predictions = predictor.predict(img)
 
-            # Salva resultados brutos em JSON
+            # Salva resultados brutos em JSON...
             predictions_file = output_dir / f"{img_path.stem}_{model['name']}_pred.json"
             with predictions_file.open('w') as f:
                 json.dump(predictions, f)
 
-            # o plot da imagem
+            # TODO: Mover lógica de plot pra 3-visualizacao/
+            # o plot da imagem...
             predictions_img = _plot(predictions, img_path)
             predictions_img_file = output_dir / f"{img_path.stem}_{model['name']}_pred.jpg"
             cv2.imwrite(predictions_img_file, predictions_img)
@@ -62,15 +64,13 @@ def run_on_all_models(img_dir_str, output_dir_str, save_masks=False):
             if save_masks:
                 i = 1
                 for prediction in predictions:
-                    mask = prediction['mask']
-                    mask_filename = output_dir / f"{img_path.stem}_{model['name']}_masks" / i
-                    cv2.imwrite(mask_filename, rle_to_bin_mask(mask))
+                    mask = rle_to_bin_mask(prediction['mask'])
+                    mask_filename = output_dir / f"{img_path.stem}_{model['name']}_masks" / f"{i}.jpg"
+                    cv2.imwrite(mask_filename, mask)
 
-            inference_time_on_each_image.append(inference_time)
-
-        elapsed_time = time.time() - start_time
-        average_inference_time = sum(inference_time_on_each_image) / n_images
-        result_str += f"{model['name']} -- {elapsed_time:.3f}s -- {average_inference_time:.3f}s\n"
+        total_time = datetime.timedelta(seconds=(time.time() - start_time))
+        average_time = total_time / n_images
+        result_str += f"{model['name'].ljust(8)} {str(total_time).ljust(20)} {average_time:.3f}\n"
 
     results_file = output_dir / 'time.txt'
     with results_file.open('w') as f:

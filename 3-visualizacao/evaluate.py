@@ -3,7 +3,6 @@ from pathlib import Path
 
 SAMPLE_DIR = Path(__file__).parent / 'sample'
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('img_dir', help='directory containing the images',
                     nargs='?', default=str(SAMPLE_DIR / 'images'))

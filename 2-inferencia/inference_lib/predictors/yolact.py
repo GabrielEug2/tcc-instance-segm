@@ -1,14 +1,12 @@
 from pathlib import Path
-import time
-import sys
 
-import cv2
 import torch
 
-from .predictor import Predictor
+from .base_pred import BasePred
 from .config import config
 from inference_lib.format_utils import bin_mask_to_rle
 
+import sys
 sys.path.insert(0, config['yolact']['dir'])
 from data import set_cfg
 from data import cfg
@@ -17,7 +15,7 @@ from utils.augmentations import FastBaseTransform
 from layers.output_utils import postprocess
 
 
-class YolactPred(Predictor):
+class YolactPred(BasePred):
     # Based on:
     # https://github.com/dbolya/yolact/issues/256#issuecomment-567371328
 
@@ -31,10 +29,13 @@ class YolactPred(Predictor):
 
         self._model = model
         
-    def predict(self, img_path):
-        img = cv2.imread(str(img_path))
+    def predict(self, img):
+        raw_predictions = self._inference(img)
 
-        start_time = time.time()
+        formatted_predictions = self._to_custom_format(raw_predictions)
+        return formatted_predictions
+
+    def _inference(self, img):
         with torch.no_grad():
             frame = torch.from_numpy(img).float()
             batch = FastBaseTransform()(frame.unsqueeze(0))
@@ -43,15 +44,16 @@ class YolactPred(Predictor):
             # as máscaras pro formato certo.
         h, w, _ = img.shape
         raw_predictions = postprocess(preds, w, h, score_threshold = 0.5)
-        inference_time = time.time() - start_time
 
-        # Formato da saída:
-        # https://github.com/dbolya/yolact/blob/master/layers/output_utils.py
-        predictions = self._to_dict(raw_predictions)
+        return raw_predictions
 
-        return predictions, inference_time
+    def _to_custom_format(self, predictions):
+        # Formato da saída do modelo:
+        #   https://github.com/dbolya/yolact/blob/master/layers/output_utils.py
+        #
+        # Formato esperado:
+        #   see inference_lib.predictors.base_pred
 
-    def _to_dict(self, predictions):
         formatted_predictions = []
 
         for i in range(len(predictions[0])):
@@ -66,6 +68,7 @@ class YolactPred(Predictor):
                 'mask': bin_mask_to_rle(mask),
                 'bbox': bbox,
             }
+            # TODO: inspect mask
             formatted_predictions.append(pred)
 
         return formatted_predictions
