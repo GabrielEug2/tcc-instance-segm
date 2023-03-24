@@ -8,7 +8,8 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument('img_dir', help='directory containing the images to segment')
 parser.add_argument('output_dir', help='directory to save the results')
-parser.add_argument('-m', '--save_masks', help='whether or not to save individual masks as images')
+parser.add_argument('-m', '--save_masks', help='whether or not to save individual masks as images',
+                    action='store_true')
 
 args = parser.parse_args()
 

@@ -6,8 +6,8 @@ import cv2
 import torch
 
 from .predictor import Predictor
-from . import format_utils
-from ..config import config
+from .config import config
+from inference_lib.format_utils import bin_mask_to_rle
 
 sys.path.insert(0, config['yolact']['dir'])
 from data import set_cfg
@@ -42,26 +42,30 @@ class YolactPred(Predictor):
             # Essas predições ainda não são finais, falta converter
             # as máscaras pro formato certo.
         h, w, _ = img.shape
-        classes, scores, _, masks = postprocess(preds, w, h, score_threshold = 0.5)
-        predictions = {'classes': classes, 'scores': scores, 'masks': masks}
+        raw_predictions = postprocess(preds, w, h, score_threshold = 0.5)
         inference_time = time.time() - start_time
 
-        predictions = self._format_output(predictions, img_path.stem)
+        # Formato da saída:
+        # https://github.com/dbolya/yolact/blob/master/layers/output_utils.py
+        predictions = self._to_dict(raw_predictions)
 
         return predictions, inference_time
 
-    def _format_output(self, predictions, img_id):   
-        # Model output - https://github.com/dbolya/yolact/blob/master/layers/output_utils.py
-        # COCO format - https://cocodataset.org/#format-results
-        coco_style_predictions = []
+    def _to_dict(self, predictions):
+        formatted_predictions = []
 
-        for i in range(len(predictions['masks'])):
-            pred_class = predictions['classes'][i].item()
-            score = predictions['scores'][i].item()
-            bin_mask = predictions['masks'][i]
+        for i in range(len(predictions[0])):
+            pred_class = predictions[0][i].item()
+            score = predictions[1][i].item()
+            bbox = predictions[2][i].tolist()
+            mask = predictions[3][i].tolist()
 
-            coco_style_prediction = format_utils.to_coco_format(img_id, pred_class, score, bin_mask)
+            pred = {
+                'class_id': pred_class,
+                'confidence': score,
+                'mask': bin_mask_to_rle(mask),
+                'bbox': bbox,
+            }
+            formatted_predictions.append(pred)
 
-            coco_style_predictions.append(coco_style_prediction)
-
-        return coco_style_predictions
+        return formatted_predictions

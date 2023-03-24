@@ -5,10 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "evaluate.py",
+            "name": "Inference",
             "type": "python",
             "request": "launch",
-            "program": "3-analises/evaluate.py",
+            "program": "2-inferencia/inference.py",
+            "args": [
+                "tmp", "tmp_output"
+            ],
             "console": "integratedTerminal",
             "justMyCode": false
         }

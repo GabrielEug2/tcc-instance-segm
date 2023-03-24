@@ -17,14 +17,12 @@ def download(n_imgs, out_dir):
     openimages_classes = [x.lower() for x in openimages.get_segmentation_classes()]
     common_classes = [x for x in coco_class_dist if x in openimages_classes]
 
+    class_dist = {}
+    for class_name in class_dist:
+        class_dist[class_name] = coco_class_dist.pop(class_name)
+
     # Pega só as 10 que mais tem no COCO
-    common_classes_dist = {}
-    for class_name in common_classes:
-        common_classes_dist[class_name] = coco_class_dist.pop(class_name)
-
-    sorted_class_dist = sorted(common_classes_dist.items(), key=lambda item: item[1], reverse=True)
-
-    classes = sorted_class_dist[:10]
+    classes = sorted(class_dist.items(), key=lambda item: item[1], reverse=True)[:10]
     classes = [x[0].capitalize() for x in classes]
 
     dataset = fozoo.load_zoo_dataset(

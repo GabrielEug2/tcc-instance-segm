@@ -6,9 +6,9 @@ from detectron2.config import get_cfg
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 
-from .config import config
 from .predictor import Predictor
-from . import format_utils
+from .config import config
+from inference_lib.format_utils import bin_mask_to_rle
 
 
 class MaskrcnnPred(Predictor):
@@ -17,35 +17,41 @@ class MaskrcnnPred(Predictor):
         cfg.merge_from_file(model_zoo.get_config_file(config['maskrcnn']['config_file']))
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(config['maskrcnn']['config_file'])
         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
-        cfg.MODEL.DEVICE = 'cpu'        
+        cfg.MODEL.DEVICE = 'cpu'
 
         self._model = DefaultPredictor(cfg)
 
     def predict(self, img_path):
+        super().predict(img_path)
+
         img = cv2.imread(str(img_path))
 
         start_time = time.time()
-        predictions = self._model(img)
+        raw_predictions = self._model(img)
         inference_time = time.time() - start_time
 
-        predictions = self._format_output(predictions, img_path.stem)
+        # Formato da saída do modelo:
+        # https://detectron2.readthedocs.io/en/latest/tutorials/models.html#model-output-format
+        predictions = self._to_dict(raw_predictions)
 
         return predictions, inference_time
 
-    def _format_output(self, predictions, img_id):
-        pass
-        # return instances object
+    def _to_dict(self, raw_predictions):
+        formatted_predictions = []
 
+        instances = raw_predictions['instances']
+        for i in range(len(instances)):
+            pred_class = instances.pred_classes[i].item()
+            score = instances.scores[i].item()
+            mask = instances.pred_masks[i]
+            bbox = instances.pred_boxes.tensor[i]
 
-        # coco_style_predictions = []
+            pred = {
+                'class_id': pred_class,
+                'score': score,
+                'mask': bin_mask_to_rle(mask),
+                'bbox': bbox,
+            }
+            formatted_predictions.append(pred)
 
-        # for i in range(len(predictions['instances'])):
-        #     pred_class = predictions['instances'].pred_classes[i].item()
-        #     score = predictions['instances'].scores[i].item()
-        #     bin_mask = predictions['instances'].pred_masks[i]
-
-        #     coco_style_prediction = to_coco_format(img_id, pred_class, score, bin_mask)
-
-        #     coco_style_predictions.append(coco_style_prediction)
-
-        # return coco_style_predictions
+        return formatted_predictions
