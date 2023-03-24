@@ -18,9 +18,3 @@
 # out_filename = f"{img_id}_{model_name}.{extension}"
 
 # cv2.imwrite(os.path.join(args.output_dir, out_filename), out_img)
-
-
-
-# classes = coco_dataset.default_classes
-# fouc.add_coco_labels(coco_dataset, "predictions", predictions, classes)
-

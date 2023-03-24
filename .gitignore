@@ -5,4 +5,4 @@ yolact_pkg/
 AdelaiDet/
 cocoapi/
 
-tmp/
+*_fix.json

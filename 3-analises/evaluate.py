@@ -19,3 +19,5 @@ dataset = load_data(args.dataset_dir, args.predictions_dir)
 
 session = fo.launch_app(dataset)
 session.wait()
+
+dataset.draw_labels('tmp', label_fields=['ground_truth_segmentations', 'maskrcnn_pred'])
