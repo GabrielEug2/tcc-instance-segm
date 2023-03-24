@@ -16,9 +16,6 @@ from yolact import Yolact as YolactLib
 from utils.augmentations import FastBaseTransform
 from layers.output_utils import postprocess
 
-# import warnings
-# warnings.filterwarnings("ignore") # o Yolact e o SOLO mostram um monte de avisos
-#                                   # de deprecated, acaba poluindo o terminal
 
 class YolactPred(Predictor):
     # Based on:

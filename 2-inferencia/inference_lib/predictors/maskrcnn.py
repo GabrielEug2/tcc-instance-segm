@@ -6,9 +6,10 @@ from detectron2.config import get_cfg
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 
+from .config import config
 from .predictor import Predictor
 from . import format_utils
-from ..config import config
+
 
 class MaskrcnnPred(Predictor):
     def __init__(self):
@@ -32,4 +33,19 @@ class MaskrcnnPred(Predictor):
         return predictions, inference_time
 
     def _format_output(self, predictions, img_id):
-        return format_utils.detectron_to_coco(predictions, img_id)
+        pass
+        # return instances object
+
+
+        # coco_style_predictions = []
+
+        # for i in range(len(predictions['instances'])):
+        #     pred_class = predictions['instances'].pred_classes[i].item()
+        #     score = predictions['instances'].scores[i].item()
+        #     bin_mask = predictions['instances'].pred_masks[i]
+
+        #     coco_style_prediction = to_coco_format(img_id, pred_class, score, bin_mask)
+
+        #     coco_style_predictions.append(coco_style_prediction)
+
+        # return coco_style_predictions

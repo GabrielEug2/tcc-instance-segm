@@ -34,12 +34,12 @@ def download(n_imgs, out_dir):
         classes=classes,
         max_samples=n_imgs
     )
-
     dataset.export(
-        export_dir=str(Path(out_dir)),
+        export_dir=out_dir,
         dataset_type=fo.types.COCODetectionDataset
     )
-
+    Path.rename(Path(out_dir / 'data'), Path(out_dir / 'images'))
+    Path.rename(Path(out_dir / 'labels.json'), Path(out_dir / 'annotations.json'))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

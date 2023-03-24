@@ -9,9 +9,6 @@ from .predictor import Predictor
 from . import format_utils
 from ..config import config
 
-# import warnings
-# warnings.filterwarnings("ignore") # o Yolact e o SOLO mostram um monte de avisos
-#                                   # de deprecated, acaba poluindo o terminal
 
 class SoloPred(Predictor):
     def __init__(self):

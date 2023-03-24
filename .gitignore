@@ -4,5 +4,3 @@ __pycache__/
 yolact_pkg/
 AdelaiDet/
 cocoapi/
-
-*_fix.json

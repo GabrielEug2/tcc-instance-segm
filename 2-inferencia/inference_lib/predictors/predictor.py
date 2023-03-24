@@ -1,10 +1,18 @@
 
 class Predictor():
     def __init__(self):
-        # Carrega pesos, etc, constróí o modelo
+        """Inicializa o modelo, carregando pesos e configurando o
+        que for necessário."""
         pass
 
     def predict(self, img_path):
-        # Prediz segmentações na imagem e retorna elas no formato do COCO
-        # (https://cocodataset.org/#format-results)
-        pass
+        """Segmenta objetos na imagem e retorna um objeto Instances.
+
+        Args:
+            img_path (str): caminho para a imagem
+
+        Returns:
+            Instances: see https://detectron2.readthedocs.io/en/latest/tutorials/models.html#model-output-format
+            https://detectron2.readthedocs.io/en/latest/modules/structures.html#detectron2.structures.Instances
+        """
+        return None

@@ -27,12 +27,6 @@ Requisitos:
 
     wget https://cloudstor.aarnet.edu.au/plus/s/chF3VKQT4RDoEqC/download -O SOLOv2_R50_3x.pth
     ```
-* [COCO Api](https://github.com/cocodataset/cocoapi.git)
-    ```bash
-    git clone https://github.com/cocodataset/cocoapi.git
-    cd cocoapi/PythonApi
-    make
-    ```
 * Minha biblioteca de inferência:
 ```bash
 pip install -e inferencia

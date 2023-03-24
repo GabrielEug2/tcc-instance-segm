@@ -4,6 +4,13 @@
 
 # import cv2
 
+# “instances”: Instances object with the following fields:
+#     “pred_boxes”: Boxes object storing N boxes, one for each detected instance.
+#     “scores”: Tensor, a vector of N confidence scores.
+#     “pred_classes”: Tensor, a vector of N labels in range [0, num_categories).
+#     “pred_masks”: a Tensor of shape (N, H, W), masks for each detected instance.
+#     “pred_keypoints”: a Tensor of shape (N, num_keypoint, 3). Each row in the last dimension is (x, y, score). Confidence scores are larger than 0.
+
 # out_img = plot(instances, img)
 
 # def plot(instances, img):

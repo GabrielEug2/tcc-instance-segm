@@ -1,23 +1,19 @@
 import argparse
 from pathlib import Path
 
-import fiftyone as fo
+SAMPLE_DIR = Path(__file__).parent / 'sample'
 
-from view_lib import load_data
-
-SAMPLE_DATA_DIR = Path(__file__).parent / 'sample_data'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-d', '--dataset_dir', help='directory containing the images and annotations',
-                    default=str(SAMPLE_DATA_DIR / 'dataset'))
-parser.add_argument('-p', '--predictions_dir', help='directory containing the predictions',
-                    default=str(SAMPLE_DATA_DIR / 'predictions'))
+parser.add_argument('img_dir', help='directory containing the images',
+                    nargs='?', default=str(SAMPLE_DIR / 'images'))
+
+parser.add_argument('ann_file', help='file containing the annotations for the images',
+                    nargs='?', default=str(SAMPLE_DIR / 'annotations.json'))
+
+parser.add_argument('pred_dir', help='directory containing the predictions',
+                    nargs='?', default=str(SAMPLE_DIR / 'predictions'))
 
 args = parser.parse_args()
 
-dataset = load_data(args.dataset_dir, args.predictions_dir)
-
-session = fo.launch_app(dataset)
-session.wait()
-
-dataset.draw_labels('tmp', label_fields=['ground_truth_segmentations', 'maskrcnn_pred'])
+evaluate(args.img_dir, args.ann_file, args.pred_dir)
