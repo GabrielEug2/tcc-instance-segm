@@ -57,18 +57,17 @@ class YolactPred(BasePred):
         formatted_predictions = []
 
         for i in range(len(predictions[0])):
-            pred_class = predictions[0][i].item()
-            score = predictions[1][i].item()
+            class_id = predictions[0][i].item() + 1 # Yolact faz de [0-N), no COCO é [1-N]
+            confidence = predictions[1][i].item()
+            mask = predictions[3][i]
             bbox = predictions[2][i].tolist()
-            mask = predictions[3][i].tolist()
 
             pred = {
-                'class_id': pred_class,
-                'confidence': score,
+                'class_id': class_id,
+                'confidence': confidence,
                 'mask': bin_mask_to_rle(mask),
                 'bbox': bbox,
             }
-            # TODO: inspect mask
             formatted_predictions.append(pred)
 
         return formatted_predictions

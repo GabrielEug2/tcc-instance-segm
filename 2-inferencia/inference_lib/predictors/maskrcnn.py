@@ -30,22 +30,22 @@ class MaskrcnnPred(BasePred):
         #
         # Formato esperado:
         #   see inference_lib.predictors.base_pred
+
         formatted_predictions = []
 
         instances = raw_predictions['instances']
         for i in range(len(instances)):
-            pred_class = instances.pred_classes[i].item()
-            score = instances.scores[i].item()
+            class_id = instances.pred_classes[i].item() + 1 # Detectron faz de [0-N), no COCO é [1-N]
+            confidence = instances.scores[i].item()
             mask = instances.pred_masks[i]
-            bbox = instances.pred_boxes.tensor[i]
+            bbox = instances.pred_boxes.tensor[i].tolist()
 
             pred = {
-                'class_id': pred_class,
-                'score': score,
+                'class_id': class_id,
+                'confidence': confidence,
                 'mask': bin_mask_to_rle(mask),
                 'bbox': bbox,
             }
-            # TODO: inspect mask
             formatted_predictions.append(pred)
 
         return formatted_predictions

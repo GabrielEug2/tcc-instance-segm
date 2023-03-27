@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "2-inferencia/inference.py",
             "args": [
-                "tmp", "tmp_output"
+                "2-inferencia/debug/images", "2-inferencia/debug/output"
             ],
             "console": "integratedTerminal",
             "justMyCode": false

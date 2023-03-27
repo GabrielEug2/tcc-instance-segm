@@ -16,4 +16,4 @@ Scripts aleatórios que eu usei durante o desenvolvimento.
         * [FiftyOne](https://docs.voxel51.com/getting_started/install.html)
 
     * Como usar:
-        * `python download_test_set.py --n_imgs=<n_imgs --output_dir=<output_dir>`
+        * `python download_test_set.py <n_imgs> <out_dir>`

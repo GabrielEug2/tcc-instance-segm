@@ -12,7 +12,7 @@ class BasePred(ABC):
         """Segmenta objetos na imagem.
 
         Args:
-            img (numpy.ndarray): imagem no formato BGR
+            img (np.ndarray): imagem no formato BGR
 
         Returns:
             list: lista de objetos detectados na imagem, no formato:

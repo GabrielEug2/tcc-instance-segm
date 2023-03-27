@@ -1,8 +1,6 @@
 from pathlib import Path
 import json
 
-from pycocotools import mask
-
 COCO_CLASS_MAP_FILE = Path(__file__).parent / 'coco_class_map.json'
 
 def fix_annotations(ann_file):
@@ -66,40 +64,3 @@ def _id_gen():
     while True:
         yield next_id
         next_id += 1
-
-def fix_predictions(pred_files, ann_file):
-    # No momento de inferência, o ID da imagem não importa, eu só salvo como
-    # o nome do arquivo pra ficar fácil de achar. Aqui, no entanto, eu preciso
-    # que o ID seja o mesmo que está no arquivo de annotations.
-    with ann_file.open('r') as f:
-        anns = json.load(f)
-
-    filename_id_map = {}
-    for img in anns['images']:
-        filename_id_map[img['file_name']] = img['id']
-
-    for pred_file in pred_files:
-        with pred_file.open('r') as f:
-            predictions = json.load(f)
-
-        for prediction in predictions:
-            filename = prediction['image_id'] + '.jpg'
-            prediction['image_id'] = filename_id_map[filename]
-
-            # Convert to [top-left-x, top-left-y, width, height]
-            # in relative coordinates in [0, 1] x [0, 1]
-            x1, y1, x2, y2 = box
-            rel_box = [x1 / w, y1 / h, (x2 - x1) / w, (y2 - y1) / h]
-
-            # Também adiciona um bbox porque o fiftyone precisa disso pra importar
-            prediction['bbox'] = [0, 0, 0, 0]
-
-        fixed_pred_file = pred_file.parent / (pred_file.stem + '_fix.json')
-        with fixed_pred_file.open('w') as f:
-            json.dump(predictions, f)
-
-def rle_to_bin(rle):
-    rle['counts'] = rle['counts'].encode('ascii')
-    bin_mask = mask.decode(rle)
-
-    return bin_mask

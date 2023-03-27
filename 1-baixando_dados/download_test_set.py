@@ -17,19 +17,19 @@ def download(n_imgs, out_dir):
     openimages_classes = [x.lower() for x in openimages.get_segmentation_classes()]
     common_classes = [x for x in coco_class_dist if x in openimages_classes]
 
-    class_dist = {}
+    common_classes_dist = {}
     for class_name in common_classes:
-        class_dist[class_name] = coco_class_dist.pop(class_name)
+        common_classes_dist[class_name] = coco_class_dist.pop(class_name)
 
     # Pega só as 10 que mais tem no COCO
-    classes = sorted(class_dist.items(), key=lambda item: item[1], reverse=True)[:10]
-    classes = [x[0].capitalize() for x in classes]
+    top_classes = sorted(common_classes_dist.items(), key=lambda item: item[1], reverse=True)[:10]
+    top_classes = [x[0].capitalize() for x in top_classes]
 
     dataset = fozoo.load_zoo_dataset(
         "open-images-v6",
         split="validation",
         label_types="segmentations",
-        classes=classes,
+        classes=top_classes,
         max_samples=n_imgs
     )
     dataset.export(
@@ -41,8 +41,8 @@ def download(n_imgs, out_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--n_imgs', type=int, help='Number of images to download', default=200)
-    parser.add_argument('-o', '--out_dir', help='Directory to save', default='test_set')
+    parser.add_argument('n_imgs', type=int, help='Number of images to download')
+    parser.add_argument('out_dir', help='Directory to save')
 
     args = parser.parse_args()
 

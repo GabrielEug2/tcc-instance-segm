@@ -1,9 +1,9 @@
 from pathlib import Path
 
-import torch
 from adet.config import get_cfg
 from detectron2.engine.defaults import DefaultPredictor
 from detectron2.structures import Boxes
+import torch
 
 from .base_pred import BasePred
 from .config import config
@@ -46,6 +46,9 @@ class SoloPred(BasePred):
         # Formato esperado:
         #   see inference_lib.predictors.base_pred
 
+        formatted_predictions = []
+        instances = raw_predictions['instances']
+
         # O SOLO prediz as máscaras direto, sem calcular bounding boxes.
         # Isso é legal, mas o problema é que o nome das classes no plot fica
         # tudo empilhado no canto. Felizmente eles tem um código pra
@@ -54,29 +57,25 @@ class SoloPred(BasePred):
         # See:
         #   https://github.com/aim-uofa/AdelaiDet/issues/469
         #   https://github.com/aim-uofa/AdelaiDet/blob/4a3a1f7372c35b48ebf5f6adc59f135a0fa28d60/adet/modeling/solov2/solov2.py#L496
-        pred_boxes = torch.zeros(raw_predictions.pred_masks.size(0), 4)
-        for i in range(raw_predictions.pred_masks.size(0)):
-            mask = raw_predictions.pred_masks[i].squeeze()
+        pred_boxes = torch.zeros(instances.pred_masks.size(0), 4)
+        for i in range(instances.pred_masks.size(0)):
+            mask = instances.pred_masks[i].squeeze()
             ys, xs = torch.where(mask)
             pred_boxes[i] = torch.tensor([xs.min(), ys.min(), xs.max(), ys.max()]).int()
-        raw_predictions.pred_boxes = Boxes(pred_boxes)
+        instances.pred_boxes = Boxes(pred_boxes)
 
-        formatted_predictions = []
-
-        instances = raw_predictions['instances']
         for i in range(len(instances)):
-            pred_class = instances.pred_classes[i].item()
-            score = instances.scores[i].item()
-            mask = instances.pred_masks[i].tolist()
+            class_id = instances.pred_classes[i].item() + 1 # Detectron faz de [0-N), no COCO é [1-N]
+            confidence = instances.scores[i].item()
+            mask = instances.pred_masks[i]
             bbox = instances.pred_boxes.tensor[i].tolist()
 
             pred = {
-                'class_id': pred_class,
-                'score': score,
+                'class_id': class_id,
+                'confidence': confidence,
                 'mask': bin_mask_to_rle(mask),
                 'bbox': bbox,
             }
-            # TODO: inspect mask
             formatted_predictions.append(pred)
 
         return formatted_predictions

@@ -40,4 +40,4 @@ Requisitos:
 
 Como usar:
 * Edite no arquivo `config.yaml` o local onde você instalou os modelos.
-* `python inference.py <input_dir> <output_dir>`
+* `python inference.py <img_dir> <out_dir>`

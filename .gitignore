@@ -5,5 +5,4 @@ yolact_pkg/
 AdelaiDet/
 cocoapi/
 
-tmp/
-tmp_output/
+debug/
