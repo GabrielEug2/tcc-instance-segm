@@ -20,5 +20,6 @@ usar os exemplos em `sample_data`.
     ```
 
 Como usar:
+* `python fix_annotations.py <ann_file>`
 * `python plot_annotations.py <img_file> <ann_file> <out_dir>`
 * `python plot_predictions.py <img_file> <pred_file> <out_dir>`
