@@ -2,47 +2,84 @@
 import json
 from pathlib import Path
 
+import cv2
 from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog
 from detectron2.structures import Instances, Boxes
 import torch
 import numpy as np
 
-from .format_utils import rle_to_bin_mask
+from .format_utils import polygon_to_rle, rle_to_bin_mask
 
-def plot_annotations(img_path, ann_path, out_dir):
-    img_file = Path(img_path)
-    ann_file = Path(ann_path)
-    out_dir = Path(out_dir)
+def plot_annotations(img_file_str, ann_file_str, out_dir_str):
+    img_file = Path(img_file_str)
+    ann_file = Path(ann_file_str)
+    out_dir = Path(out_dir_str)
 
     with ann_file.open('r') as f:
         anns = json.load(f)
 
-    anns['images']
+    requested_img_id = None
+    for img_desc in anns['images']:
+        if img_desc['filename'] == img_file.stem:
+            requested_img_id = img_desc['id']
+            break
+    if requested_img_id == None:
+        print("Imagem não encontrada no arquivo de annotations")
+        exit(1)
+    
+    relevant_anns = []
+    for ann in anns['annotations']:
+        if ann['image_id'] == requested_img_id:
+            relevant_anns.append(ann)
+    if len(relevant_anns) == 0:
+        print("A imagem não possui annotations no arquivo informado")
+        exit(2)
 
-    # search in images by img.stem to get id
-    # search in annotations by id to find annotations
-    # instances object
-    # plot
+    # Converte as annotations pro formato de prediction pra plotar da mesma forma
+    anns_in_pred_format = []
+    img = cv2.imread(str(img_file))
+    h, w, _ = img.shape
+    for ann in relevant_anns:
+        class_id = ann['category_id'] - 1 # Para plotar, precisa estar em [0,N)
+        confidence = ann['score']
+        mask = polygon_to_rle(ann['segmentation'], h, w)
+        bbox = ann['bbox']
 
+        pred = {
+            'class_id': class_id,
+            'confidence': confidence,
+            'mask': mask,
+            'bbox': bbox,
+        }
+        anns_in_pred_format.append(pred)
+
+    annotated_img = _plot(anns_in_pred_format, img_file)
+    annotated_img_file = out_dir  / f"{img_file.stem}_groundtruth.jpg"
+    cv2.imwrite(str(annotated_img_file), annotated_img)
+
+    return
+
+def plot_predictions(img_file_str, pred_dir_str, out_dir_str):
+    img_file = Path(img_file_str)
+    pred_dir = Path(pred_dir_str)
+    out_dir = Path(out_dir_str)
+
+    pred_files = list(pred_dir.glob(f"{img_file.stem}_*_pred.json"))
+    if len(pred_files) == 0:
+        print(f"No predictions found on \"{pred_dir_str}\".")
+        exit()
+
+    for pred_file in pred_files:
+        with pred_file.open('r') as f:
+            predictions = json.load(f)
+
+        predictions_img = _plot(predictions, img_file)
+        model_name = img_file.stem.split('_')[1]
+        predictions_img_file = out_dir / f"{img_file.stem}_{model_name}_pred.jpg"
+        cv2.imwrite(str(predictions_img_file), predictions_img)
     pass
 
-def plot_predictions():
-    # for pred_file
-    # output_dir / f"{img_path.stem}_*_pred.json"
-    #   load predictions
-    #   with predictions_file.open('w') as f:
-    #     json.dump(predictions, f)
-
-
-    # predictions_img = _plot(predictions, img_path)
-    # predictions_img_file = output_dir / f"{img_path.stem}_{model['name']}_pred.jpg"
-    # cv2.imwrite(str(predictions_img_file), predictions_img)
-    pass
-
-def _plot_img():
-    pass
-            
 def _save_masks():
     #     i = 1
     #     for prediction in predictions:
@@ -76,68 +113,3 @@ def _plot(predictions, img_path):
     predictions_img = vis_out.get_image()
 
     return predictions_img
-
-
-
-
-
-
-
-
-
-
-# def load_predictions(dataset, predictions_dir, dataset_dir):
-#     raw_pred_files = []
-#     for file in Path(predictions_dir).glob('*.json'):
-#         if not file.name.endswith(FIXED_ANN_SUFIX):
-#             raw_pred_files.append(file)
-
-#     if len(raw_pred_files) == 0:
-#         print(f"No predictions found on \"{predictions_dir}\".")
-#         exit()
-
-#     fixed_pred_files = []
-#     for raw_pred_file in raw_pred_files:
-#         fixed_pred_files.append(Path(
-#             predictions_dir,
-#             raw_pred_file.name.removesuffix(NORMAL_PRED_SUFFIX) + FIXED_PRED_SUFIX
-#         ))
-
-#     if any(not f.exists() for f in fixed_pred_files):
-#         fixed_ann_file = Path(dataset_dir, REL_ANN_PATH + FIXED_ANN_SUFIX)
-#         conversions.fix_predictions(raw_pred_files, fixed_ann_file)
-
-#     classes = dataset.default_classes
-#     id_detections_map = {}
-#     for pred_file in fixed_pred_files:
-#         with pred_file.open('r') as f:
-#             predictions = json.load(f)
-
-#         model_name = pred_file.name.removesuffix(FIXED_PRED_SUFIX)
-#         for prediction in predictions:
-#             det_list = id_detections_map.get(prediction['image_id'], [])
-#             det_list.append(
-#                 fo.Detection(
-#                     mask=conversions.rle_to_bin(prediction['segmentation']),
-#                     label=classes[prediction['category_id']],
-#                     confidence=prediction['score']
-#                 )
-#             )
-#             id_detections_map[prediction['image_id']] = det_list
-
-#         for sample in dataset:
-#             # sample = dataset.match(F("ground_truth_coco_id") == prediction['image_id']).first()
-#             coco_id = sample.ground_truth_coco_id
-#             sample[model_name] = fo.Detections(detections=id_detections_map[coco_id])
-#             sample.save()
-
-#         # fo_coco_utils.add_coco_labels(
-#         #     dataset,
-#         #     model_name,
-#         #     predictions,
-#         #     dataset.default_classes,
-#         #     label_type='segmentations',
-#         #     coco_id_field='ground_truth_coco_id'
-#         # )
-
-#     return dataset

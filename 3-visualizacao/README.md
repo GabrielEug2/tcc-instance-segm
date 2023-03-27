@@ -18,6 +18,8 @@ usar os exemplos em `sample_data`.
     cd cocoapi/PythonApi
     make
     ```
+* [Detectron](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
+    * Instruções no link
 
 Como usar:
 * `python fix_annotations.py <ann_file>`

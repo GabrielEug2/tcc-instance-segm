@@ -11,4 +11,4 @@ parser.add_argument('-m', '--masks-too', help='whether or not to save individual
 
 args = parser.parse_args()
 
-view_lib.plot_annotations(args.img_file, args.ann_file, args.out_dir, args.save_masks)
+view_lib.plot_annotations(args.img_file, args.pred_dir, args.out_dir, args.save_masks)
