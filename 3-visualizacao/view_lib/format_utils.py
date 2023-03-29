@@ -4,7 +4,7 @@ from pycocotools.coco import COCO
 
 def rle_to_bin_mask(rle):
     rle['counts'] = rle['counts'].encode('ascii')
-    bin_mask = coco_utils.decode(rle)
+    bin_mask = coco_utils.decode(rle).astype('bool', order='C')
 
     return bin_mask
 
@@ -21,7 +21,7 @@ def polygon_to_rle(polygon, height, width):
     return rle
 
 def bin_mask_to_rle(bin_mask):
-    rle = coco_utils.encode(bin_mask.numpy().astype('uint8', order='F'))
+    rle = coco_utils.encode(bin_mask)
     rle['counts'] = rle['counts'].decode('ascii')
 
     return rle

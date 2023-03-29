@@ -1,5 +1,5 @@
 #!/bin/bash
-IMG_DIR="$HOME/tcc/data/openim_200/images"
+IMG_DIR="$HOME/tcc/data/openimages-200/images"
 
 if [[ -n $1 && -n $2 ]]; then
     n_imgs=$1

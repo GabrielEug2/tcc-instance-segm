@@ -19,7 +19,7 @@ def download(n_imgs, out_dir):
 
     common_classes_dist = {}
     for class_name in common_classes:
-        common_classes_dist[class_name] = coco_class_dist.pop(class_name)
+        common_classes_dist[class_name] = coco_class_dist[class_name]
 
     # Pega só as 10 que mais tem no COCO
     top_classes = sorted(common_classes_dist.items(), key=lambda item: item[1], reverse=True)[:10]

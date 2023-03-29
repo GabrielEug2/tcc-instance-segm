@@ -31,26 +31,26 @@ def run_on_all_models(img_dir_str, output_dir_str):
         exit()
     
     result_str = (f"{n_images} imagens\n"
-                  f"{'Modelo'.ljust(8)} {'Tempo total (s)'.ljust(20)} Tempo médio por imagem (s)\n")
+                  f"{'Modelo'.ljust(10)} {'Tempo total (s)'.ljust(20)} Tempo médio por imagem (s)\n")
 
     print(f"Running on {n_images} images...\n")
     for model in MODELS:
         predictor = model['predictor']
 
-        print(model['name'])
+        print("\n" + model['name'])
         start_time = time.time()
 
         for img_path in tqdm(img_paths):
             img = cv2.imread(str(img_path))
             predictions = predictor.predict(img)
 
-            predictions_file = output_dir / f"{img_path.stem}_{model['name']}_pred.json"
+            predictions_file = output_dir / f"{img_path.stem}_{model['name']}.json"
             with predictions_file.open('w') as f:
                 json.dump(predictions, f)
 
         total_time = datetime.timedelta(seconds=(time.time() - start_time))
         average_time = total_time / n_images
-        result_str += f"{model['name'].ljust(8)} {str(total_time).ljust(20)} {average_time}\n"
+        result_str += f"{model['name'].ljust(10)} {str(total_time).ljust(20)} {average_time}\n"
 
     results_file = output_dir / 'time.txt'
     with results_file.open('w') as f:

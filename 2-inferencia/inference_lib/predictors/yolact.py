@@ -47,7 +47,7 @@ class YolactPred(BasePred):
 
         return raw_predictions
 
-    def _to_custom_format(self, predictions):
+    def _to_custom_format(self, raw_predictions):
         # Formato da saída do modelo:
         #   https://github.com/dbolya/yolact/blob/master/layers/output_utils.py
         #
@@ -56,11 +56,11 @@ class YolactPred(BasePred):
 
         formatted_predictions = []
 
-        for i in range(len(predictions[0])):
-            class_id = predictions[0][i].item() + 1 # Yolact faz de [0-N), no COCO é [1-N]
-            confidence = predictions[1][i].item()
-            mask = predictions[3][i]
-            bbox = predictions[2][i].tolist()
+        for i in range(len(raw_predictions[0])):
+            class_id = raw_predictions[0][i].item() + 1 # Yolact faz de [0-N), no COCO é [1-N]
+            confidence = raw_predictions[1][i].item()
+            mask = raw_predictions[3][i]
+            bbox = raw_predictions[2][i].tolist()
 
             pred = {
                 'class_id': class_id,
