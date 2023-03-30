@@ -57,7 +57,7 @@ class YolactPred(BasePred):
         formatted_predictions = []
 
         for i in range(len(raw_predictions[0])):
-            class_id = raw_predictions[0][i].item() + 1 # Yolact faz de [0-N), no COCO é [1-N]
+            class_id = raw_predictions[0][i].item() + 1 # Yolact faz de [0-N), mas o oficial é [1-N]
             confidence = raw_predictions[1][i].item()
             mask = raw_predictions[3][i]
             bbox = raw_predictions[2][i].tolist()

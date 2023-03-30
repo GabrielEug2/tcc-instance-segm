@@ -14,6 +14,8 @@ def fix_annotations(ann_file_str):
     #
     #   * Dar as classes que NÃO existem no COCO um ID único (ou talvez excluí-las?
     #     preciso testar se faz sentido manter elas)
+    #
+    #   * Adicionar as categorias do COCO no arquivo
 
     # Primeiro eu só mapeio quais serão os novos IDs
     name_newid_map = {}

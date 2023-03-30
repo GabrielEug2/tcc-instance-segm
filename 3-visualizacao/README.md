@@ -20,8 +20,12 @@ usar os exemplos em `sample_data`.
     cd cocoapi/PythonApi
     make
     ```
-
+* Minha biblioteca de visualização que usa tudo isso:
+    ```bash
+    pip install -r requirements.txt
+    pip install -e view_lib
+    ```
+    
 Como usar:
 * `python fix_annotations.py <ann_file>` (não precisa se estiver usando os exemplos)
-* `python plot_annotations.py <img_file> <ann_file> <out_dir>`
-* `python plot_predictions.py <img_file> <pred_file> <out_dir>`
+* `python plot.py -h`

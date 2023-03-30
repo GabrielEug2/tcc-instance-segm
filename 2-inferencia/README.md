@@ -35,7 +35,8 @@ Requisitos:
     ```
 * Minha biblioteca de inferência que usa tudo isso:
     ```bash
-    pip install -e inferencia
+    pip install -r requirements.txt
+    pip install -e inference_lib
     ```
 
 Como usar:
