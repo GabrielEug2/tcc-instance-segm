@@ -17,7 +17,7 @@ parser.add_argument('-m', '--masks-too', help='whether or not to save individual
                          action='store_true')
 subparsers = parser.add_subparsers()
 
-parser_ann = subparsers.add_parser('ann', help='plot annotations')
+parser_ann = subparsers.add_parser('anns', help='plot annotations')
 parser_ann.add_argument('img_file_or_dir', help='image or directory of images')
 parser_ann.add_argument('ann_file', help='file containing the annotations for said image(s).')
 parser_ann.add_argument('out_dir', help='directory to save the results')

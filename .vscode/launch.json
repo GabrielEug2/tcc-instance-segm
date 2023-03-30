@@ -14,6 +14,17 @@
             ],
             "console": "integratedTerminal",
             "justMyCode": false
-        }
+        },
+        {
+            "name": "Plot annotations",
+            "type": "python",
+            "request": "launch",
+            "program": "3-visualizacao/plot.py",
+            "args": [
+                "anns", "sample_data/images", "sample_data/annotations.json", "tmp"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
     ]
 }

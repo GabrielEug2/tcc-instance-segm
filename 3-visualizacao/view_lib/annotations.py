@@ -71,7 +71,7 @@ def _to_pred_format(anns, h, w):
 
     for ann in anns:
         class_id = ann['category_id']
-        confidence = ann['score']
+        confidence = 100.0
         mask = polygon_to_rle(ann['segmentation'], h, w)
         bbox = ann['bbox']
 

@@ -19,7 +19,7 @@ def plot(anns_or_preds, img_path, metadata=None):
                 'mask': RLE,
                 'bbox': [x1, y1, x2, y2],
             }
-        img_path (str): caminho para a imagem onde serão plotados as máscaras
+        img_path (str): caminho para a imagem onde serão plotadas as máscaras
         metadata (detectron2.data.MetadataCatalog): necessário para plotar
             o nome das classes
 

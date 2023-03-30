@@ -17,9 +17,3 @@ def polygon_to_rle(polygon, height, width):
     rle['counts'] = rle['counts'].decode('ascii')
 
     return rle
-
-# def bin_mask_to_rle(bin_mask):
-#     rle = coco_utils.encode(bin_mask)
-#     rle['counts'] = rle['counts'].decode('ascii')
-
-#     return rle
