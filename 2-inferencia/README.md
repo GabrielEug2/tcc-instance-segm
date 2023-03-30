@@ -2,7 +2,7 @@
 ## Inferência
 
 Requisitos:
-* Linux
+* Linux - talvez você consiga instalar no Windows, mas eu não testei. Eu usei linux.
 * [Mask R-CNN](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
     * Instruções no link
 * [YOLACT](https://github.com/dbolya/yolact)
@@ -35,8 +35,8 @@ Requisitos:
     ```
 * Minha biblioteca de inferência que usa tudo isso:
     ```bash
+    # Não precisa instalar a biblioteca em si, só as dependências
     pip install -r requirements.txt
-    pip install -e inference_lib
     ```
 
 Como usar:
