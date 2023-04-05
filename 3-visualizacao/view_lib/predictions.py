@@ -1,10 +1,15 @@
 from pathlib import Path
 import json
+import __main__
 
 from detectron2.data import MetadataCatalog
 import cv2
 
 from . import common_logic
+
+
+MODEL_MAP_FILE = Path(__main__.__file__).parent / 'model_map.json'
+
 
 def plot(img_file_or_dir, pred_dir, out_dir):
     img_file_or_dir = Path(img_file_or_dir)
@@ -19,10 +24,7 @@ def plot(img_file_or_dir, pred_dir, out_dir):
     else:
         img_files = [img_file_or_dir]
 
-    # Nós podemos o metadata do COCO diretamente, porque os modelos
-    # foram treinados só nele (aka. as predictions resultantes seguem
-    # a numeração dele)
-    metadata = MetadataCatalog.get('coco_2017_test')
+    metadata = common_logic.get_metadata(MODEL_MAP_FILE)
 
     if not out_dir.exists():
         out_dir.mkdir()

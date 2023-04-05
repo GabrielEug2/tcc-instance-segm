@@ -4,7 +4,7 @@ import torch
 
 from .base_pred import BasePred
 from .config import config
-from inference_lib.format_utils import bin_mask_to_rle
+from .format_utils import bin_mask_to_rle
 
 import sys
 sys.path.insert(0, config['yolact']['dir'])
@@ -57,7 +57,11 @@ class YolactPred(BasePred):
         formatted_predictions = []
 
         for i in range(len(raw_predictions[0])):
-            class_id = raw_predictions[0][i].item() + 1 # Yolact faz de [0-N), mas o oficial é [1-N]
+            # Pelo que eu entendi Yolact faz de [0-N], com 0 sendo o background,
+            # então nós precisamos consertar isso subtraindo -1
+            # Edit: aparentemente não, já que fazer isso faz com que fiquem
+            # predictions com classe "-1"
+            class_id = raw_predictions[0][i].item()
             confidence = raw_predictions[1][i].item()
             mask = raw_predictions[3][i]
             bbox = raw_predictions[2][i].tolist()

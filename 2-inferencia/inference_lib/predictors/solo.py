@@ -7,7 +7,7 @@ import torch
 
 from .base_pred import BasePred
 from .config import config
-from inference_lib.format_utils import bin_mask_to_rle
+from .format_utils import bin_mask_to_rle
 
 
 class SoloPred(BasePred):
@@ -65,7 +65,8 @@ class SoloPred(BasePred):
         instances.pred_boxes = Boxes(pred_boxes)
 
         for i in range(len(instances)):
-            class_id = instances.pred_classes[i].item() + 1 # Detectron faz de [0-N), mas o oficial é [1-N]
+            # Já está no intervalo certo, [0,N)
+            class_id = instances.pred_classes[i].item()
             confidence = instances.scores[i].item()
             mask = instances.pred_masks[i]
             bbox = instances.pred_boxes.tensor[i].tolist()

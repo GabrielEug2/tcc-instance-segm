@@ -2,7 +2,7 @@
 ## Inferência
 
 Requisitos:
-* Linux - talvez você consiga instalar no Windows, mas eu só rodei no Linux.
+* Linux - talvez você consiga instalar no Windows, mas eu não testei.
 * [Mask R-CNN](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
     * Instruções no link
 * [YOLACT](https://github.com/dbolya/yolact)

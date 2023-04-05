@@ -7,7 +7,7 @@ import fiftyone as fo
 import fiftyone.utils.openimages as openimages
 import fiftyone.zoo as fozoo
 
-COCO_CLASS_DIST_FILE = Path(__file__).parent / 'class_dist_coco.json'
+COCO_CLASS_DIST_FILE = Path(__file__).parent / 'class_dist_coco'
 
 def download(n_imgs, out_dir):
     # Filtra as classes que tem nos dois datasets

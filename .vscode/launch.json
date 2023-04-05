@@ -16,12 +16,12 @@
             "justMyCode": false
         },
         {
-            "name": "Plot annotations",
+            "name": "Plot",
             "type": "python",
             "request": "launch",
             "program": "3-visualizacao/plot.py",
             "args": [
-                "anns", "sample_data/images", "sample_data/annotations.json", "tmp"
+                "anns", "sample_data/images", "sample_data/annotations.json", "sample_data/debug"
             ],
             "console": "integratedTerminal",
             "justMyCode": false

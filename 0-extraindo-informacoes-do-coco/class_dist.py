@@ -3,8 +3,8 @@ import json
 from pathlib import Path
 
 ANN_FILES = [
-    r"E:\Desktop\TCC\Dados\COCO\annotations\instances_train2017.json",
-    r"E:\Desktop\TCC\Dados\COCO\annotations\instances_val2017.json"
+    "/mnt/e/Desktop/TCC/Dados/COCO/annotations/instances_train2017.json",
+    "/mnt/e/Desktop/TCC/Dados/COCO/annotations/instances_val2017.json"
 ]
 OUT_FILE = Path(__file__).parent / "class_dist_coco.json"
 

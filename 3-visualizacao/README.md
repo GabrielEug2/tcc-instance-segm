@@ -21,5 +21,5 @@ usar os exemplos em `sample_data`.
     ```
 
 Como usar:
-* `python fix_annotations.py <ann_file>` (não precisa se estiver usando os exemplos)
+* `python prepare_data.py <ann_file>` (não precisa se estiver usando os exemplos)
 * `python plot.py -h`
