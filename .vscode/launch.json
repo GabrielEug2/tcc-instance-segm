@@ -17,16 +17,14 @@
             "justMyCode": false
         },
         {
-            "name": "Plot",
+            "name": "Plot annotations",
             "type": "python",
             "request": "launch",
-            "program": "3-visualizacao/plot.py",
+            "program": "3-annotations/plot.py",
             "args": [
-                "both",
                 "debug/images",
                 "debug/annotations.json",
-                "debug/predictions",
-                "debug/view",
+                "debug/annotations",
             ],
             "console": "integratedTerminal",
             "justMyCode": false

@@ -42,3 +42,6 @@ Requisitos:
 Como usar:
 * Edite no arquivo `config.yaml` o local onde você instalou os modelos.
 * `python inference.py <img_dir> <out_dir>`
+
+Como usar:
+* `python plot.py -h`

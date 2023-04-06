@@ -7,48 +7,68 @@ import fiftyone as fo
 import fiftyone.utils.openimages as openimages
 import fiftyone.zoo as fozoo
 
-COCO_CLASS_DIST_FILE = Path(__file__).parent / 'class_dist_coco'
+COCO_CLASS_DIST_FILE = Path(__file__).parent / 'classdist_coco.json'
 
-def download(n_imgs, out_dir):
-    # Filtra as classes que tem nos dois datasets
-    with COCO_CLASS_DIST_FILE.open('r') as f:
-        coco_class_dist = json.load(f)
+def filter_common_classes():
+	"""Filter classes that exist on both datasets (COCO and Openimages).
 
-    openimages_classes = [x.lower() for x in openimages.get_segmentation_classes()]
-    common_classes = [x for x in coco_class_dist if x in openimages_classes]
+	Returns:
+		list: list of class names, sorted by n_ocurrences on COCO
+	"""
+	with COCO_CLASS_DIST_FILE.open('r') as f:
+		coco_class_dist = json.load(f)
 
-    common_classes_dist = {}
-    for class_name in common_classes:
-        common_classes_dist[class_name] = coco_class_dist[class_name]
+	coco_classes = coco_class_dist.keys()
+	openimages_classes = [x.lower() for x in openimages.get_segmentation_classes()]
+	common_classes = [x for x in coco_classes if x in openimages_classes]
 
-    # Pega só as 10 que mais tem no COCO
-    sorted_classes = sorted(common_classes_dist.items(), key=lambda item: item[1], reverse=True)
-    top_classes = sorted_classes[:10]
-    top_classes = [x[0].capitalize() for x in top_classes]
+	sorted_dist = sorted(coco_class_dist.items(), key=lambda c: c[1], reverse=True)
+	sorted_classes = [c[0] for c in sorted_dist if c[0] in common_classes]
+	
+	return sorted_classes
 
-    dataset = fozoo.load_zoo_dataset(
-        "open-images-v6",
-        split="validation",
-        label_types="segmentations",
-        classes=top_classes,
-        max_samples=n_imgs
-    )
+def download(n_imgs, out_dir, classes, only_matching=False):
+	"""Download a set of images from Openimages, and their respective annotations.
 
-    out_dir = Path(out_dir)
-    dataset.export(
-        export_dir=str(out_dir),
-        dataset_type=fo.types.COCODetectionDataset
-    )
-    Path.rename(out_dir / 'data', out_dir / 'images')
-    Path.rename(out_dir / 'labels.json', out_dir / 'annotations.json')
+	Args:
+		n_imgs (int): number of images to download
+		out_dir (Path): directory to save the data
+		classes (list[str]): _description_. list of classes, to
+			only download images with these specific classes.
+		only_matching (bool): whether to only download labels that match the 
+			classes you requested (True), or to load all labels for samples
+			that have the classes you requested (False). Default to False.
+	"""
+	classes = [x.capitalize() for x in classes]
+
+	dataset = fozoo.load_zoo_dataset(
+		"open-images-v6",
+		split="validation",
+		label_types="segmentations",
+		shuffle=True,
+		max_samples=n_imgs,
+		classes=classes,
+		only_matching=only_matching,
+	)
+
+	out_dir = Path(out_dir)
+	dataset.export(
+		export_dir=str(out_dir),
+		dataset_type=fo.types.COCODetectionDataset
+	)
+	Path.rename(out_dir / 'data', out_dir / 'images')
+	Path.rename(out_dir / 'labels.json', out_dir / 'annotations.json')
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('n_imgs', type=int, help='Number of images to download')
-    parser.add_argument('out_dir', help='Directory to save')
+	parser = argparse.ArgumentParser()
+	parser.add_argument('n_imgs', type=int, help='Number of images to download')
+	parser.add_argument('out_dir', help='Directory to save')
 
-    args = parser.parse_args()
+	args = parser.parse_args()
 
-    download(args.n_imgs, args.out_dir)
+	# Quero só imagens com as 10 classes que mais tem no COCO
+	common_classes = filter_common_classes()
+	top_classes = common_classes[:10]
 
-# TODO baixar 3 conjuntos: debug(3), sample(5) e test(200)
+	download(args.n_imgs, args.out_dir, classes=top_classes)
