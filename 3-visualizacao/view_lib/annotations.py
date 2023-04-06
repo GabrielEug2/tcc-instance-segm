@@ -1,30 +1,24 @@
 from pathlib import Path
 import json
 
-from detectron2.data.datasets import register_coco_instances
-from detectron2.data import MetadataCatalog
-from detectron2.data.catalog import Metadata
 import cv2
 
 from . import common_logic
 from .format_utils import ann_to_rle
 
-def plot(img_file_or_dir, ann_file, out_dir):
-    img_file_or_dir = Path(img_file_or_dir)
+# TODO update
+def load(ann_file):
     ann_file = Path(ann_file)
-    out_dir = Path(out_dir)
-
-    if img_file_or_dir.is_dir():
-        img_files = list(img_file_or_dir.glob("*.jpg"))
-        if len(img_files) == 0:
-            print(f"No images found on \"{str(img_file_or_dir)}\".")
-            exit()
-    else:
-        img_files = [img_file_or_dir]
 
     with ann_file.open('r') as f:
         anns = json.load(f)
-    classmap_file = ann_file.parent / 'classmap.json'
+
+    return anns
+
+def plot(img_files, ann_file, out_dir):
+    anns = annotations.load(ann_file)
+
+    classmap_file = ann_file.parent / 'test_map.json'
     metadata = common_logic.get_metadata(classmap_file)
 
     if not out_dir.exists():

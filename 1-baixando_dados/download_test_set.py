@@ -22,7 +22,8 @@ def download(n_imgs, out_dir):
         common_classes_dist[class_name] = coco_class_dist[class_name]
 
     # Pega só as 10 que mais tem no COCO
-    top_classes = sorted(common_classes_dist.items(), key=lambda item: item[1], reverse=True)[:10]
+    sorted_classes = sorted(common_classes_dist.items(), key=lambda item: item[1], reverse=True)
+    top_classes = sorted_classes[:10]
     top_classes = [x[0].capitalize() for x in top_classes]
 
     dataset = fozoo.load_zoo_dataset(
@@ -49,3 +50,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     download(args.n_imgs, args.out_dir)
+
+# TODO baixar 3 conjuntos: debug(3), sample(5) e test(200)

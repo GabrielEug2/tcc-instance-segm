@@ -1,9 +1,7 @@
-
-from pathlib import Path
-import __main__
+import importlib.resources as pkg_resources
 
 import yaml
 
-CONFIG_FILE = Path(__main__.__file__).parent / 'config.yaml'
+CONFIG_FILE = pkg_resources.path(__package__, 'config.yaml')
 with CONFIG_FILE.open() as f:
     config = yaml.safe_load(f)

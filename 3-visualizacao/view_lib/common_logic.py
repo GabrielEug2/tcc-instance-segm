@@ -1,6 +1,8 @@
 import json
+from pathlib import Path
 
 from detectron2.utils.visualizer import Visualizer
+from detectron2.data.catalog import Metadata
 from detectron2.structures import Instances, Boxes
 import torch
 import numpy as np
@@ -8,31 +10,28 @@ import cv2
 
 from .format_utils import rle_to_bin_mask
 
-def get_metadata(map_file):
+def get_metadata(map_file: Path) -> Metadata:
     with map_file.open('r') as f:
         classmap = json.load(f)
 
-    # PAREI AQUI
-    # IDs que foram pulados também precisam de um nome no metadata
-    id_name_map = {id: name for name, id in classmap.items()}
-    max_id = max(id_name_map.keys())
-    for id_ in range(1, max_id):
-        id_name_map[id_] = id_name_map.get(id_, None)
+    # IDs que foram pulados (o "gap" que eu deixei entre os IDs do COCO
+    # e os novos IDs, no prepare_data.py) também precisam de um nome no
+    # metadata
+    ids = [int(x) for x in classmap.keys()]
+    skipped_ids = set(range(0, max(ids))) - set(ids)
+    for id_ in skipped_ids:
+        classmap[str(id_)] = ''
 
-    classnames = id_name_map.items()
-    sorted_classnames = [x[0] for x in sorted_map]
-
-
-
-    sorted_map = sorted(classmap.items(), key=lambda item: item[1])
+    sorted_classes = sorted(classmap.items(), key=lambda id_, name: int(id_))
+    sorted_classnames = [c[1] for c in sorted_classes]
 
     metadata = Metadata()
     metadata.set(thing_classes = sorted_classnames)
 
     return metadata
 
-    
-def plot(anns_or_preds, img_path, metadata=None):
+
+def plot(anns_or_preds: dict, img_path: Path, metadata: Metadata = None) -> np.ndarray:
     """Plota as annotations ou predictions fornecidas na imagem.
 
     Args:
@@ -52,7 +51,7 @@ def plot(anns_or_preds, img_path, metadata=None):
     """
     classes, scores, masks, boxes = [], [], [], []
     for ann in anns_or_preds:
-        classes.append(ann['class_id'] - 1) # Para plotar, precisa estar de [0,N)
+        classes.append(ann['class_id'])
         scores.append(ann['confidence'])
         masks.append(rle_to_bin_mask(ann['mask']))
         boxes.append(ann['bbox'])
@@ -70,11 +69,3 @@ def plot(anns_or_preds, img_path, metadata=None):
     predictions_img = vis_out.get_image()
 
     return predictions_img
-
-def _save_masks():
-    #     i = 1
-    #     for prediction in predictions:
-    #         mask = rle_to_bin_mask(prediction['mask'])
-    #         mask_filename = output_dir / f"{img_path.stem}_{model['name']}_masks" / f"{i}.jpg"
-    #         cv2.imwrite(mask_filename, mask)
-    pass

@@ -10,7 +10,8 @@
             "request": "launch",
             "program": "2-inferencia/inference.py",
             "args": [
-                "2-inferencia/debug/images", "2-inferencia/debug/predictions"
+                "debug/images",
+                "debug/predictions",
             ],
             "console": "integratedTerminal",
             "justMyCode": false
@@ -21,7 +22,11 @@
             "request": "launch",
             "program": "3-visualizacao/plot.py",
             "args": [
-                "anns", "sample_data/images", "sample_data/annotations.json", "sample_data/debug"
+                "both",
+                "debug/images",
+                "debug/annotations.json",
+                "debug/predictions",
+                "debug/view",
             ],
             "console": "integratedTerminal",
             "justMyCode": false

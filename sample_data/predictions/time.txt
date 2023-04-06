@@ -1,5 +1,0 @@
-5 imagens
-Modelo     Tempo total (s)      Tempo médio por imagem (s)
-maskrcnn   0:00:52.589737       0:00:10.517947
-yolact     0:00:22.118911       0:00:04.423782
-solo       0:00:59.568639       0:00:11.913728

@@ -9,7 +9,6 @@ from .base_pred import BasePred
 from .config import config
 from .format_utils import bin_mask_to_rle
 
-
 class SoloPred(BasePred):
     def __init__(self):
         cfg = get_cfg()
@@ -21,14 +20,7 @@ class SoloPred(BasePred):
         self._model = DefaultPredictor(cfg)
 
     def predict(self, img):
-        raw_predictions = self._inference(img)
-
-        formatted_predictions = self._to_custom_format(raw_predictions)
-        return formatted_predictions
-    
-    def _inference(self, img):
         raw_predictions = self._model(img)
-
         # Por algum motivo além da minha compreensão, o SOLO testa o score
         # de classificação ANTES de ter os scores "definitivos". Isso faz
         # com que ele retorne resultados com score abaixo do que foi solicitado.
@@ -36,8 +28,9 @@ class SoloPred(BasePred):
         inds = (raw_predictions['instances'].scores > 0.5)
         raw_predictions['instances'] = raw_predictions['instances'][inds]
 
-        return raw_predictions
-        
+        formatted_predictions = self._to_custom_format(raw_predictions)
+        return formatted_predictions
+    
     def _to_custom_format(self, raw_predictions):
         # Formato da saída do modelo:
         #   mesmo formato do Detectron, porque é baseado nele

@@ -30,12 +30,6 @@ class YolactPred(BasePred):
         self._model = model
         
     def predict(self, img):
-        raw_predictions = self._inference(img)
-
-        formatted_predictions = self._to_custom_format(raw_predictions)
-        return formatted_predictions
-
-    def _inference(self, img):
         with torch.no_grad():
             frame = torch.from_numpy(img).float()
             batch = FastBaseTransform()(frame.unsqueeze(0))
@@ -44,8 +38,9 @@ class YolactPred(BasePred):
             # as máscaras pro formato certo.
         h, w, _ = img.shape
         raw_predictions = postprocess(preds, w, h, score_threshold = 0.5)
-
-        return raw_predictions
+    
+        formatted_predictions = self._to_custom_format(raw_predictions)
+        return formatted_predictions
 
     def _to_custom_format(self, raw_predictions):
         # Formato da saída do modelo:
@@ -59,8 +54,9 @@ class YolactPred(BasePred):
         for i in range(len(raw_predictions[0])):
             # Pelo que eu entendi Yolact faz de [0-N], com 0 sendo o background,
             # então nós precisamos consertar isso subtraindo -1
-            # Edit: aparentemente não, já que fazer isso faz com que fiquem
-            # predictions com classe "-1"
+            # EDIT aparentemente não, já que fazer isso faz com que fiquem
+            #      redictions com classe "-1"
+            # TODO confirmar isso no plot (pessoa tem que estar certo)
             class_id = raw_predictions[0][i].item()
             confidence = raw_predictions[1][i].item()
             mask = raw_predictions[3][i]

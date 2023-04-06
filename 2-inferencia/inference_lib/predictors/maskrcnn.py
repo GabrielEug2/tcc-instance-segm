@@ -7,7 +7,6 @@ from .base_pred import BasePred
 from .config import config
 from .format_utils import bin_mask_to_rle
 
-
 class MaskrcnnPred(BasePred):
     def __init__(self):
         cfg = get_cfg()

@@ -5,6 +5,5 @@ yolact_pkg/
 AdelaiDet/
 cocoapi/
 
-debug/
-
 .envs/
+debug/
