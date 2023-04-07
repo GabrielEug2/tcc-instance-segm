@@ -6,16 +6,16 @@ def compute_classmap(ann_file):
 	"""Computes the classmap for the specified annotation file.
 
 	Args:
-		ann_file (Path): path to an annotation file, in COCO format
+		ann_file (Path): path to an annotation file, in COCO format.
 
 	Raises:
-		FileNotFoundError: if the requested file was not found
-		ValueError: if the annotations does not follow the required format
+		FileNotFoundError: if the requested file was not found.
+		ValueError: if the annotations does not follow the required format.
 
 	Returns:
 		dict[str, dict[str, str]]: maps associating class ids with class names.
 			"default" is the raw IDs from the file, and "model" is the
-			more commonly used normalization [0,N)
+			more commonly used normalization [0,N).
 	"""
 	if not ann_file.exists():
 		raise FileNotFoundError(str(f))

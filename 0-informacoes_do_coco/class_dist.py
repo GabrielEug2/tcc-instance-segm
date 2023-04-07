@@ -6,14 +6,14 @@ def compute_class_dist(ann_file):
 	"""Computes the class dist for the specified file.
 
 	Args:
-		ann_file (Path): path to an annotation file, in COCO format
+		ann_file (Path): path to an annotation file, in COCO format.
 
 	Raises:
-		FileNotFoundError: if the requested file was not found
-		ValueError: if the annotations does not follow the required format
+		FileNotFoundError: if the requested file was not found.
+		ValueError: if the annotations does not follow the required format.
 
 	Returns:
-		dict[str, int]: class distribution, by name
+		dict[str, int]: class distribution, by name.
 	"""
 	if not ann_file.exists():
 		raise FileNotFoundError(str(f))
@@ -44,7 +44,7 @@ def compute_class_dist(ann_file):
 
 
 if __name__ == '__main__':
-	parser = argparse.ArgumentParser("Computes the class distribution on COCO")
+	parser = argparse.ArgumentParser()
 	parser.add_argument('ann_dir', help='Directory where you placed the annotations')
 
 	args = parser.parse_args()
@@ -58,9 +58,10 @@ if __name__ == '__main__':
 	class_dists = {}
 	for ann_file in ann_files:
 		print(f"Processing {ann_file.name}...")
-		out_name = str(ann_file.name).replace('instances_', '').replace('2017.json', '')
+		class_dist =compute_class_dist(ann_file)
 
-		class_dists[out_name] = compute_class_dist(ann_file)
+		out_name = str(ann_file.name).removeprefix('instances_').removesuffix('2017.json')
+		class_dists[out_name] = class_dist
 
 	print(f"Agreggating results...")
 	sum_of_dists = {}

@@ -13,7 +13,7 @@ def filter_common_classes():
 	"""Filter classes that exist on both datasets (COCO and Openimages).
 
 	Returns:
-		list: list of class names, sorted by n_ocurrences on COCO
+		list: list of class names, sorted by n_ocurrences on COCO.
 	"""
 	with COCO_CLASS_DIST_FILE.open('r') as f:
 		coco_class_dist = json.load(f)
@@ -31,15 +31,14 @@ def download(n_imgs, out_dir, classes, only_matching=False):
 	"""Download a set of images from Openimages, and their respective annotations.
 
 	Args:
-		n_imgs (int): number of images to download
-		out_dir (Path): directory to save the data
-		classes (list[str]): _description_. list of classes, to
-			only download images with these specific classes.
+		n_imgs (int): number of images to download,
+		out_dir (Path): directory to save the data,
+		classes (list[str]): _description_. list of classes, to only download
+			images with objects of said classes.
 		only_matching (bool): whether to only download labels that match the 
-			classes you requested (True), or to load all labels for samples
+			classes you requested (True) or download all labels for images
 			that have the classes you requested (False). Default to False.
 	"""
-	classes = [x.capitalize() for x in classes]
 
 	dataset = fozoo.load_zoo_dataset(
 		"open-images-v6",
@@ -71,4 +70,5 @@ if __name__ == '__main__':
 	common_classes = filter_common_classes()
 	top_classes = common_classes[:10]
 
+	top_classes = [x.capitalize() for x in top_classes]
 	download(args.n_imgs, args.out_dir, classes=top_classes)

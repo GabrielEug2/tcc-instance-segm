@@ -5,6 +5,9 @@ Baixa imagens e anotações do OpenImages, com algumas das classes que tem mais 
 
 Requisitos:
 * [FiftyOne](https://docs.voxel51.com/getting_started/install.html)
+```bash
+pip install fiftyone
+```
 
 Como usar:
 * `python download_test_set.py <n_imgs> <out_dir>`
