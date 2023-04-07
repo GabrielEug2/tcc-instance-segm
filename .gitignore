@@ -1,9 +1,12 @@
+# Auto generated
 __pycache__/
 *.egg-info/
 
+# 3rd party you should install separately
 yolact_pkg/
 AdelaiDet/
 cocoapi/
 
+# Develop
 .venvs/
 debug/

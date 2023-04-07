@@ -4,7 +4,7 @@ from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 
 from .base_pred import BasePred
-from .config import config
+from inference_lib.config import config
 from .format_utils import bin_mask_to_rle
 
 class MaskrcnnPred(BasePred):
