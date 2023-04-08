@@ -1,13 +1,9 @@
-
 ## Baixando dados
 
-Baixa imagens e anotações do OpenImages, com algumas das classes que tem mais objetos no COCO.
+Eu usei dados do Openimages, com algumas das classes que mais aparecem no COCO, mas você pode usar qualquer dataset. Só salve as annotations no formato do COCO.
 
-Requisitos:
-* [FiftyOne](https://docs.voxel51.com/getting_started/install.html)
+Para baixar um conjunto de teste como o que eu descrevi acima:
 ```bash
 pip install fiftyone
+python download_test_set.py <n_imgs> <out_dir>
 ```
-
-Como usar:
-* `python download_test_set.py <n_imgs> <out_dir>`

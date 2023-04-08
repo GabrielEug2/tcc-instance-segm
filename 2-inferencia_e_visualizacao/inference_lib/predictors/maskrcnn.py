@@ -5,7 +5,6 @@ from detectron2.engine import DefaultPredictor
 
 from .base_pred import BasePred
 from inference_lib.config import config
-from .format_utils import bin_mask_to_rle
 
 class MaskrcnnPred(BasePred):
     def __init__(self):
@@ -37,13 +36,14 @@ class MaskrcnnPred(BasePred):
             # Já está no intervalo certo, [0,N)
             class_id = instances.pred_classes[i].item()
             confidence = instances.scores[i].item()
-            mask = instances.pred_masks[i]
+            bin_mask = instances.pred_masks[i]
+            rle = BasePred.bin_mask_to_rle(bin_mask)
             bbox = instances.pred_boxes.tensor[i].tolist()
 
             pred = {
                 'class_id': class_id,
                 'confidence': confidence,
-                'mask': bin_mask_to_rle(mask),
+                'mask': rle,
                 'bbox': bbox,
             }
             formatted_predictions.append(pred)

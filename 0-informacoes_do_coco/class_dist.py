@@ -58,7 +58,7 @@ if __name__ == '__main__':
 	class_dists = {}
 	for ann_file in ann_files:
 		print(f"Processing {ann_file.name}...")
-		class_dist =compute_class_dist(ann_file)
+		class_dist = compute_class_dist(ann_file)
 
 		out_name = str(ann_file.name).removeprefix('instances_').removesuffix('2017.json')
 		class_dists[out_name] = class_dist

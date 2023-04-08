@@ -1,10 +1,13 @@
 from pathlib import Path
 import json
+import importlib.resources as pkg_resources
 
 import cv2
 
 from . import common_logic
 from .format_utils import ann_to_rle
+
+CLASSMAP_FILE = pkg_resources.path(__package__, 'classmap_annotations.json')
 
 # TODO update
 def load(ann_file):
@@ -17,6 +20,9 @@ def load(ann_file):
 
 def plot(img_files, ann_file, out_dir):
     anns = annotations.load(ann_file)
+    
+	# make classmap file
+	# then read it
 
     classmap_file = ann_file.parent / 'test_map.json'
     metadata = common_logic.get_metadata(classmap_file)

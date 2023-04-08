@@ -33,8 +33,8 @@ def download(n_imgs, out_dir, classes, only_matching=False):
 	Args:
 		n_imgs (int): number of images to download,
 		out_dir (Path): directory to save the data,
-		classes (list[str]): _description_. list of classes, to only download
-			images with objects of said classes.
+		classes (list[str]): list of classes, to only download images that
+			contains objects of said classes.
 		only_matching (bool): whether to only download labels that match the 
 			classes you requested (True) or download all labels for images
 			that have the classes you requested (False). Default to False.

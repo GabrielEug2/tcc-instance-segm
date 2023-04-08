@@ -4,7 +4,6 @@ import torch
 
 from .base_pred import BasePred
 from inference_lib.config import config
-from .format_utils import bin_mask_to_rle
 
 import sys
 sys.path.insert(0, config['yolact']['dir'])
@@ -59,13 +58,14 @@ class YolactPred(BasePred):
             # TODO confirmar isso no plot (pessoa tem que estar certo)
             class_id = raw_predictions[0][i].item()
             confidence = raw_predictions[1][i].item()
-            mask = raw_predictions[3][i]
+            bin_mask = raw_predictions[3][i]
+            rle = BasePred.bin_mask_to_rle(bin_mask)
             bbox = raw_predictions[2][i].tolist()
 
             pred = {
                 'class_id': class_id,
                 'confidence': confidence,
-                'mask': bin_mask_to_rle(mask),
+                'mask': rle,
                 'bbox': bbox,
             }
             formatted_predictions.append(pred)

@@ -54,7 +54,15 @@ def compute_newids(anns):
         old_id = category['id']
 
         # TODO merge common classes (ex. person and man)
-
+		# Move to annotations.py or just fix on annotations.py
+		# # IDs que foram pulados (o "gap" que eu deixei entre os IDs do COCO
+		# # e os novos IDs, no prepare_data.py) também precisam de um nome no
+		# # metadata
+		# ids = [int(x) for x in classmap.keys()]
+		# skipped_ids = set(range(0, max(ids))) - set(ids)
+		# for id_ in skipped_ids:
+		#     classmap[str(id_)] = ''
+		
         if name in coco_class_list:
             # o mesmo ID que eu já atribui, se existe no COCO
             new_id = name_newid_map[name]

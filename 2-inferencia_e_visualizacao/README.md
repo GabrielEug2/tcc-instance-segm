@@ -1,5 +1,6 @@
+## Inferencia e visualização
 
-## Inferência
+### Inferência
 
 Requisitos:
 * Linux - talvez você consiga instalar no Windows, mas eu não testei.
@@ -32,11 +33,31 @@ Requisitos:
     cd cocoapi/PythonApi
     make
     ```
-* Outras dependencias do meu código:
-    ```bash
-	pip install opencv-python pyyaml
-    ```
+* Minha bibliotecas pessoais que usam tudo que eu mencionei acima:
+	```bash
+	pip install opencv-python pyyaml # todo setuptools pra instalar automático
+	pip install -e view-lib
+	pip install -e inference-lib
+	```
 
 Como usar:
 * Edite no arquivo `config.yaml` o local onde você instalou os modelos.
 * `python inference.py <img_dir> <out_dir>`
+
+### Plot annotations
+
+Requisitos:
+* Algumas imagens e anotações no formato do COCO:
+	```
+	<some_dir>/
+		images/
+			image1.jpg
+			image2.jpg
+			...
+		annotations.json
+	```
+
+* Annotations (see: 1-baixando_dados)
+
+Como usar:
+* `python prepare_data.py <ann_file>` (não precisa se estiver usando os exemplos)
