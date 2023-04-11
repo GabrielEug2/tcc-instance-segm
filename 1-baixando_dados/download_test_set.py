@@ -22,12 +22,13 @@ def filter_common_classes():
 	openimages_classes = [x.lower() for x in openimages.get_segmentation_classes()]
 	common_classes = [x for x in coco_classes if x in openimages_classes]
 
-	sorted_dist = sorted(coco_class_dist.items(), key=lambda c: c[1], reverse=True)
-	sorted_classes = [c[0] for c in sorted_dist if c[0] in common_classes]
+	filtered_dist = { name: count for name, count in coco_class_dist.items() if name in common_classes }
+	sorted_class_counts = sorted(filtered_dist.items(), key=lambda c: c[1], reverse=True)
+	sorted_classes = [c[0] for c in sorted_class_counts]
 	
 	return sorted_classes
 
-def download(n_imgs, out_dir, classes, only_matching=False):
+def download(n_imgs: int, out_dir: str, classes: list[str], only_matching=False):
 	"""Download a set of images from Openimages, and their respective annotations.
 
 	Args:

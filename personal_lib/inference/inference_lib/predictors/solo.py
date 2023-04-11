@@ -5,10 +5,10 @@ from detectron2.engine.defaults import DefaultPredictor
 from detectron2.structures import Boxes
 import torch
 
-from .base_pred import BasePred
-from inference_lib.config import config
+from .base_predictor import Predictor
+from ..config import config
 
-class SoloPred(BasePred):
+class Solo(Predictor):
     def __init__(self):
         cfg = get_cfg()
         cfg.merge_from_file(str(Path(config['solo']['dir'], config['solo']['config_file'])))
@@ -61,7 +61,7 @@ class SoloPred(BasePred):
             class_id = instances.pred_classes[i].item()
             confidence = instances.scores[i].item()
             bin_mask = instances.pred_masks[i]
-            rle = BasePred.bin_mask_to_rle(bin_mask)
+            rle = Predictor.bin_mask_to_rle(bin_mask)
             bbox = instances.pred_boxes.tensor[i].tolist()
 
             pred = {

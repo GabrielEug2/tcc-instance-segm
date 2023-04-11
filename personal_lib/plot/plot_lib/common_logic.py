@@ -30,7 +30,7 @@ def get_metadata(map_file: Path) -> Metadata:
 
 	return metadata
 
-def plot(anns_or_preds: dict, img_path: Path, metadata: Metadata = None) -> np.ndarray:
+def plot(anns_or_preds: dict, img_path: Path, classmap: dict[str, str] = None) -> np.ndarray:
 	"""Plota as annotations ou predictions fornecidas na imagem.
 
 	Args:
@@ -54,6 +54,11 @@ def plot(anns_or_preds: dict, img_path: Path, metadata: Metadata = None) -> np.n
 		scores.append(ann['confidence'])
 		masks.append(rle_to_bin_mask(ann['mask']))
 		boxes.append(ann['bbox'])
+
+	if classmap != None:
+		None
+	else:
+		
 
 	img = cv2.imread(str(img_path))
 	h, w, _ = img.shape

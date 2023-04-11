@@ -8,36 +8,41 @@ import cv2
 import plot_lib
 
 from .predictors import MODEL_MAP
+from .config import update_config
 
 VALID_MODELS = MODEL_MAP.keys()
 
-def run_inference(img_file_or_dir: str, out_dir: str, models: list[str] = None):
+def run_inference(img_file_or_dir: str, out_dir: str, models: list[str] = None, user_config: dict[str, str] = None):
 	"""Runs inference on the requested imgs.
 
 	Args:
-		img_file_or_dir (str): path to image or dir of images to segment.
+		img_file_or_dir (str): path to an image or dir of images to segment.
 		out_dir (str): directory to save the outputs.
 		models (list[str], optional): list of models to use. See
 			inference_lib.VALID_MODELS for a list of available models.
 			By default, uses all of them.
+		user_config (dict[str, str]): user-defined parameters, namely the
+			directories where YOLACT and SOLO are installed.
 
 	Raises:
 		FileNotFoundError: if no images were found on the provided path.
 		ValueError: if an invalid model name was given.
 	"""
-	img_file_or_dir = Path(img_file_or_dir)
-	out_dir = Path(out_dir)
-	requested_models = VALID_MODELS if models is None else models
+	if user_config:
+		update_config(user_config)
 
+	requested_models = VALID_MODELS if models is None else models
 	if any(requested_models not in VALID_MODELS):
 		raise ValueError(f'Invalid model list: "{requested_models}". Must be a subset of {VALID_MODELS}')
 
+	img_file_or_dir = Path(img_file_or_dir)
 	img_files = _get_img_files(img_file_or_dir)
 
+	out_dir = Path(out_dir)
 	if not out_dir.exists():
 		out_dir.mkdir()
 
-	_actual_inference(img_files, out_dir, requested_models)
+	_inference(img_files, out_dir, requested_models)
 	plot_lib.predictions.plot(img_files, pred_dir=out_dir, out_dir=out_dir)
 
 def _get_img_files(img_file_or_dir: Path) -> list[Path]:
@@ -53,7 +58,7 @@ def _get_img_files(img_file_or_dir: Path) -> list[Path]:
 
 	return img_files
 
-def _actual_inference(img_files: list[Path], out_dir: Path, models: list[str]) -> list[Path]:
+def _inference(img_files: list[Path], out_dir: Path, models: list[str]):
 	n_images = len(img_files)
 
 	print(f"Running on {n_images} images...\n")
@@ -61,22 +66,8 @@ def _actual_inference(img_files: list[Path], out_dir: Path, models: list[str]) -
 		'n_images': n_images,
 		'model_data': []
 	}
-	pred_files = []
 	for model_name in models:
-		print("\n" + model_name)
-		predictor = MODEL_MAP[model_name]
-
-		start_time = time.time()
-		for img_file in tqdm(img_files):
-			img = cv2.imread(str(img_file))
-			predictions = predictor.predict(img)
-
-			pred_file = out_dir / f"{img_file.stem}_{model_name}.json"
-			with pred_file.open('w') as f:
-				json.dump(predictions, f)
-			pred_files.append(pred_file)
-
-		total_time = datetime.timedelta(seconds=(time.time() - start_time))
+		total_time = _run_on_all_imgs(model_name, img_files, out_dir)
 
 		average_time = total_time / n_images
 		inference_stats['model_data'].append({
@@ -90,7 +81,21 @@ def _actual_inference(img_files: list[Path], out_dir: Path, models: list[str]) -
 	with stats_file.open('w') as f:
 		f.write(stats_str)
 
-	return pred_files
+def _run_on_all_imgs(model_name: str, img_files: list[Path], out_dir: Path):
+	print("\n" + model_name)
+	predictor = MODEL_MAP[model_name]
+
+	start_time = time.time()
+	for img_file in tqdm(img_files):
+		img = cv2.imread(str(img_file))
+		predictions = predictor.predict(img)
+
+		pred_file = out_dir / f"{img_file.stem}_{model_name}.json"
+		with pred_file.open('w') as f:
+			json.dump(predictions, f)
+	total_time = datetime.timedelta(seconds=(time.time() - start_time))
+
+	return total_time
 
 def _stats_to_str(stats):
 	stats_str = (

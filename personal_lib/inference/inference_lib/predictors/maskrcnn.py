@@ -3,10 +3,10 @@ from detectron2.config import get_cfg
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 
-from .base_pred import BasePred
-from inference_lib.config import config
+from .base_predictor import Predictor
+from ..config import config
 
-class MaskrcnnPred(BasePred):
+class Maskrcnn(Predictor):
     def __init__(self):
         cfg = get_cfg()
         cfg.merge_from_file(model_zoo.get_config_file(config['maskrcnn']['config_file']))
@@ -37,7 +37,7 @@ class MaskrcnnPred(BasePred):
             class_id = instances.pred_classes[i].item()
             confidence = instances.scores[i].item()
             bin_mask = instances.pred_masks[i]
-            rle = BasePred.bin_mask_to_rle(bin_mask)
+            rle = Predictor.bin_mask_to_rle(bin_mask)
             bbox = instances.pred_boxes.tensor[i].tolist()
 
             pred = {

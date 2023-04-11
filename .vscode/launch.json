@@ -20,10 +20,9 @@
             "name": "Plot annotations",
             "type": "python",
             "request": "launch",
-            "program": "3-annotations/plot.py",
+            "program": "1-baixando_dados/plot_annotations.py",
             "args": [
-                "debug/images",
-                "debug/annotations.json",
+                "debug/",
                 "debug/annotations",
             ],
             "console": "integratedTerminal",

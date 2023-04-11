@@ -1,11 +1,11 @@
 from pathlib import Path
+import sys
 
 import torch
 
-from .base_pred import BasePred
-from inference_lib.config import config
+from .base_predictor import Predictor
+from ..config import config
 
-import sys
 sys.path.insert(0, config['yolact']['dir'])
 from data import set_cfg
 from data import cfg
@@ -14,7 +14,7 @@ from utils.augmentations import FastBaseTransform
 from layers.output_utils import postprocess
 
 
-class YolactPred(BasePred):
+class Yolact(Predictor):
     # Based on:
     # https://github.com/dbolya/yolact/issues/256#issuecomment-567371328
 
@@ -59,7 +59,7 @@ class YolactPred(BasePred):
             class_id = raw_predictions[0][i].item()
             confidence = raw_predictions[1][i].item()
             bin_mask = raw_predictions[3][i]
-            rle = BasePred.bin_mask_to_rle(bin_mask)
+            rle = Predictor.bin_mask_to_rle(bin_mask)
             bbox = raw_predictions[2][i].tolist()
 
             pred = {
