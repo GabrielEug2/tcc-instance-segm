@@ -1,0 +1,7 @@
+[project]
+name = "conversions-lib"
+version = "1"
+dependencies = [
+	"pycocotools",
+	"torch",
+]

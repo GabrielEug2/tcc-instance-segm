@@ -1,0 +1,9 @@
+[project]
+name = "plot-lib"
+version = "1"
+dependencies = [
+	# Detectron
+	# COCO API
+	"opencv-python",
+	"numpy",
+]

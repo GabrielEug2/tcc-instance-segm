@@ -1,24 +1,21 @@
 from pathlib import Path
 import json
-import importlib.resources as pkg_resources
 
 import cv2
 
 from . import common_logic
-from .format_utils import ann_to_rle
-
-CLASSMAP_FILE = pkg_resources.path(__package__, 'classmap_annotations.json')
 
 # TODO update
-def load(ann_file):
-    ann_file = Path(ann_file)
+def plot(ann_dir: Path, out_dir: Path, save_masks: bool):
+	ann_file = Path(args.ann_dir) / 'annotations.json'
+	img_dir = Path(args.ann_dir) / 'images'
+	img_files = img_dir.glob('*.jpg')
 
-    with ann_file.open('r') as f:
-        anns = json.load(f)
-
-    return anns
-
-def plot(img_files, ann_file, out_dir):
+    ann_dir = Path(ann_dir)
+    out_dir = Path(out_dir)
+    img_files = 
+    ann_file = 
+    
     anns = annotations.load(ann_file)
     
 	# make classmap file
@@ -39,6 +36,14 @@ def plot(img_files, ann_file, out_dir):
         annotated_img = common_logic.plot(formatted_anns, img_file, metadata)
         annotated_img_file = out_dir  / f"{img_file.stem}_groundtruth.jpg"
         cv2.imwrite(str(annotated_img_file), annotated_img)
+
+def _load(ann_file):
+    ann_file = Path(ann_file)
+
+    with ann_file.open('r') as f:
+        anns = json.load(f)
+
+    return anns
 
 def _get_annotations(anns, img_file):
     img_desc = _get_img_desc(anns, img_file)
@@ -73,7 +78,7 @@ def _to_pred_format(anns, img_desc):
     for ann in anns:
         class_id = ann['category_id']
         confidence = 100.0
-        mask = ann_to_rle(ann['segmentation'], img_desc)
+        mask = format_utils.ann_to_rle(ann['segmentation'], img_desc)
         bbox = ann['bbox'] # tá em [x1,y1,h,w]
         x1, y1, h, w = bbox[0], bbox[1], bbox[2], bbox[3]
         x2 = x1 + w

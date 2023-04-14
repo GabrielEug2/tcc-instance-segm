@@ -7,7 +7,7 @@ import fiftyone as fo
 import fiftyone.utils.openimages as openimages
 import fiftyone.zoo as fozoo
 
-COCO_CLASS_DIST_FILE = Path(__file__).parent / 'classdist_coco.json'
+COCO_CLASS_DIST_FILE = Path(__file__).parent / 'coco_classdist.json'
 
 def filter_common_classes():
 	"""Filter classes that exist on both datasets (COCO and Openimages).
@@ -28,7 +28,7 @@ def filter_common_classes():
 	
 	return sorted_classes
 
-def download(n_imgs: int, out_dir: str, classes: list[str], only_matching=False):
+def download(n_imgs: int, out_dir: Path, classes: list[str], only_matching=False):
 	"""Download a set of images from Openimages, and their respective annotations.
 
 	Args:
@@ -51,7 +51,6 @@ def download(n_imgs: int, out_dir: str, classes: list[str], only_matching=False)
 		only_matching=only_matching,
 	)
 
-	out_dir = Path(out_dir)
 	dataset.export(
 		export_dir=str(out_dir),
 		dataset_type=fo.types.COCODetectionDataset
@@ -71,5 +70,6 @@ if __name__ == '__main__':
 	common_classes = filter_common_classes()
 	top_classes = common_classes[:10]
 
+	out_dir = Path(args.out_dir)
 	top_classes = [x.capitalize() for x in top_classes]
-	download(args.n_imgs, args.out_dir, classes=top_classes)
+	download(args.n_imgs, out_dir, classes=top_classes)

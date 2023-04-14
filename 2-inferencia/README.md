@@ -28,17 +28,16 @@ Requisitos:
 		wget https://cloudstor.aarnet.edu.au/plus/s/chF3VKQT4RDoEqC/download -O SOLOv2_R50_3x.pth
 		cd -
 		```
-* [COCO Api](https://github.com/cocodataset/cocoapi.git)
+* Minha biblioteca pessoal que padroniza a inferência dos modelos:
 	```bash
-	git clone https://github.com/cocodataset/cocoapi.git
-	cd cocoapi/PythonApi
-	make
-	```
-* Minha biblioteca pessoal que usa tudo isso:
-	```bash
+	pip install -e ../personal_lib/plot
 	pip install -e ../personal_lib/inference
+	```
+* (Opcional) Conversions lib, para salvar os resultados em um formato mais compacto.
+	```bash
+	pip install -e ../personal_lib/conversions
 	```
 
 Como usar:
-* Edite no arquivo o local onde você instalou os modelos.
+* Edite no arquivo `personal_lib/inference/inference_lib/config.yaml` o local onde você instalou os modelos. É, eu sei. Eu vou simplificar esse processo depois.
 * `python inference.py <img_dir> <out_dir>`

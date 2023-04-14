@@ -1,7 +1,11 @@
 
+from pathlib import Path
+import json
 from abc import ABC, abstractmethod
 
-from pycocotools import mask as mask_utils
+COCO_CLASSMAP_FILE = Path(__file__).parent / 'coco_classmap_model.json'
+with COCO_CLASSMAP_FILE.open('r') as f:
+	COCO_CLASSMAP = json.load(f)
 
 class Predictor(ABC):
 	def __init__(self):
@@ -18,20 +22,13 @@ class Predictor(ABC):
 
 		Returns:
 			list: lista de objetos detectados na imagem, no formato:
-				{"class_id": int, seguindo a ordem do COCO (pessoa, bicicleta,
-					carro...), mas mapeado para o intervalo [0-80). See
-					"classmap_predictions.json"
+				{"classname": string,
 				"confidence": float, entre 0 e 1, com 1 sendo 100% de certeza,
-				"mask": compact RLE, que é a forma que o COCO usa para 
-					comprimir máscaras,
+				"mask": torch.Tensor, de tipo bool
 				"bbox": [x1, y1, x2, y2]}
 		"""
 		pass
 	
-	@staticmethod
-	def bin_mask_to_rle(bin_mask):
-		# Bin tensor to COCO compact RLE
-		rle = mask_utils.encode(bin_mask.numpy().astype('uint8', order='F'))
-		rle['counts'] = rle['counts'].decode('ascii')
-
-		return rle
+	@classmethod
+	def cocoid_to_classname(cls, id):
+		return COCO_CLASSMAP[str(id)]

@@ -1,0 +1,12 @@
+[project]
+name = "inference-lib"
+version = "1"
+dependencies = [
+	"opencv-python",
+	# Detectron
+	# Yolact
+	# SOLO 
+	"pyyaml",
+	"tqdm",
+	# Plot lib
+]
