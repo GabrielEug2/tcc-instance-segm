@@ -1,1 +1,1 @@
-from core import *
+from .class_dist import class_distribution

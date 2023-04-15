@@ -6,7 +6,7 @@ Requisitos:
 * Anotações do COCO ([train/val 2017](https://cocodataset.org/#download)) - não precisa das imagens.
 * Stats lib
 	```bash
-	pip install -e ../personal_lib/stats
+	pip install -e personal_lib/stats
 	```
 
 Como usar:

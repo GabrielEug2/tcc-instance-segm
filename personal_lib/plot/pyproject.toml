@@ -6,4 +6,5 @@ dependencies = [
 	# COCO API
 	"opencv-python",
 	"numpy",
+	# Conversions
 ]

@@ -6,14 +6,13 @@ import json
 from tqdm import tqdm
 import cv2
 import plot_lib
+import conversions_lib
 
 from .predictors import MODEL_MAP, load_models
 
 VALID_MODELS = MODEL_MAP.keys()
 
-def run_inference(
-	img_file_or_dir: Path,
-	out_dir: Path,
+def run_inference(img_file_or_dir: Path, out_dir: Path,
 	models: list[str] = None,
 	compressed_masks: bool = False,
 	save_masks: bool = False,
@@ -43,24 +42,16 @@ def run_inference(
 	except (ValueError, ImportError):
 		raise
 
-	if compressed_masks:
-		try:
-			import conversions
-		except ImportError:
-			print("Can't compress masks without conversions lib. Using regular masks instead.")
-			compressed_masks = False
-
-	img_file_or_dir = Path(img_file_or_dir)
 	try:
 		img_files = _get_img_files(img_file_or_dir)
 	except FileNotFoundError:
 		raise
 
-	out_dir = Path(out_dir)
 	if not out_dir.exists():
 		out_dir.mkdir()
 
-	_inference(img_files, out_dir, requested_models)
+	inference_stats = _inference(img_files, out_dir, requested_models)
+	_save_stats(inference_stats, out_dir)
 	_post_processing(img_files, out_dir, save_masks, compressed_masks)
 
 
@@ -95,10 +86,7 @@ def _inference(img_files: list[Path], out_dir: Path, models: list[str]):
 			'average': average_time,
 		})
 
-	stats_str = _stats_to_str(inference_stats)
-	stats_file = out_dir / 'stats.txt'
-	with stats_file.open('w') as f:
-		f.write(stats_str)
+	return inference_stats
 
 def _run_on_all_imgs(img_files: list[Path], out_dir: Path, model_name: str):
 	print("\n" + model_name)
@@ -109,12 +97,20 @@ def _run_on_all_imgs(img_files: list[Path], out_dir: Path, model_name: str):
 		img = cv2.imread(str(img_file))
 		predictions = predictor.predict(img)
 
+		# TODO find best type to save tensor --> [0,1]?
 		pred_file = out_dir / f"{img_file.stem}_{model_name}.json"
 		with pred_file.open('w') as f:
 			json.dump(predictions, f)
 	total_time = datetime.timedelta(seconds=(time.time() - start_time))
 
 	return total_time
+
+def _save_stats(inference_stats, out_dir):
+	stats_str = _stats_to_str(inference_stats)
+
+	stats_file = out_dir / 'stats.txt'
+	with stats_file.open('w') as f:
+		f.write(stats_str)
 
 def _stats_to_str(stats):
 	stats_str = (
@@ -127,6 +123,8 @@ def _stats_to_str(stats):
 		average = model['average']
 		stats_str += f"{name.ljust(10)} {str(total).ljust(20)} {str(average)}\n"
 
+	return stats_str
+
 def _post_processing(img_files: list[Path], out_dir: Path, save_masks: bool, compressed_masks: bool):
 	for img_file in img_files:
 		pred_files = out_dir.glob(f"{img_file.stem}_*.json")
@@ -136,26 +134,26 @@ def _post_processing(img_files: list[Path], out_dir: Path, save_masks: bool, com
 			with pred_file.open('r') as f:
 				predictions = json.load(f)
 
-			predictions_img = plot_lib.plot(img_file, predictions)
 			predictions_img_file = out_dir / f"{img_file.stem}_{model_name}.jpg"
-			cv2.imwrite(str(predictions_img_file), predictions_img)
+			plot_lib.plot(predictions, img_file, predictions_img_file)
 
 			if save_masks:
 				mask_out_dir = out_dir / f"{img_file.stem}_{model_name}_masks"
-				mask_out_dir.mkdir()
 				_save_masks(predictions, mask_out_dir)
 			if compressed_masks:
 				_compress_masks(predictions, pred_file)
 
 def _save_masks(predictions, out_dir):
-	count_per_class = {}
+	out_dir.mkdir(exist_ok=True)
 
+	count_per_class = {}
 	for pred in predictions:
 		classname = pred['classname']
 		mask = pred['mask']
 		
-		count_per_class[classname] += 1
+		count_per_class[classname] = count_per_class.get(classname, 0) + 1
 		mask_file = out_dir / f"{classname}_{count_per_class[classname]}.jpg"
+		# TODO check if mask needs to be a specific type
 		cv2.imwrite(str(mask_file), mask)
 
 def _compress_masks(predictions, pred_file):

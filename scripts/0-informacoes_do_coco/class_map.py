@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 
-	# Não importa qual arquivo (train ou val), eles tem as mesmas classes.
+	# Não importa qual arquivo (train ou val), os dois tem as mesmas classes.
 	# Eu só uso o val porque ele é menor / carrega mais rápido.
 	ann_file = Path(args.ann_dir, 'instances_val2017.json')
 	classmaps = compute_classmap(ann_file)

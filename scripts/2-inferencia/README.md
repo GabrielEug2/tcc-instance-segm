@@ -30,12 +30,9 @@ Requisitos:
 		```
 * Minha biblioteca pessoal que padroniza a inferência dos modelos:
 	```bash
-	pip install -e ../personal_lib/plot
-	pip install -e ../personal_lib/inference
-	```
-* (Opcional) Conversions lib, para salvar os resultados em um formato mais compacto.
-	```bash
-	pip install -e ../personal_lib/conversions
+	pip install -e personal_lib/conversions
+	pip install -e personal_lib/plot
+	pip install -e personal_lib/inference
 	```
 
 Como usar:

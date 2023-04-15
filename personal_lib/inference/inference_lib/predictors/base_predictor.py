@@ -9,22 +9,22 @@ with COCO_CLASSMAP_FILE.open('r') as f:
 
 class Predictor(ABC):
 	def __init__(self):
-		"""Inicializa o modelo, carregando pesos e configurando o
-		que for necessário."""
+		"""Initializes the model, loading weights and any other
+		configurations needed for it's execution."""
 		pass
 	
 	@abstractmethod
 	def predict(self, img):
-		"""Segmenta objetos na imagem.
+		"""Segments objects on the image.
 
 		Args:
-			img (np.ndarray): imagem no formato BGR
+			img (np.ndarray): image in BGR space
 
 		Returns:
-			list: lista de objetos detectados na imagem, no formato:
+			list: list of objects detected on the image, in the format:
 				{"classname": string,
-				"confidence": float, entre 0 e 1, com 1 sendo 100% de certeza,
-				"mask": torch.Tensor, de tipo bool
+				"confidence": float, between 0 and 1,
+				"mask": torch.BoolTensor,
 				"bbox": [x1, y1, x2, y2]}
 		"""
 		pass

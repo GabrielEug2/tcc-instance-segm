@@ -8,5 +8,5 @@ AdelaiDet/
 cocoapi/
 
 # Develop
-.venvs/
+.venv/
 debug/

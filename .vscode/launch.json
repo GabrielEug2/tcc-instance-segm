@@ -8,7 +8,7 @@
             "name": "Inference",
             "type": "python",
             "request": "launch",
-            "program": "2-inferencia/inference.py",
+            "program": "scripts/2-inferencia/inference.py",
             "args": [
                 "debug/images",
                 "debug/predictions",
@@ -20,7 +20,7 @@
             "name": "Plot annotations",
             "type": "python",
             "request": "launch",
-            "program": "1-baixando_dados/plot_annotations.py",
+            "program": "scripts/1-baixando_dados/plot_annotations.py",
             "args": [
                 "debug/",
                 "debug/annotations",

@@ -2,11 +2,11 @@ maskrcnn:
   config_file: COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml
 
 yolact:
-  # dir: '/home/gabriel/tcc/tcc-instance-segm/2-inferencia/yolact_pkg'
+  dir: /home/gabriel/tcc/tcc-instance-segm/scripts/2-inferencia/yolact_pkg
   config_name: yolact_base_config
   weights_file: yolact_base_54_800000.pth
 
 solo:
-  # dir: '/home/gabriel/tcc/tcc-instance-segm/2-inferencia/AdelaiDet'
+  dir: /home/gabriel/tcc/tcc-instance-segm/scripts/2-inferencia/AdelaiDet
   config_file: configs/SOLOv2/R50_3x.yaml
   weights_file: SOLOv2_R50_3x.pth

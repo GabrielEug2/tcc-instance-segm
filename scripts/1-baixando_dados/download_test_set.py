@@ -66,7 +66,6 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 
-	# Quero só imagens com as 10 classes que mais tem no COCO
 	common_classes = filter_common_classes()
 	top_classes = common_classes[:10]
 

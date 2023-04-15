@@ -23,16 +23,13 @@ Existem inúmeras APIs para visualizar as anotações, mas eu optei pela impleme
 
 Requisitos:
 * Linux - talvez você consiga instalar no Windows, mas eu não testei.
-* Conversions lib, para conseguir processar o arquivo de anotações.
-	```bash
-	pip install -e ../personal_lib/conversions
-	```
 * Plot lib
 	* Primeiro instale o núcleo, que é o [Detectron2](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
 		* Instruções no link
 	* E depois a minha biblioteca, que faz uso dele:
 		```bash
-		pip install -e ../personal_lib/plot
+		pip install -e personal_lib/conversions
+		pip install -e personal_lib/plot
 		```
 
 Para rodar:
