@@ -8,8 +8,9 @@
             "name": "Inference",
             "type": "python",
             "request": "launch",
-            "program": "scripts/2-inferencia/inference.py",
+            "program": "funcionalidades/2-inferencia/inference.py",
             "args": [
+                "--save-masks",
                 "debug/images",
                 "debug/predictions",
             ],
@@ -20,8 +21,9 @@
             "name": "Plot annotations",
             "type": "python",
             "request": "launch",
-            "program": "scripts/1-baixando_dados/plot_annotations.py",
+            "program": "funcionalidades/1-baixando_dados/plot_annotations.py",
             "args": [
+                "--save-masks",
                 "debug/",
                 "debug/annotations",
             ],

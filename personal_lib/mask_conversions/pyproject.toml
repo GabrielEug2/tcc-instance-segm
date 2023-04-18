@@ -3,14 +3,9 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "personal-lib-inference"
+name = "personal-lib-mask-conversions"
 version = "1"
 dependencies = [
-	"opencv-python",
-	# Modelos
-		# Detectron
-		# Yolact
-		# SOLO
-	"pyyaml",
-	"tqdm",
+	# torch
+	"pycocotools",
 ]

@@ -1,6 +1,0 @@
-[project]
-name = "stats-lib"
-version = "1"
-dependencies = [
-
-]
