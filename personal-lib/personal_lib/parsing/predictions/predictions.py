@@ -1,4 +1,4 @@
-"""Functions to parse predictions in personal_lib format.
+"""Functions to worh with predictions in personal_lib format.
 
 See personal_lib.inference.predictors.base_predictor for more details"""
 
@@ -19,7 +19,7 @@ class Predictions():
 			json.dump(self.predictions, f)
 
 	@classmethod
-	def load_from_file(pred_file: Path):
+	def load_from_file(self, pred_file: Path):
 		if not pred_file.exists():
 			raise FileNotFoundError(str(pred_file))
 
@@ -36,10 +36,8 @@ class Predictions():
 
 	def class_distribution(self) -> dict:
 		class_dist = {}
-
 		for pred in self.predictions:
 			classname = pred['classname']
 			class_dist[classname] = class_dist.get(classname, 0) + 1
 
 		return class_dist
-

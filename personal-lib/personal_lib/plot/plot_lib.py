@@ -38,7 +38,7 @@ def plot(anns_or_preds: dict, img_file: Path, out_file: Path):
 	instances = Instances((h, w))
 	instances.pred_classes = torch.tensor(class_ids, dtype=torch.int)
 	instances.scores = torch.tensor(scores, dtype=torch.float)
-	instances.pred_masks = torch.stack(masks)
+	instances.pred_masks = torch.stack(masks) if masks else torch.tensor(masks)
 	instances.pred_boxes = Boxes(torch.tensor(boxes, dtype=torch.float))
 
 	v = Visualizer(img, metadata)
@@ -47,15 +47,15 @@ def plot(anns_or_preds: dict, img_file: Path, out_file: Path):
 
 	cv2.imwrite(str(out_file), out_img)
 
-def plot_individual_masks(anns_or_preds, out_dir, img_file):
+def plot_individual_masks(anns_or_preds: dict, out_dir: Path, img_file: Path):
 	out_dir.mkdir(exist_ok=True)
 
 	count_per_class = {}
 	for pred in anns_or_preds:
 		classname = pred['classname']
-		mask = pred['mask']		
-		count_per_class[classname] = count_per_class.get(classname, 0) + 1
+		mask = pred['mask']
 
+		count_per_class[classname] = count_per_class.get(classname, 0) + 1
 		out_file_basename = f"{classname}_{count_per_class[classname]}"
 
 		bin_mask_file = out_dir / f"{out_file_basename}_bin.jpg"

@@ -49,6 +49,7 @@ def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None
 		out_dir.mkdir()
 
 	inference_stats = _inference(img_files, out_dir, requested_models)
+	print("\nPost processing")
 	_save_stats(inference_stats, out_dir)
 	plot_predictions(out_dir, img_files, save_masks)
 
@@ -100,13 +101,13 @@ def _save_stats(inference_stats, out_dir):
 		f.write(stats_str)
 
 def _stats_to_str(stats: InferenceStats):
-	n_images = stats['n_images']
+	n_images = stats.n_images
 
 	stats_str = (
 		f"{n_images} imagens\n"
 		f"{'Modelo'.ljust(10)} {'Tempo total (s)'.ljust(20)} Tempo médio por imagem (s)\n"
 	)
-	for model_name, total_time in stats['time_for_model'].items():
+	for model_name, total_time in stats.time_for_model.items():
 		average_time = total_time / n_images
 
 		stats_str += f"{model_name.ljust(10)} {str(total_time).ljust(20)} {str(average_time)}\n"

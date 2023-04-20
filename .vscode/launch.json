@@ -5,19 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Inference",
-            "type": "python",
-            "request": "launch",
-            "program": "funcionalidades/2-inferencia/inference.py",
-            "args": [
-                "--save-masks",
-                "debug/images",
-                "debug/predictions",
-            ],
-            "console": "integratedTerminal",
-            "justMyCode": false
-        },
-        {
             "name": "Plot annotations",
             "type": "python",
             "request": "launch",
@@ -26,6 +13,19 @@
                 "--save-masks",
                 "debug/",
                 "debug/annotations",
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+		{
+            "name": "Inference",
+            "type": "python",
+            "request": "launch",
+            "program": "funcionalidades/2-inferencia/inference.py",
+            "args": [
+                "--save-masks",
+                "debug/images",
+                "debug/predictions",
             ],
             "console": "integratedTerminal",
             "justMyCode": false

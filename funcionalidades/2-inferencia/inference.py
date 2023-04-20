@@ -16,4 +16,4 @@ args = parser.parse_args()
 
 img_file_or_dir = Path(args.img_file_or_dir)
 out_dir = Path(args.out_dir)
-run_inference(img_file_or_dir, out_dir, args.save_masks)
+run_inference(img_file_or_dir, out_dir, save_masks=args.save_masks)

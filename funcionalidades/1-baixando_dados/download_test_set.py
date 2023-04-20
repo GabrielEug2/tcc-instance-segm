@@ -2,10 +2,10 @@
 import argparse
 import json
 from pathlib import Path
+import random
 
-import fiftyone as fo
-import fiftyone.utils.openimages as openimages
-import fiftyone.zoo as fozoo
+# Os imports do fiftyone não estão aqui porque é muito lento.
+# Se deixar no topo da arquivo, o --help também demora
 
 COCO_CLASS_DIST_FILE = Path(__file__).parent / 'coco_classdist.json'
 
@@ -17,6 +17,8 @@ def filter_common_classes():
 	"""
 	with COCO_CLASS_DIST_FILE.open('r') as f:
 		coco_class_dist = json.load(f)
+
+	import fiftyone.utils.openimages as openimages
 
 	coco_classes = coco_class_dist.keys()
 	openimages_classes = [x.lower() for x in openimages.get_segmentation_classes()]
@@ -40,14 +42,17 @@ def download(n_imgs: int, out_dir: Path, classes: list[str], only_matching=False
 			classes you requested (True) or download all labels for images
 			that have the classes you requested (False). Default to False.
 	"""
+	import fiftyone as fo
+	import fiftyone.zoo as fozoo
 
 	dataset = fozoo.load_zoo_dataset(
 		"open-images-v6",
 		split="validation",
 		label_types="segmentations",
-		shuffle=True,
 		max_samples=n_imgs,
 		classes=classes,
+		shuffle=True,
+		seed=random.randrange(0, 1000),
 		only_matching=only_matching,
 	)
 

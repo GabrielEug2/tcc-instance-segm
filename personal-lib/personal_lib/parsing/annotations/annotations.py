@@ -1,5 +1,5 @@
 """Functions to work with annotations in COCO format.
-	(https://cocodataset.org/#format-data)"""
+(https://cocodataset.org/#format-data)"""
 
 import json
 from pathlib import Path
@@ -16,12 +16,13 @@ class Annotations:
 		self.classmap = self._extract_classmap(anns['categories'])
 
 	@classmethod
-	def _load_anns(ann_file):
+	def _load_anns(cls, ann_file):
 		if not ann_file.exists():
 			raise FileNotFoundError(str(ann_file))
 
 		with ann_file.open('r') as f:
 			anns = json.load(f)
+
 		# Could test keys and values too, but whatever
 
 		return anns
@@ -76,7 +77,7 @@ class Annotations:
 				relevant_anns.append(ann)
 		return relevant_anns
 
-	def get_img_dimensions(self, img_file):
+	def get_img_dimensions(self, img_file: Path):
 		img_desc = self._get_img_desc(img_file)
 		if img_desc == None:
 			return (0, 0)

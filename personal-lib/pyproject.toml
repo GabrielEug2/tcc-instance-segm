@@ -8,8 +8,8 @@ version = "1"
 dependencies = [
 	# only the easily installable stuff (pip install whatever)
 	# anything more demanding (like Detectron) is lazy loaded
-	# "pycocotools",
-	# "opencv-python",
-	# "pyyaml",
-	# "tqdm",
+	"pycocotools",
+	"opencv-python",
+	"pyyaml",
+	"tqdm",
 ]

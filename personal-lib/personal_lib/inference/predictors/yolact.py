@@ -77,4 +77,4 @@ class Yolact(Predictor):
 		# onde ele foi treinado. No meu caso, os três modelos seguem a mesma
 		# numeração, a do COCO, mas achei importante deixar cada modelo com o
 		# sua própria função de conversão
-		return super.cocoid_to_classname(class_id)
+		return super().cocoid_to_classname(class_id)
