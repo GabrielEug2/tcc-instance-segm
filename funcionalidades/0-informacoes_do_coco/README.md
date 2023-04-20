@@ -4,9 +4,10 @@ Você não precisa necessariamente rodar nada dessa pasta, já que os arquivos r
 
 Requisitos:
 * Anotações do COCO ([train/val 2017](https://cocodataset.org/#download)) - não precisa das imagens.
-* Partes relevantes da minha biblioteca:
+* Personal lib:
+	* 
 	```bash
-	pip install -e personal-lib/personal-lib-ann-logic
+	pip install -e personal-lib
 	```
 
 Como usar:

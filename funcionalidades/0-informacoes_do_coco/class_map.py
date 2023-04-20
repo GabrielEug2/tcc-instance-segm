@@ -2,7 +2,7 @@ import argparse
 import json
 from pathlib import Path
 
-from personal_lib import ann_logic
+from personal_lib.parsing.annotations import Annotations
 
 parser = argparse.ArgumentParser()
 parser.add_argument('ann_dir', help='Directory where you placed the annotations')
@@ -11,12 +11,12 @@ args = parser.parse_args()
 # Não importa qual arquivo (train ou val), os dois tem as mesmas classes.
 # Eu só uso o val porque ele é menor / carrega mais rápido.
 ann_file = Path(args.ann_dir, 'instances_val2017.json')
-anns = ann_logic.load_anns(ann_file)
+anns = Annotations(ann_file)
 
 # O COCO pula alguns IDs: tem 80 classes, mas vai até o ID 90.
 # Para simplificar, os modelos normalizam pra [0,N)
-default_coco_map = ann_logic.raw_classmap(anns)
-model_map = ann_logic.normalized_classmap(default_coco_map)
+default_coco_map = anns.classmap
+model_map = anns.normalize_classmap()
 classmaps = { 'default': default_coco_map, 'model': model_map }
 
 for map_name in classmaps:

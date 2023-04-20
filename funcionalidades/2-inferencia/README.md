@@ -1,9 +1,7 @@
-## Inferencia e visualização
-
-### Inferência
+## Inferencia
 
 Requisitos:
-* Linux - talvez você consiga instalar no Windows, mas eu não testei.
+* Linux - talvez você consiga instalar os modelos no Windows, mas eu não testei.
 * Modelos:
 	* [Mask R-CNN](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
 		* Instruções no link
@@ -29,27 +27,16 @@ Requisitos:
 		cd -
 		```
 	* Para usar com outros modelos, veja `personal_lib/inference/predictors/base_predictor.py` para a interface necessária.
-* Partes relevantes da minha biblioteca:
+* Personal lib:
 	```bash
-	pip install -e personal-lib/personal-lib-pred-logic
-	pip install -e personal-lib/personal-lib-core
-	pip install -e personal-lib/personal-lib-plot # Precisa do Detectron. Leia abaixo.
-	pip install -e personal-lib/personal-lib-inference
+	pip install -e personal-lib
 	```
-* Plot lib
-	* Existem inúmeras APIs para visualizar as predictions, mas eu optei pela implementada no [Detectron](https://detectron2.readthedocs.io/en/latest/tutorials/install.html). Não é exatamente a mais fácil de instalar, mas entre as que eu testei, eu gostei mais dessa, no geral. Você pode usar outras, se preferir, basta modificar a parte de visualização (`personal-lib/personal-lib-plot/`) para utilizar a API desejada. Assim você não precisa instalar o Detectron, se não quiser.
-	* Third party
-		* [Torch](https://pytorch.org/get-started/locally/)
-		* [Detectron2](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
-			* Instruções no link
-	* Partes relevantes da biblioteca:
-		```bash
-		pip install -e personal-lib/personal-lib-pred-logic
-		pip install -e personal-lib/personal-lib-core
-		pip install -e personal-lib/personal-lib-plot
-		```
+* Plot dependencies:
+	* [Torch](https://pytorch.org/get-started/locally/)
+	* [Detectron2](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
+	* Para usar outra API, basta modificar a parte de visualização (`personal_lib/plot/`) para utilizar a API desejada.
 
 Como usar:
-* Edite no arquivo `personal-lib/personal-lib-inference/personal_lib/inference/predictors/config.yaml` o local onde você instalou os modelos. É, eu sei. Eu vou simplificar esse processo depois.
+* Edite no arquivo `personal_lib/inference/predictors/config.yaml` o local onde você instalou os modelos. É, eu sei. Eu vou simplificar esse processo depois.
 * `python inference.py <img_file_or_dir> <out_dir>` para rodar a inferência.
 * `python inference.py -h` para mais opções.

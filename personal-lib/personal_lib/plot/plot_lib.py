@@ -56,9 +56,11 @@ def plot_individual_masks(anns_or_preds, out_dir, img_file):
 		mask = pred['mask']		
 		count_per_class[classname] = count_per_class.get(classname, 0) + 1
 
-		bin_mask_file = out_dir / f"{classname}_{count_per_class[classname]}_bin.jpg"
+		out_file_basename = f"{classname}_{count_per_class[classname]}"
+
+		bin_mask_file = out_dir / f"{out_file_basename}_bin.jpg"
 		bin_mask_np = mask.numpy().astype(np.uint8) * 255
 		cv2.imwrite(str(bin_mask_file), bin_mask_np)
 
-		plotted_mask_file = out_dir / f"{classname}_{count_per_class[classname]}_plot.jpg"
+		plotted_mask_file = out_dir / f"{out_file_basename}_plot.jpg"
 		plot([pred], img_file, plotted_mask_file)

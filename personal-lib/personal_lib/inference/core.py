@@ -5,8 +5,8 @@ import datetime
 
 from tqdm import tqdm
 import cv2
-from personal_lib import pred_logic
-from personal_lib import plot
+from personal_lib.parsing.predictions import Predictions
+from personal_lib.plot import plot_predictions
 
 from .predictors import MODEL_MAP, load_models
 
@@ -50,7 +50,7 @@ def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None
 
 	inference_stats = _inference(img_files, out_dir, requested_models)
 	_save_stats(inference_stats, out_dir)
-	plot.plot_predictions(out_dir, img_files, save_masks)
+	plot_predictions(out_dir, img_files, save_masks)
 
 def _get_img_files(img_file_or_dir: Path) -> list[Path]:
 	if not img_file_or_dir.exists():
@@ -87,7 +87,7 @@ def _run_on_all_imgs(img_files: list[Path], out_dir: Path, model_name: str):
 		predictions = predictor.predict(img)
 
 		pred_file = out_dir / f"{img_file.stem}_{model_name}.json"
-		pred_logic.save_preds(predictions, pred_file)
+		Predictions(predictions).save(pred_file)
 	total_time = datetime.timedelta(seconds=(time.time() - start_time))
 
 	return total_time
