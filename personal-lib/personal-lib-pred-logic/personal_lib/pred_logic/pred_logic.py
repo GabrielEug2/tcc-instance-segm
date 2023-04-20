@@ -1,11 +1,18 @@
+"""Functions to parse predictions in personal_lib format.
+
+See personal_lib.inference.predictors.base_predictor for details"""
+
 import json
 from pathlib import Path
 
-import personal_lib.mask_conversions as mask_conversions
+from personal_lib.core import mask_conversions
 
-# Prediction format:
-# 	same as personal_lib.inference.predictors.base_predictor,
-#	but with RLE instead
+def save_preds(predictions, out_file):
+	for pred in predictions:
+		pred['mask'] = mask_conversions.bin_mask_to_rle(pred['mask'])
+
+	with out_file.open('w') as f:
+		json.dump(predictions, f)
 
 def load_preds(pred_file: Path):
 	if not pred_file.exists():
@@ -13,30 +20,16 @@ def load_preds(pred_file: Path):
 
 	try:
 		with pred_file.open('r') as f:
-			preds = json.load(f)
+			predictions = json.load(f)
 
-		for pred in preds:
-			# É salvo como RLE, mas para usar é melhor binário
+		for pred in predictions:
 			pred['mask'] = mask_conversions.rle_to_bin_mask(pred['mask'])
 	except json.JSONDecodeError as e:
 		raise ValueError(f"File \"{str(pred_file)}\" does not follow the required format") from e
 
-	return preds
+	return predictions
 
 def class_distribution(pred_files: Path|list[Path]):
-	"""Computes the class distribution on the specified files.
-
-	Args:
-		pred_files (Path): path to the files you want to compute the class
-			distribution on.
-
-	Raises:
-		FileNotFoundError: if any of the requested files was not found.
-		ValueError: if the content does	not follow the expected format.
-
-	Returns:
-		dict[str, int]: class distribution, by name.
-	"""
 	for f in pred_files:
 		if not f.exists():
 			raise FileNotFoundError(str(f))
@@ -44,26 +37,27 @@ def class_distribution(pred_files: Path|list[Path]):
 	if type(pred_files) == Path:
 		pred_files = [pred_files]
 
-	class_dist = _compute_class_dist(pred_files)
+	class_dist = _class_dist_from_files(pred_files)
 
 	return class_dist
 
-def _compute_class_dist(pred_files: list[Path]):
-	class_dist = {}
+def _class_dist_from_files(pred_files: list[Path]) -> dict:
+	total_class_dist = {}
 
 	for pred_file in pred_files:
 		print(f"Processing {pred_file.name}...") # Só pra saber se é normal a demora, tipo o annotations_train
 		try:
-			preds = load_preds(pred_file)
-			file_dist = _class_dist(preds)
+			file_dist = _class_dist_from_file(pred_file)
 		except Exception as e:
 			raise ValueError(f"File \"{str(pred_file)}\" does not follow the expected format") from e
 
-		_update_counts(class_dist, file_dist)
+		_update_counts(total_class_dist, file_dist)
 
-	return class_dist
+	return total_class_dist
 
-def _class_dist(preds):
+def _class_dist_from_file(pred_file: Path) -> dict:
+	preds = load_preds(pred_file)
+
 	class_dist = {}
 
 	for pred in preds:

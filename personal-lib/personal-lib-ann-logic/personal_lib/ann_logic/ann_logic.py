@@ -1,8 +1,8 @@
+"""Functions to parse annotations in COCO format.
+	(https://cocodataset.org/#format-data)"""
 
 import json
 from pathlib import Path
-
-# Annotation format: COCO (https://cocodataset.org/#format-data)
 
 def load_anns(ann_file: Path):
 	if not ann_file.exists():
@@ -12,11 +12,11 @@ def load_anns(ann_file: Path):
 		with ann_file.open('r') as f:
 			anns = json.load(f)
 	except json.JSONDecodeError as e:
-		raise ValueError(f"File \"{str(ann_file)}\" does not follow the required format") from e
+		raise ValueError(f"File \"{str(ann_file)}\" does not follow the expected format") from e
 
 	return anns
 
-def raw_classmap(anns):
+def extract_classmap(anns):
 	classmap = {}
 
 	for cat in anns['categories']:
@@ -24,7 +24,7 @@ def raw_classmap(anns):
 
 	return classmap
 
-def normalized_classmap(raw_map):
+def normalize_classmap(raw_map):
 	sorted_cats = sorted(raw_map.items(), key=lambda c: int(c[0]))
 	n_classes = len(raw_map.keys())
 
@@ -108,7 +108,7 @@ def _filter_by_img_id(img_id, anns):
 			relevant_anns.append(ann)
 	return relevant_anns
 
-def get_height_width(img_file, anns):
+def get_img_dimensions(img_file, anns):
 	img_desc = _get_img_desc(img_file, anns)
 	if img_desc == None:
 		return (0, 0)

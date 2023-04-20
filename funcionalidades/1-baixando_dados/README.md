@@ -19,7 +19,7 @@ Você também pode usar outros datasets, se quiser. Só salve as annotations no 
 
 ### Visualizando as anotações
 
-Existem inúmeras APIs para visualizar as anotações, mas eu optei pela implementada no Detectron. Não é exatamente a mais fácil de instalar, mas entre as que eu testei, eu gostei mais dessa, no geral. Você pode usar outras, se preferir, basta modificar a parte de visualização (`personal_lib/plot/`) para utilizar a API desejada.
+Existem inúmeras APIs para visualizar as anotações, mas eu optei pela implementada no Detectron. Não é exatamente a mais fácil de instalar, mas entre as que eu testei, eu gostei mais dessa, no geral. Você pode usar outras, se preferir, basta modificar a parte de visualização (`personal-lib/personal-lib-plot/`) para utilizar a API desejada.
 
 Requisitos:
 * Linux - talvez você consiga instalar no Windows, mas eu não testei.
@@ -30,10 +30,9 @@ Requisitos:
 			* Instruções no link
 	* Partes relevantes da biblioteca:
 		```bash
-		pip install -e personal_lib/mask_conversions
-		pip install -e personal_lib/ann_parser
-		pip install -e personal_lib/pred_parser
-		pip install -e personal_lib/plot
+		pip install -e personal-lib/personal-lib-ann-logic
+		pip install -e personal-lib/personal-lib-core
+		pip install -e personal-lib/personal-lib-plot
 		```
 
 Para rodar:

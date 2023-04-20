@@ -3,8 +3,8 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "personal-lib-pred-parser"
+name = "personal-lib-ann-parser"
 version = "1"
 dependencies = [
-	# personal-lib-mask-conversions
+
 ]

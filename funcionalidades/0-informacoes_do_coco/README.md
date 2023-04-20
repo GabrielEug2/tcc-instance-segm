@@ -6,7 +6,7 @@ Requisitos:
 * Anotações do COCO ([train/val 2017](https://cocodataset.org/#download)) - não precisa das imagens.
 * Partes relevantes da minha biblioteca:
 	```bash
-	pip install -e personal_lib/ann_parser
+	pip install -e personal-lib/personal-lib-ann-logic
 	```
 
 Como usar:

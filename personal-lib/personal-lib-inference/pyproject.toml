@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "personal-lib-inference"
+version = "1"
+dependencies = [
+	# personal-lib-pred-logic
+	# personal-lib-plot
+	"opencv-python",
+	# Modelos
+		# Detectron
+		# Yolact
+		# SOLO
+	"pyyaml",
+	"tqdm",
+]

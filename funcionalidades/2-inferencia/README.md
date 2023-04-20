@@ -28,17 +28,28 @@ Requisitos:
 		wget https://cloudstor.aarnet.edu.au/plus/s/chF3VKQT4RDoEqC/download -O SOLOv2_R50_3x.pth
 		cd -
 		```
-	* Para usar com outros modelos, veja `personal_lib/inference/personal_lib/inference/predictors/base_predictor.py` para a interface necessária.
-* Minha biblioteca pessoal que padroniza a inferência dos modelos:
+	* Para usar com outros modelos, veja `personal_lib/inference/predictors/base_predictor.py` para a interface necessária.
+* Partes relevantes da minha biblioteca:
 	```bash
-	pip install -e personal_lib/plot # Precisa do Detectron. Leia abaixo.
-	pip install -e personal_lib/inference
+	pip install -e personal-lib/personal-lib-pred-logic
+	pip install -e personal-lib/personal-lib-core
+	pip install -e personal-lib/personal-lib-plot # Precisa do Detectron. Leia abaixo.
+	pip install -e personal-lib/personal-lib-inference
 	```
-
-Existem inúmeras APIs para visualizar as predictions, mas eu optei pela implementada no [Detectron](https://detectron2.readthedocs.io/en/latest/tutorials/install.html). Não é exatamente a mais fácil de instalar, mas entre as que eu testei, eu gostei mais dessa, no geral. Você pode usar outras, se preferir, basta modificar a parte de visualização (`personal_lib/plot/`) para utilizar a API desejada. Assim você não precisa instalar o Detectron, se não quiser.
-
+* Plot lib
+	* Existem inúmeras APIs para visualizar as predictions, mas eu optei pela implementada no [Detectron](https://detectron2.readthedocs.io/en/latest/tutorials/install.html). Não é exatamente a mais fácil de instalar, mas entre as que eu testei, eu gostei mais dessa, no geral. Você pode usar outras, se preferir, basta modificar a parte de visualização (`personal-lib/personal-lib-plot/`) para utilizar a API desejada. Assim você não precisa instalar o Detectron, se não quiser.
+	* Third party
+		* [Torch](https://pytorch.org/get-started/locally/)
+		* [Detectron2](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
+			* Instruções no link
+	* Partes relevantes da biblioteca:
+		```bash
+		pip install -e personal-lib/personal-lib-pred-logic
+		pip install -e personal-lib/personal-lib-core
+		pip install -e personal-lib/personal-lib-plot
+		```
 
 Como usar:
-* Edite no arquivo `personal_lib/inference/inference_lib/config.yaml` o local onde você instalou os modelos. É, eu sei. Eu vou simplificar esse processo depois.
+* Edite no arquivo `personal-lib/personal-lib-inference/personal_lib/inference/predictors/config.yaml` o local onde você instalou os modelos. É, eu sei. Eu vou simplificar esse processo depois.
 * `python inference.py <img_file_or_dir> <out_dir>` para rodar a inferência.
 * `python inference.py -h` para mais opções.

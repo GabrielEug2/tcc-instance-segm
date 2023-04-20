@@ -2,11 +2,10 @@ from dataclasses import dataclass
 from pathlib import Path
 import time
 import datetime
-import json
 
 from tqdm import tqdm
 import cv2
-from personal_lib import mask_conversions
+from personal_lib import pred_logic
 from personal_lib import plot
 
 from .predictors import MODEL_MAP, load_models
@@ -18,12 +17,7 @@ class InferenceStats():
 	n_images: str
 	time_for_model: dict[str, datetime.timedelta]
 
-def run_inference(
-	img_file_or_dir: Path,
-	out_dir: Path,
-	models: list[str] = None,
-	save_masks: bool = False,
-):
+def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None, save_masks: bool = False):
 	"""Runs inference on the requested imgs.
 
 	Args:
@@ -93,17 +87,10 @@ def _run_on_all_imgs(img_files: list[Path], out_dir: Path, model_name: str):
 		predictions = predictor.predict(img)
 
 		pred_file = out_dir / f"{img_file.stem}_{model_name}.json"
-		_save_preds(predictions, pred_file)
+		pred_logic.save_preds(predictions, pred_file)
 	total_time = datetime.timedelta(seconds=(time.time() - start_time))
 
 	return total_time
-
-def _save_preds(predictions, pred_file):
-	for pred in predictions:
-		pred['mask'] = mask_conversions.bin_mask_to_rle(pred['mask'])
-
-	with pred_file.open('w') as f:
-		json.dump(predictions, f)
 
 def _save_stats(inference_stats, out_dir):
 	stats_str = _stats_to_str(inference_stats)

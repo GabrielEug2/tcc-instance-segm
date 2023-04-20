@@ -3,9 +3,13 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "personal-lib-mask-conversions"
+name = "personal-lib-plot"
 version = "1"
 dependencies = [
+	# personal-lib-ann-logic or pred-logic
+	# personal-lib-core
 	# torch
-	"pycocotools",
+	# detectron
+	"opencv-python",
+	"numpy",
 ]
