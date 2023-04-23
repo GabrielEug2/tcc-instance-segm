@@ -5,7 +5,6 @@ __pycache__/
 # 3rd party you should install separately
 yolact_pkg/
 AdelaiDet/
-cocoapi/
 
 # Develop
 .venv/

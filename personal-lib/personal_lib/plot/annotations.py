@@ -7,10 +7,10 @@ from personal_lib.parsing.annotations import Annotations
 from personal_lib.parsing.common import mask_conversions
 from . import plot_lib
 
-def plot(ann_file: Path, img_files: Path, out_dir: Path, save_masks: bool):
+def plot(ann_file: Path, img_dir: Path, out_dir: Path):
 	anns = Annotations(ann_file)
 	classmap = anns.classmap
-
+	img_files = img_dir.glob('*.jpg')
 	if not out_dir.exists():
 		out_dir.mkdir()
 
@@ -26,9 +26,8 @@ def plot(ann_file: Path, img_files: Path, out_dir: Path, save_masks: bool):
 		annotated_img_file = out_dir / f"{img_file.stem}_groundtruth.jpg"
 		plot_lib.plot(formatted_anns, img_file, annotated_img_file)
 
-		if save_masks:
-			mask_out_dir = out_dir / f"{img_file.stem}_groundtruth_masks"
-			plot_lib.plot_individual_masks(formatted_anns, mask_out_dir, img_file)
+		mask_out_dir = out_dir / f"{img_file.stem}_groundtruth_masks"
+		plot_lib.plot_individual_masks(formatted_anns, mask_out_dir, img_file)
 
 def _to_plot_format(anns, img_h, img_w, classmap):
 	formatted_anns = []

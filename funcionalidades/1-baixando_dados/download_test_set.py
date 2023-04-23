@@ -68,7 +68,6 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument('n_imgs', type=int, help='Number of images to download')
 	parser.add_argument('out_dir', help='Directory to save')
-
 	args = parser.parse_args()
 
 	common_classes = filter_common_classes()

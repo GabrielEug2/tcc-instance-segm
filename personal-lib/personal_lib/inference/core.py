@@ -6,7 +6,6 @@ import datetime
 from tqdm import tqdm
 import cv2
 from personal_lib.parsing.predictions import Predictions
-from personal_lib.plot import plot_predictions
 
 from .predictors import MODEL_MAP, load_models
 
@@ -17,7 +16,7 @@ class InferenceStats():
 	n_images: str
 	time_for_model: dict[str, datetime.timedelta]
 
-def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None, save_masks: bool = False):
+def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None):
 	"""Runs inference on the requested imgs.
 
 	Args:
@@ -26,8 +25,6 @@ def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None
 		models (list[str], optional): list of models to use. See
 			inference_lib.VALID_MODELS for a list of available models.
 			By default, uses all of them.
-		save_masks (bool, optional): whether to save the individual masks too,
-		 	as images (True) or not (False). Defaults to False.
 
 	Raises:
 		ValueError: if an invalid model name was given.
@@ -48,10 +45,7 @@ def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None
 	if not out_dir.exists():
 		out_dir.mkdir()
 
-	inference_stats = _inference(img_files, out_dir, requested_models)
-	print("\nPost processing")
-	_save_stats(inference_stats, out_dir)
-	plot_predictions(out_dir, img_files, save_masks)
+	_inference(img_files, out_dir, requested_models)
 
 def _get_img_files(img_file_or_dir: Path) -> list[Path]:
 	if not img_file_or_dir.exists():
@@ -75,8 +69,9 @@ def _inference(img_files: list[Path], out_dir: Path, models: list[str]):
 		total_time = _run_on_all_imgs(img_files, out_dir, model_name)
 
 		inference_stats.time_for_model[model_name] = total_time
+		print(inference_stats)
 
-	return inference_stats
+	_save_stats(inference_stats, out_dir)
 
 def _run_on_all_imgs(img_files: list[Path], out_dir: Path, model_name: str):
 	print("\n" + model_name)

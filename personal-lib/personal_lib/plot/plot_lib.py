@@ -27,11 +27,11 @@ def plot(anns_or_preds: dict, img_file: Path, out_file: Path):
 		boxes.append(pred['bbox'])
 	
 	class_list = list(set(classnames))
-	metadata = Metadata()
-	metadata.set(thing_classes = class_list)
 	class_ids = []
 	for classname in classnames:
 		class_ids.append(class_list.index(classname))
+	metadata = Metadata()
+	metadata.set(thing_classes = class_list)
 
 	img = cv2.imread(str(img_file))
 	h, w, _ = img.shape

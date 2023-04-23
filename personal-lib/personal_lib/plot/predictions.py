@@ -5,7 +5,9 @@ from tqdm import tqdm
 from personal_lib.parsing.predictions import Predictions
 from . import plot_lib
 
-def plot(pred_dir: Path, img_files: list[Path], save_masks: bool):
+def plot(pred_dir: Path, img_dir: Path, out_dir: Path):
+	img_files = img_dir.glob('*.jpg')
+
 	for img_file in tqdm(img_files):
 		pred_files = pred_dir.glob(f"{img_file.stem}_*.json")
 
@@ -14,12 +16,11 @@ def plot(pred_dir: Path, img_files: list[Path], save_masks: bool):
 			predictions = Predictions.load_from_file(pred_file)
 			formatted_preds = _to_plot_format(predictions)
 
-			predictions_img_file = pred_dir / f"{img_file.stem}_{model_name}.jpg"
+			predictions_img_file = out_dir / f"{img_file.stem}_{model_name}.jpg"
 			plot_lib.plot(formatted_preds, img_file, predictions_img_file)
 
-			if save_masks:
-				mask_out_dir = pred_dir / f"{img_file.stem}_{model_name}_masks"
-				plot_lib.plot_individual_masks(formatted_preds, mask_out_dir, img_file)
+			mask_out_dir = out_dir / f"{img_file.stem}_{model_name}_masks"
+			plot_lib.plot_individual_masks(formatted_preds, mask_out_dir, img_file)
 
 def _to_plot_format(predictions):
 	# Já está no formato certo, mas agora eu quero o dict
