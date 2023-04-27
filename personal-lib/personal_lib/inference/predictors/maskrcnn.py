@@ -33,7 +33,6 @@ class Maskrcnn(Predictor):
 
 		instances = raw_predictions['instances']
 		for i in range(len(instances)):
-			# Já está no intervalo certo, [0,N)
 			class_id = instances.pred_classes[i].item()
 			classname = self._id_to_name(class_id)
 			confidence = instances.scores[i].item()

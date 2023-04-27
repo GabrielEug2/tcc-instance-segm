@@ -51,11 +51,6 @@ class Yolact(Predictor):
 		formatted_predictions = []
 
 		for i in range(len(raw_predictions[0])):
-			# Pelo que eu entendi Yolact faz de [0-N], com 0 sendo o background,
-			# então nós precisamos consertar isso subtraindo -1
-			# EDIT aparentemente não, já que fazer isso faz com que fiquem
-			#      redictions com classe "-1"
-			# TODO confirmar isso no plot (pessoa tem que estar certo)
 			class_id = raw_predictions[0][i].item()
 			classname = self._id_to_name(class_id)
 			confidence = raw_predictions[1][i].item()

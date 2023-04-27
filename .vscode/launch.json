@@ -12,7 +12,7 @@
             "args": [
                 "debug/annotations.json",
 				"debug/images",
-                "debug/annotations",
+                "debug/plot",
             ],
             "console": "integratedTerminal",
             "justMyCode": false
@@ -29,5 +29,31 @@
             "console": "integratedTerminal",
             "justMyCode": false
         },
-    ]
+        {
+            "name": "Plot predictions",
+            "type": "python",
+            "request": "launch",
+            "program": "funcionalidades/2-inferencia/plot_predictions.py",
+            "args": [
+                "debug/predictions",
+                "debug/images",
+                "debug/plot",
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Eval",
+            "type": "python",
+            "request": "launch",
+            "program": "funcionalidades/3-analises/eval.py",
+            "args": [
+                "debug/annotations.json",
+				"debug/predictions",
+				"debug/eval",
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+	]
 }

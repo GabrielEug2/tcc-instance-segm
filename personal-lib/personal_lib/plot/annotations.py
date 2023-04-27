@@ -3,28 +3,31 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from personal_lib.parsing.annotations import Annotations
+from personal_lib.parsing.annotations import AnnotationManager
 from personal_lib.parsing.common import mask_conversions
 from . import plot_lib
 
 def plot(ann_file: Path, img_dir: Path, out_dir: Path):
-	anns = Annotations(ann_file)
+	anns = AnnotationManager(ann_file)
 	classmap_by_id = anns.classmap_by_id()
+	img_dimensions = anns.img_dimensions()
 	img_files = img_dir.glob('*.jpg')
 
 	for img_file in tqdm(img_files):
-		relevant_anns = anns.filter_by_img(img_file)
+		relevant_anns = anns.filter_by_img(img_file.name)
 		if len(relevant_anns) == 0:
 			print(f"No annotations found on \"{str(ann_file)} for image \"{str(img_file)}\". Skipping")
 			continue
 
-		h, w = anns.get_img_dimensions(img_file)
+		h, w = img_dimensions[img_file.name]
 		formatted_anns = _to_plot_format(relevant_anns, h, w, classmap_by_id)
 		
-		annotated_img_file = out_dir / f"{img_file.stem}_groundtruth.jpg"
+		annotated_img_file = out_dir / img_file.stem / "groundtruth.jpg"
+		annotated_img_file.parent.mkdir(parents=True, exist_ok=True)
 		plot_lib.plot(formatted_anns, img_file, annotated_img_file)
 
-		mask_out_dir = out_dir / f"{img_file.stem}_groundtruth_masks"
+		mask_out_dir = out_dir / img_file.stem / "groundtruth_masks"
+		mask_out_dir.mkdir(parents=True, exist_ok=True)
 		plot_lib.plot_individual_masks(formatted_anns, mask_out_dir, img_file)
 
 def _to_plot_format(anns, img_h, img_w, classmap_by_id):

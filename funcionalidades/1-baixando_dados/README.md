@@ -32,5 +32,5 @@ Requisitos:
 
 Para rodar:
 ```bash
-python plot_annotations.py <ann_file> <img_dir> <out_dir>
+python plot_annotations.py -h
 ```

@@ -25,10 +25,10 @@ def filter_common_classes():
 	common_classes = [x for x in coco_classes if x in openimages_classes]
 
 	filtered_dist = { name: count for name, count in coco_class_dist.items() if name in common_classes }
-	sorted_class_counts = sorted(filtered_dist.items(), key=lambda c: c[1], reverse=True)
-	sorted_classes = [c[0] for c in sorted_class_counts]
+	dist_sorted_by_count = sorted(filtered_dist.items(), key=lambda c: c[1], reverse=True)
+	classnames_sorted_by_count = [c[0] for c in dist_sorted_by_count]
 	
-	return sorted_classes
+	return classnames_sorted_by_count
 
 def download(n_imgs: int, out_dir: Path, classes: list[str], only_matching=False):
 	"""Download a set of images from Openimages, and their respective annotations.

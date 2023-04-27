@@ -49,8 +49,6 @@ def plot(anns_or_preds: dict, img_file: Path, out_file: Path):
 	cv2.imwrite(str(out_file), out_img)
 
 def plot_individual_masks(anns_or_preds: dict, out_dir: Path, img_file: Path):
-	out_dir.mkdir(parents=True, exist_ok=True)
-
 	count_per_class = {}
 	for pred in anns_or_preds:
 		classname = pred['classname']

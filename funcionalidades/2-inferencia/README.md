@@ -52,5 +52,5 @@ Requisitos:
 
 Para rodar:
 ```bash
-python plot_predictions.py <pred_dir> <img_dir> <out_dir>
+python plot_predictions.py -h
 ```

@@ -13,17 +13,17 @@ class PredictionManager:
 
 		self.root_dir = root_dir
 
-	def save(self, preds: dict, img_file: Path, model_name: str):
+	def save(self, preds: dict, img_file: str, model_name: str):
 		for pred in preds:
 			pred['mask'] = mask_conversions.bin_mask_to_rle(pred['mask'])
 
-		out_file = self.root_dir / img_file.stem / f"{model_name}_preds.json"
-		out_file.mkdir(parents=True, exist_ok=True)
+		out_file = self.root_dir / img_file / f"{model_name}.json"
+		out_file.parent.mkdir(parents=True, exist_ok=True)
 		with out_file.open('w') as f:
 			json.dump(preds, f)
 
-	def load(self, img_file: Path, model_name: str) -> dict:
-		pred_file = self.root_dir / img_file.stem / f"{model_name}_preds.json"
+	def load(self, img_file: str, model_name: str) -> dict:
+		pred_file = self.root_dir / img_file / f"{model_name}.json"
 		predictions = self._load_from_file(pred_file)
 		return predictions
 
@@ -40,28 +40,33 @@ class PredictionManager:
 
 	def get_model_names(self):
 		model_names = set()
-		all_files = self.root_dir.rglob('*_preds.json')
+		all_pred_files = self.root_dir.rglob('*.json')
 
-		for file in all_files:
-			model_used = file.name.split('_')[0]
+		for file in all_pred_files:
+			model_used = file.stem
 			if model_used not in model_names:
 				model_names.add(model_used)
 
 		return model_names
 
 	def class_distribution(self, model_name: str) -> dict:
-		relevant_files = self._get_files_for_model(model_name)
+		imgs_with_predictions_from_model = self._get_imgs_for_model(model_name)
 
 		class_dist = {}
-		for file in relevant_files:
-			predictions = self._load_from_file(file)
+		for img_file in imgs_with_predictions_from_model:
+			predictions = self.load(img_file, model_name)
 			for pred in predictions:
 				classname = pred['classname']
 				class_dist[classname] = class_dist.get(classname, 0) + 1
 
 		return class_dist
 	
-	def _get_files_for_model(self, model_name):
-		all_files = self.root_dir.rglob('*_preds.json')
-		relevant_files = (f for f in all_files if f.name.startswith(model_name))
-		return relevant_files
+	def _get_imgs_for_model(self, model_name: str):
+		imgs_with_predictions = (f for f in self.root_dir.glob('*') if f.is_dir())
+
+		imgs_with_predictions_from_model = []
+		for img_file in imgs_with_predictions:
+			if Path(img_file / f"{model_name}.json").exists():
+				imgs_with_predictions_from_model.append(img_file.stem)
+
+		return imgs_with_predictions_from_model

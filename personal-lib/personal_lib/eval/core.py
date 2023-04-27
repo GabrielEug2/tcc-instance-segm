@@ -4,61 +4,47 @@ from pathlib import Path
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
-from personal_lib.parsing.annotations import Annotations
+from personal_lib.parsing.annotations import AnnotationManager
+from personal_lib.parsing.predictions import PredictionManager
 from personal_lib.parsing.common import mask_conversions
-from personal_lib.parsing.predictions import get_model_names, PredictionManager
+from .class_dist import class_dist
 
-def evaluate_all(ann_file: Path, pred_dir: Path):
+def evaluate_all(ann_file: Path, pred_dir: Path, out_dir: Path):
 	# Adapted from: https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocotools/cocoeval.py
+	class_dist(ann_file, pred_dir, out_dir)
 
-	annotations = Annotations(ann_file)
-	img_map = annotations.img_map
-	classmap = annotations.classmap
-
+	ann_manager = AnnotationManager(ann_file)
+	ann_manager.cat_to_lowercase()
+	ann_manager.save(ann_file)
 	ground_truth = COCO(ann_file)
 
-	model_names = get_model_names(pred_dir)
+	img_map = ann_manager.img_map()
+	classmap = ann_manager.classmap()
+
+	pred_manager = PredictionManager(pred_dir)
+	model_names = pred_manager.get_model_names()
 	for model_name in model_names:
-		pred_files = pred_dir.glob(f"*_{model_name}.json")
+		coco_formatted_pred_file = out_dir / 'coco-format-preds' / f'{model_name}.json'
+		coco_formatted_pred_file.parent.mkdir(parents=True, exist_ok=True)
+		_preds_to_coco_format(pred_manager, model_name, img_map, classmap, coco_formatted_pred_file)
 
-		coco_formatted_pred_file = pred_dir / f'coco-format_{model_name}.json'
-		preds_to_coco_format(pred_files, img_map, classmap, coco_formatted_pred_file)
-
-		detections = COCO.loadRes(coco_formatted_pred_file)
+		detections = ground_truth.loadRes(str(coco_formatted_pred_file))
 		evaluate_model(ground_truth, detections)
 
-# def filter_common_classes():
-# 	"""Filter classes that exist on both datasets (COCO and Openimages).
-
-# 	Returns:
-# 		list: list of class names, sorted by n_ocurrences on COCO.
-# 	"""
-# 	with COCO_CLASS_DIST_FILE.open('r') as f:
-# 		coco_class_dist = json.load(f)
-
-# 	import fiftyone.utils.openimages as openimages
-
-# 	coco_classes = coco_class_dist.keys()
-# 	openimages_classes = [x.lower() for x in openimages.get_segmentation_classes()]
-# 	common_classes = [x for x in coco_classes if x in openimages_classes]
-
-# 	filtered_dist = { name: count for name, count in coco_class_dist.items() if name in common_classes }
-# 	sorted_class_counts = sorted(filtered_dist.items(), key=lambda c: c[1], reverse=True)
-# 	sorted_classes = [c[0] for c in sorted_class_counts]
-	
-# 	return sorted_classes
-
-def preds_to_coco_format(pred_files, img_map, classmap, out_file):
+def _preds_to_coco_format(pred_manager: PredictionManager, model_name: str, img_map: dict, classmap: dict, out_file: Path):
 	coco_formatted_data = []
-	for pred_file in pred_files:
-		img_file = pred_file.name.split('_')[0]
-		img_id = img_map[img_file]
-		predictions = PredictionManager(pred_file)
-
+	for img_file in img_map:
+		predictions = pred_manager.load(Path(img_file).stem, model_name)
 		for pred in predictions:
+			classname = pred['classname']
+			if classname not in classmap:
+				# can't evaluate if there are no annotations
+				# of that class to compare
+				continue
+
 			formatted_pred = {
-				"image_id": img_id,
-				"category_id": classmap[pred['classname']],
+				"image_id": img_map[img_file],
+				"category_id": classmap[classname],
 				"segmentation": mask_conversions.bin_mask_to_rle(pred['mask']),
 				"score": pred['confidence']
 			}
@@ -78,5 +64,8 @@ def evaluate_model(ground_truth, detections):
 	# For example usage see evalDemo.m and http://mscoco.org/.
 
 	E = COCOeval(ground_truth, detections)
+	E.evaluate()
+	E.accumulate()
+	E.summarize()
 
-	pass
+	# TODO Extract what I want from E

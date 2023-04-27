@@ -41,7 +41,6 @@ def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None
 		img_files = _get_img_files(img_file_or_dir)
 	except FileNotFoundError:
 		raise
-
 	if not out_dir.exists():
 		out_dir.mkdir()
 
@@ -81,7 +80,7 @@ def _run_on_all_imgs(img_files: list[Path], model_name: str, pred_manager: Predi
 		img = cv2.imread(str(img_file))
 		predictions = predictor.predict(img)
 
-		pred_manager.save(predictions, img_file, model_name)
+		pred_manager.save(predictions, img_file.stem, model_name)
 
 	total_time = datetime.timedelta(seconds=(time.time() - start_time))
 
