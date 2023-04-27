@@ -2,18 +2,17 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from personal_lib.parsing.predictions import Predictions
+from personal_lib.parsing.predictions import PredictionManager
 from . import plot_lib
 
 def plot(pred_dir: Path, img_dir: Path, out_dir: Path):
+	pred_manager = PredictionManager(pred_dir)
+	model_names = pred_manager.get_model_names()
 	img_files = img_dir.glob('*.jpg')
 
 	for img_file in tqdm(img_files):
-		pred_files = pred_dir.glob(f"{img_file.stem}_*.json")
-
-		for pred_file in pred_files:
-			model_name = pred_file.stem.split('_')[1]
-			predictions = Predictions.load_from_file(pred_file)
+		for model_name in model_names:
+			predictions = pred_manager.load(img_file, model_name)
 			formatted_preds = _to_plot_format(predictions)
 
 			predictions_img_file = out_dir / f"{img_file.stem}_{model_name}.jpg"

@@ -45,10 +45,11 @@ def plot(anns_or_preds: dict, img_file: Path, out_file: Path):
 	vis_out = v.draw_instance_predictions(instances)
 	out_img = vis_out.get_image()
 
+	out_file.parent.mkdir(parents=True, exist_ok=True)
 	cv2.imwrite(str(out_file), out_img)
 
 def plot_individual_masks(anns_or_preds: dict, out_dir: Path, img_file: Path):
-	out_dir.mkdir(exist_ok=True)
+	out_dir.mkdir(parents=True, exist_ok=True)
 
 	count_per_class = {}
 	for pred in anns_or_preds:

@@ -7,6 +7,9 @@ COCO_CLASSMAP_FILE = Path(__file__).parent / 'coco_classmap_model.json'
 with COCO_CLASSMAP_FILE.open('r') as f:
 	COCO_CLASSMAP = json.load(f)
 
+# Aqui eu quero pegar o nome dado um ID, então precisa inverter
+COCO_CLASSMAP = {str(id_): name for name, id_ in COCO_CLASSMAP.items()}
+
 class Predictor(ABC):
 	def __init__(self):
 		"""Initializes the model, loading weights and any other

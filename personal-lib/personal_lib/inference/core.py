@@ -5,7 +5,7 @@ import datetime
 
 from tqdm import tqdm
 import cv2
-from personal_lib.parsing.predictions import Predictions
+from personal_lib.parsing.predictions import PredictionManager
 
 from .predictors import MODEL_MAP, load_models
 
@@ -61,19 +61,18 @@ def _get_img_files(img_file_or_dir: Path) -> list[Path]:
 	return img_files
 
 def _inference(img_files: list[Path], out_dir: Path, models: list[str]):
+	pred_manager = PredictionManager(out_dir)
 	n_images = len(img_files)
-
-	print(f"Running on {n_images} images...\n")
 	inference_stats = InferenceStats(n_images, {})
-	for model_name in models:
-		total_time = _run_on_all_imgs(img_files, out_dir, model_name)
+	print(f"Running {n_images} images on models {models}...\n")
 
+	for model_name in models:
+		total_time = _run_on_all_imgs(img_files, model_name, pred_manager)
 		inference_stats.time_for_model[model_name] = total_time
-		print(inference_stats)
 
 	_save_stats(inference_stats, out_dir)
 
-def _run_on_all_imgs(img_files: list[Path], out_dir: Path, model_name: str):
+def _run_on_all_imgs(img_files: list[Path], model_name: str, pred_manager: PredictionManager):
 	print("\n" + model_name)
 	predictor = MODEL_MAP[model_name]()
 
@@ -82,8 +81,8 @@ def _run_on_all_imgs(img_files: list[Path], out_dir: Path, model_name: str):
 		img = cv2.imread(str(img_file))
 		predictions = predictor.predict(img)
 
-		pred_file = out_dir / f"{img_file.stem}_{model_name}.json"
-		Predictions(predictions).save(pred_file)
+		pred_manager.save(predictions, img_file, model_name)
+
 	total_time = datetime.timedelta(seconds=(time.time() - start_time))
 
 	return total_time

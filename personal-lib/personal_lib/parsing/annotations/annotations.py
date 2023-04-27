@@ -12,8 +12,9 @@ class Annotations:
 			raise
 
 		self.annotations = anns['annotations']
-		self.img_info = anns['images']
 		self.classmap = self._extract_classmap(anns['categories'])
+		self.img_map = self._extract_img_map(anns['images'])
+		self.img_dimensions = self._extract_img_dimensions(anns['images'])
 
 	@classmethod
 	def _load_anns(cls, ann_file):
@@ -26,49 +27,59 @@ class Annotations:
 		# Could test keys and values too, but whatever
 
 		return anns
-		
+	
 	@staticmethod
 	def _extract_classmap(categories):
 		classmap = {}
 		for cat in categories:
-			classmap[str(cat['id'])] = cat['name']
+			classmap[cat['name']] = cat['id']
 		return classmap
 
+	def classmap_by_id(self):
+		return {str(id_): name for name, id_ in self.classmap.items()}
+
+	@staticmethod
+	def _extract_img_map(images):
+		img_map = {}
+		for image in images:
+			img_map[image['file_name']] = image['id']
+		return img_map
+
+	def img_map_by_id(self):
+		return {str(id_): filename for filename, id_ in self.img_map.items()}
+	
+	@staticmethod
+	def _extract_img_dimensions(images):
+		img_dimensions = {}
+		for image in images:
+			img_dimensions[image['file_name']] = (image['height'], image['width'])
+		return img_dimensions
+
 	def normalize_classmap(self):
-		sorted_cats = sorted(self.classmap.items(), key=lambda c: int(c[0]))
+		sorted_cats = sorted(self.classmap.items(), key=lambda c: int(c[1]))
 		n_classes = len(self.classmap)
 
 		normalized_map = {}
 		for i in range(n_classes):
-			normalized_map[str(i)] = sorted_cats[i][1]
+			normalized_map[sorted_cats[i][0]] = i
 
 		return normalized_map
 
 	def class_distribution(self):
+		classmap_by_id = self.classmap_by_id()
+
 		class_dist = {}
 		for ann in self.annotations:
-			cat_id = str(ann['category_id'])
-			cat_name = self.classmap[cat_id]
+			cat_id = ann['category_id']
+			cat_name = classmap_by_id[str(cat_id)]
 			class_dist[cat_name] = class_dist.get(cat_name, 0) + 1
 
 		return class_dist
 
 	def filter_by_img(self, img_file: Path):
-		img_desc = self._get_img_desc(img_file)
-		if img_desc == None:
-			return []
-		
-		relevant_anns = self._filter_by_img_id(img_desc['id'])
-
+		img_id = self.img_map[img_file]
+		relevant_anns = self._filter_by_img_id(img_id)
 		return relevant_anns
-
-	def _get_img_desc(self, img_file):
-		requested_img_desc = None
-		for img_desc in self.img_info:
-			if img_desc['file_name'] == img_file.name:
-				requested_img_desc = img_desc
-				break
-		return requested_img_desc
 
 	def _filter_by_img_id(self, img_id):
 		relevant_anns = []
@@ -78,8 +89,19 @@ class Annotations:
 		return relevant_anns
 
 	def get_img_dimensions(self, img_file: Path):
-		img_desc = self._get_img_desc(img_file)
-		if img_desc == None:
-			return (0, 0)
+		return self.img_dimensions[img_file]
 
-		return (img_desc['height'], img_desc['width'])
+
+def class_dist_from_multiple_files(ann_files):
+	total_class_dist = {}
+	for ann_file in ann_files:
+		print(f"Processing {ann_file.name}...") # Só pra saber se é normal a demora, tipo o annotations_train
+		try:
+			file_dist = Annotations(ann_file).class_distribution()
+		except Exception as e:
+			raise ValueError(f"File \"{str(ann_file)}\" does not follow the expected format") from e
+
+		for classname in file_dist:
+			total_class_dist[classname] = total_class_dist.get(classname, 0) + file_dist[classname]
+
+	return total_class_dist

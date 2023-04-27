@@ -10,8 +10,8 @@
             "request": "launch",
             "program": "funcionalidades/1-baixando_dados/plot_annotations.py",
             "args": [
-                "--save-masks",
-                "debug/",
+                "debug/annotations.json",
+				"debug/images",
                 "debug/annotations",
             ],
             "console": "integratedTerminal",
@@ -23,7 +23,6 @@
             "request": "launch",
             "program": "funcionalidades/2-inferencia/inference.py",
             "args": [
-                "--save-masks",
                 "debug/images",
                 "debug/predictions",
             ],
