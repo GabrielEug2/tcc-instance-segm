@@ -89,18 +89,3 @@ class AnnotationManager:
 	def cat_to_lowercase(self):
 		for cat in self.anns['categories']:
 			cat['name'] = cat['name'].lower()
-
-
-def class_dist_from_multiple_files(ann_files):
-	total_class_dist = {}
-	for ann_file in ann_files:
-		print(f"Processing {ann_file.name}...") # Só pra saber se é normal a demora, tipo o annotations_train
-		try:
-			file_dist = AnnotationManager(ann_file).class_distribution()
-		except Exception as e:
-			raise ValueError(f"File \"{str(ann_file)}\" does not follow the expected format") from e
-
-		for classname in file_dist:
-			total_class_dist[classname] = total_class_dist.get(classname, 0) + file_dist[classname]
-
-	return total_class_dist
