@@ -12,7 +12,7 @@ args = parser.parse_args()
 # Eu só uso o val porque ele é menor / carrega mais rápido.
 ann_file = Path(args.ann_dir, 'instances_val2017.json')
 
-# O COCO pula alguns IDs: tem 80 classes, mas vai até o ID 90.
+# O COCO pula alguns IDs: tem 80 classes, mas vai até o ID ~90.
 # Para simplificar, os modelos normalizam pra [0,N)
 anns = AnnotationManager(ann_file)
 default_coco_map = anns.classmap()

@@ -1,8 +1,8 @@
 import argparse
-import json
 from pathlib import Path
 
 from personal_lib.parsing.annotations import AnnotationManager
+from personal_lib.parsing.common.files import save_class_dist
 
 parser = argparse.ArgumentParser()
 parser.add_argument('ann_dir', help='Directory where you placed the annotations')
@@ -23,6 +23,4 @@ for ann_file in ann_files:
 		total_class_dist[classname] = total_class_dist.get(classname, 0) + file_dist[classname]
 
 out_file = Path(__file__).parent / f"coco_classdist.json"
-dist_sorted_by_count = dict(sorted(total_class_dist.items(), key=lambda c: c[1], reverse=True))
-with out_file.open('w') as f:
-	json.dump(dist_sorted_by_count, f, indent=4)
+save_class_dist(total_class_dist, out_file)

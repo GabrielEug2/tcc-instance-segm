@@ -48,8 +48,8 @@
             "request": "launch",
             "program": "funcionalidades/3-analises/eval.py",
             "args": [
-                "debug/annotations.json",
 				"debug/predictions",
+                "debug/annotations.json",
 				"debug/eval",
             ],
             "console": "integratedTerminal",

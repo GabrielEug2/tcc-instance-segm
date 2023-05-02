@@ -4,6 +4,8 @@
 import json
 from pathlib import Path
 
+from personal_lib.parsing.common import classnames
+
 class AnnotationManager:
 	def __init__(self, ann_file: Path):
 		try:
@@ -53,7 +55,8 @@ class AnnotationManager:
 	def img_map(self):
 		img_map = {}
 		for image in self.anns['images']:
-			img_map[image['file_name']] = image['id']
+			# tanto faz a extensão, eu só considero o nome
+			img_map[Path(image['file_name']).stem] = image['id']
 		return img_map
 	
 	def img_dimensions(self):
@@ -86,6 +89,28 @@ class AnnotationManager:
 				relevant_anns.append(ann)
 		return relevant_anns
 	
-	def cat_to_lowercase(self):
+	def normalize_classnames(self):
 		for cat in self.anns['categories']:
-			cat['name'] = cat['name'].lower()
+			cat['name'] = classnames.normalize(cat['name'])
+
+	def filter_by_classes(self, classes):
+		classmap_by_id = self.classmap_by_id()
+
+		relevant_anns = []
+		for ann in self.anns['annotations']:
+			cat_id = ann['category_id']
+			cat_name = classmap_by_id[str(cat_id)]
+
+			if cat_name in classes:
+				relevant_anns.append(ann)
+
+		relevant_cats = []
+		for cat in self.anns['categories']:
+			if cat['name'] in classes:
+				relevant_cats.append(cat)
+
+		return {
+			'images': self.anns['images'],
+			'categories': relevant_cats,
+			'annotations': relevant_anns,
+		}

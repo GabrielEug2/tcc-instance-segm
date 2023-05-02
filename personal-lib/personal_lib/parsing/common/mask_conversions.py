@@ -9,7 +9,7 @@ def bin_mask_to_rle(bin_mask: torch.BoolTensor) -> dict:
 	return rle
 
 def rle_to_bin_mask(rle: dict) -> torch.BoolTensor:
-	rle['counts'] = rle['counts'].encode('utf-8')
+	rle['counts'] = rle['counts'].encode('ascii')
 	bin_mask = torch.tensor(coco_mask.decode(rle).astype('bool', order='C'))
 
 	return bin_mask
@@ -31,7 +31,7 @@ def ann_to_bin_mask(segm, h, w) -> torch.BoolTensor:
 		# rle
 		rle = segm
 
-	rle['counts'] = rle['counts'].decode('utf-8')
+	rle['counts'] = rle['counts'].decode('ascii')
 
 	bin_mask = rle_to_bin_mask(rle)
 	

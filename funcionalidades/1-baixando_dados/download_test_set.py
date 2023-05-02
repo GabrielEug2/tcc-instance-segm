@@ -18,10 +18,11 @@ def filter_common_classes():
 	with COCO_CLASS_DIST_FILE.open('r') as f:
 		coco_class_dist = json.load(f)
 
-	import fiftyone.utils.openimages as openimages
-
 	coco_classes = coco_class_dist.keys()
+
+	import fiftyone.utils.openimages as openimages
 	openimages_classes = [x.lower() for x in openimages.get_segmentation_classes()]
+
 	common_classes = [x for x in coco_classes if x in openimages_classes]
 
 	filtered_dist = { name: count for name, count in coco_class_dist.items() if name in common_classes }

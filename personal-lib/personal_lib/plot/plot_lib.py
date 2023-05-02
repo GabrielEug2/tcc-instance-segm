@@ -38,7 +38,7 @@ def plot(anns_or_preds: dict, img_file: Path, out_file: Path):
 	instances = Instances((h, w))
 	instances.pred_classes = torch.tensor(class_ids, dtype=torch.int)
 	instances.scores = torch.tensor(scores, dtype=torch.float)
-	instances.pred_masks = torch.stack(masks) if masks else torch.tensor(masks)
+	instances.pred_masks = torch.stack(masks) if masks else torch.tensor([])
 	instances.pred_boxes = Boxes(torch.tensor(boxes, dtype=torch.float))
 
 	v = Visualizer(img, metadata)

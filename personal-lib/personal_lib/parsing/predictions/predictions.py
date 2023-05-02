@@ -13,17 +13,17 @@ class PredictionManager:
 
 		self.root_dir = root_dir
 
-	def save(self, preds: dict, img_file: str, model_name: str):
+	def save(self, preds: dict, img_file_name: str, model_name: str):
 		for pred in preds:
 			pred['mask'] = mask_conversions.bin_mask_to_rle(pred['mask'])
 
-		out_file = self.root_dir / img_file / f"{model_name}.json"
+		out_file = self.root_dir / img_file_name / f"{model_name}.json"
 		out_file.parent.mkdir(parents=True, exist_ok=True)
 		with out_file.open('w') as f:
 			json.dump(preds, f)
 
-	def load(self, img_file: str, model_name: str) -> dict:
-		pred_file = self.root_dir / img_file / f"{model_name}.json"
+	def load(self, img_file_name: str, model_name: str) -> dict:
+		pred_file = self.root_dir / img_file_name / f"{model_name}.json"
 		predictions = self._load_from_file(pred_file)
 		return predictions
 

@@ -7,7 +7,7 @@ name = "personal-lib"
 version = "1"
 dependencies = [
 	# only the easily installable stuff (pip install <whatever>)
-	# anything more demanding (like Detectron) is lazy loaded
+	# anything more demanding (like Detectron) needs to be installed separately
 	"pycocotools",
 	"opencv-python",
 	"pyyaml",

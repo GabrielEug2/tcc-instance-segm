@@ -27,7 +27,7 @@ Requisitos:
 		wget https://cloudstor.aarnet.edu.au/plus/s/chF3VKQT4RDoEqC/download -O SOLOv2_R50_3x.pth
 		cd -
 		```
-	* Para usar com outros modelos, veja `personal_lib/inference/predictors/base_predictor.py` para a interface necessária.
+	* Para usar com outros modelos, veja `personal-lib/_lib/inference/predictors/base_predictor.py` para a interface necessária.
 * Personal lib:
 	```bash
 	pip install -e personal-lib
