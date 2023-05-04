@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from personal_lib.inference import run_inference
+from segm_lib.inference import run_inference
 
 parser = argparse.ArgumentParser(
 	description='Runs instance segmentation on a set of images and save '

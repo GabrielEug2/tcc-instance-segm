@@ -1,1 +1,0 @@
-from .coco_ann_parser import COCO_AnnParser

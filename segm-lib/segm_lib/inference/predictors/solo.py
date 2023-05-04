@@ -2,10 +2,10 @@ from pathlib import Path
 
 from adet.config import get_cfg
 from detectron2.engine.defaults import DefaultPredictor
-from detectron2.structures import Boxes
+from detectron2.structures import Boxes, Instances
 import torch
 
-from .base_predictor import Predictor
+from .abstract_predictor import Predictor
 from .config import config
 
 class Solo(Predictor):
@@ -20,18 +20,18 @@ class Solo(Predictor):
 		self._model = DefaultPredictor(cfg)
 
 	def predict(self, img):
-		raw_predictions = self._model(img)
+		instances = self._model(img)['instances']
 		# Por algum motivo além da minha compreensão, o SOLO testa o score
 		# de classificação ANTES de ter os scores "definitivos". Isso faz
 		# com que ele retorne resultados com score abaixo do que foi solicitado.
 		# Pra consertar isso:
-		inds = (raw_predictions['instances'].scores > 0.5)
-		raw_predictions['instances'] = raw_predictions['instances'][inds]
+		inds = (instances.scores > 0.5)
+		instances = instances[inds]
 
-		formatted_predictions = self._to_custom_format(raw_predictions)
+		formatted_predictions = self._to_custom_format(instances)
 		return formatted_predictions
 	
-	def _to_custom_format(self, raw_predictions):
+	def _to_custom_format(self, instances: Instances):
 		# Formato da saída do modelo:
 		#   mesmo formato do Detectron, porque é baseado nele
 		#   (see https://github.com/aim-uofa/AdelaiDet/blob/master/demo/predictor.py)
@@ -39,12 +39,10 @@ class Solo(Predictor):
 		# Formato esperado:
 		#   see inference_lib.predictors.base_pred
 
-		formatted_predictions = []
-		instances = raw_predictions['instances']
-
 		# O SOLO prediz as máscaras direto, sem calcular bounding boxes.
-		# Isso é legal, mas o problema é que o nome das classes no plot fica
-		# tudo empilhado no canto. Felizmente eles tem um código pra
+		# Isso é legal, mas o problema é que, na hora de plotar, as APIs
+		# normalmente plotam o nome da classe no canto da bounding box.
+		# Então eu preciso delas. Felizmente eles tem um código pra
 		# computar as bounding boxes a partir das máscaras.
 		#
 		# See:
@@ -57,12 +55,19 @@ class Solo(Predictor):
 			pred_boxes[i] = torch.tensor([xs.min(), ys.min(), xs.max(), ys.max()]).int()
 		instances.pred_boxes = Boxes(pred_boxes)
 
+		formatted_predictions = []
 		for i in range(len(instances)):
 			class_id = instances.pred_classes[i].item()
 			classname = self._id_to_name(class_id)
+
 			confidence = instances.scores[i].item()
+			
 			mask = instances.pred_masks[i]
-			bbox = instances.pred_boxes.tensor[i].tolist()
+
+			x1, y1, x2, y2 = instances.pred_boxes.tensor[i].tolist()
+			w = x2 - x1
+			h = y2 - y1
+			bbox = [x1, y1, w, h]
 
 			pred = {
 				'classname': classname,

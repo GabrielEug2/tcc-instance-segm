@@ -3,7 +3,7 @@ import sys
 
 import torch
 
-from .base_predictor import Predictor
+from .abstract_predictor import Predictor
 from .config import config
 
 sys.path.insert(0, config['yolact']['dir'])
@@ -36,12 +36,12 @@ class Yolact(Predictor):
 			# Essas predições ainda não são finais, falta converter
 			# as máscaras pro formato certo.
 		h, w, _ = img.shape
-		raw_predictions = postprocess(preds, w, h, score_threshold = 0.5)
+		classes, scores, boxes, masks = postprocess(preds, w, h, score_threshold = 0.5)
 	
-		formatted_predictions = self._to_custom_format(raw_predictions)
+		formatted_predictions = self._to_custom_format(classes, scores, boxes, masks)
 		return formatted_predictions
 
-	def _to_custom_format(self, raw_predictions):
+	def _to_custom_format(self, classes, scores, boxes, masks):
 		# Formato da saída do modelo:
 		#   https://github.com/dbolya/yolact/blob/master/layers/output_utils.py
 		#
@@ -49,13 +49,18 @@ class Yolact(Predictor):
 		#   see inference_lib.predictors.base_pred
 
 		formatted_predictions = []
-
-		for i in range(len(raw_predictions[0])):
-			class_id = raw_predictions[0][i].item()
+		for i in range(len(masks)):
+			class_id = classes[i].item()
 			classname = self._id_to_name(class_id)
-			confidence = raw_predictions[1][i].item()
-			mask = raw_predictions[3][i]
-			bbox = raw_predictions[2][i].tolist()
+
+			confidence = scores[i].item()
+
+			mask = masks[i].to(torch.bool)
+
+			x1, y1, x2, y2 = boxes[i].tolist()
+			w = x2 - x1
+			h = y2 - y1
+			bbox = [x1, y1, w, h]
 
 			pred = {
 				'classname': classname,

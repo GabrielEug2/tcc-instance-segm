@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "personal-lib"
+name = "segm-lib"
 version = "1"
 dependencies = [
 	"pycocotools",
@@ -11,6 +11,6 @@ dependencies = [
 	"pyyaml",
 	"tqdm",
 	"numpy",
-
-	# and all the specific things that need to be installed separately, described on the README
+	# Needs more things depending on the functionality you're trying to use.
+	# See the individual READMEs for how to install those.
 ]

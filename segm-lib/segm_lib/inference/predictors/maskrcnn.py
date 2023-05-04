@@ -2,8 +2,8 @@
 from detectron2.config import get_cfg
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
-
-from .base_predictor import Predictor
+from detectron2.structures import Instances
+from .abstract_predictor import Predictor
 from .config import config
 
 class Maskrcnn(Predictor):
@@ -17,12 +17,12 @@ class Maskrcnn(Predictor):
 		self._model = DefaultPredictor(cfg)
 
 	def predict(self, img):
-		raw_predictions = self._model(img)
+		instances = self._model(img)['instances']
 
-		formatted_predictions = self._to_custom_format(raw_predictions)
+		formatted_predictions = self._to_custom_format(instances)
 		return formatted_predictions
 
-	def _to_custom_format(self, raw_predictions):
+	def _to_custom_format(self, instances: Instances):
 		# Formato da saída do modelo:
 		#   https://detectron2.readthedocs.io/en/latest/tutorials/models.html#model-output-format
 		#
@@ -30,14 +30,18 @@ class Maskrcnn(Predictor):
 		#   see inference_lib.predictors.base_pred
 
 		formatted_predictions = []
-
-		instances = raw_predictions['instances']
 		for i in range(len(instances)):
 			class_id = instances.pred_classes[i].item()
 			classname = self._id_to_name(class_id)
+
 			confidence = instances.scores[i].item()
+			
 			mask = instances.pred_masks[i]
-			bbox = instances.pred_boxes.tensor[i].tolist()
+
+			x1, y1, x2, y2 = instances.pred_boxes.tensor[i].tolist()
+			w = x2 - x1
+			h = y2 - y1
+			bbox = [x1, y1, w, h]
 
 			pred = {
 				'classname': classname,

@@ -24,18 +24,17 @@ O COCO usa _um arquivo_ pro _dataset inteiro_. Isso é ótimo em termos de espa�
 Aqui, eu prefiro separar as anotações em um arquivo por imagem, contendo só as anotações daquela imagem, e com o nome das classes por extenso, para facilitar a interpretação. Para converter os arquivos para esse formato:
 
 ```bash
-python split_annotations.py -h
+python split_annotations.py <ann_file> <out_dir>
 ```
 
 ### Visualizando as anotações
 
-Existem inúmeras APIs para visualizar as anotações, mas eu optei pela implementada no Detectron. Não é exatamente a mais fácil de instalar, mas entre as que eu testei, eu gostei mais dessa, no geral. Você pode usar outras, se preferir, basta modificar a parte de visualização (`personal_lib/plot/`) para utilizar a API desejada.
+Existem inúmeras APIs para visualizar as anotações, mas eu optei pela implementada no Detectron. Não é exatamente a mais fácil de instalar, mas entre as que eu testei, eu gostei mais dessa, no geral. Você pode usar outras, se preferir, basta modificar a parte de visualização (`segm_lib/plot/`) para utilizar a API desejada.
 
 Requisitos:
-* [Torch](https://pytorch.org/get-started/locally/)
 * [Detectron2](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
 
 Para rodar:
 ```bash
-python plot_annotations.py -h
+python plot_annotations.py <ann_dir> <out_dir>
 ```

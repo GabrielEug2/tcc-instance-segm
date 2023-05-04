@@ -13,5 +13,5 @@ img_dir = Path(args.img_dir)
 out_dir = Path(args.out_dir)
 
 # Import depois pro --help ser rápido
-from personal_lib.plot import plot_predictions
+from segm_lib.plot import plot_predictions
 plot_predictions(pred_dir, img_dir, out_dir)
