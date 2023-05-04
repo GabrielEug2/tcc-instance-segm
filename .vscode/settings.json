@@ -1,5 +1,5 @@
 {
 	"python.analysis.extraPaths": [
-		"./personal-lib"
+		"./personal-lib/",
 	]
 }

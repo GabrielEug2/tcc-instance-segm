@@ -3,12 +3,13 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from personal_lib.parsing.annotations import AnnotationManager
-from personal_lib.parsing.common import mask_conversions
+from personal_lib.core import Annotations
+from personal_lib.core import mask_conversions
 from . import plot_lib
 
 def plot(ann_file: Path, img_dir: Path, out_dir: Path):
-	anns = AnnotationManager(ann_file)
+	# TODO work with custom format annotations
+	anns = Annotations(ann_file)
 	classmap_by_id = anns.classmap_by_id()
 	img_dimensions = anns.img_dimensions()
 	img_files = img_dir.glob('*.jpg')

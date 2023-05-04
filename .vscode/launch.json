@@ -5,44 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Plot annotations",
-            "type": "python",
-            "request": "launch",
-            "program": "funcionalidades/1-baixando_dados/plot_annotations.py",
-            "args": [
-                "debug/annotations.json",
-				"debug/images",
-                "debug/plot",
-            ],
-            "console": "integratedTerminal",
-            "justMyCode": false
-        },
-		{
-            "name": "Inference",
-            "type": "python",
-            "request": "launch",
-            "program": "funcionalidades/2-inferencia/inference.py",
-            "args": [
-                "debug/images",
-                "debug/predictions",
-            ],
-            "console": "integratedTerminal",
-            "justMyCode": false
-        },
-        {
-            "name": "Plot predictions",
-            "type": "python",
-            "request": "launch",
-            "program": "funcionalidades/2-inferencia/plot_predictions.py",
-            "args": [
-                "debug/predictions",
-                "debug/images",
-                "debug/plot",
-            ],
-            "console": "integratedTerminal",
-            "justMyCode": false
-        },
-        {
             "name": "Eval",
             "type": "python",
             "request": "launch",

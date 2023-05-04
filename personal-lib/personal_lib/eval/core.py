@@ -1,38 +1,97 @@
 from dataclasses import dataclass
 import json
 from pathlib import Path
+import shutil
 
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
-from personal_lib.parsing.annotations import AnnotationManager
-from personal_lib.parsing.predictions import PredictionManager
-from personal_lib.parsing.common import mask_conversions
-from .class_dist import class_dist
+from personal_lib.core import Annotations
+from personal_lib.core import Predictions
+from personal_lib.core import mask_conversions
 
 @dataclass
-class Results:
-	model_name: str
-	ap_on_all_imgs: float
-	ap_per_image: dict[str, float]
+class DatasetInfo:
+	n_images: int
+	n_objects: int
+	class_dist: dict[str, int]
+
+@dataclass
+class ResultsPerModel:
+	n_objects_predicted: int
+	raw_pred_class_dist: dict[str, int]
+	
+	n_objects_considered_for_eval: int
+	evaluated_pred_class_dist: dict[str, int]
+
+	n_anns_considered_for_eval: int
+	evaluated_anns_class_dist: dict[str, int]
+
+	mAP: float
+
+	n_true_positives: int
+	n_false_positives: int
+	n_false_negatives: int
+
+@dataclass
+class ResultsPerModelPerImage:
+	n_objects_predicted: int
+	raw_pred_class_dist: dict[str, int]
+	
+	n_objects_considered_for_eval: int
+	evaluated_pred_class_dist: dict[str, int]
+
+	n_anns_considered_for_eval: int
+	evaluated_anns_class_dist: dict[str, int]
+
+	mAP: float
+
+	true_positives: list # preds
+	false_positives: list # preds
+	false_negatives: list # preds
+
+@dataclass
+class ResultsPerImage:
+	n_objects: int
+	class_dist: dict[str, int]
+	per_model: dict[str, ResultsPerModelPerImage]
+
+@dataclass
+class EvalResults:
+	per_model: dict[str, ResultsPerModel]
+	per_img: dict[str, ResultsPerImage]
 
 def evaluate_all(pred_dir: Path, ann_file: Path, out_dir: Path):
-	ann_manager = AnnotationManager(ann_file)
+	ann_manager = Annotations(ann_file)
 	ann_manager.normalize_classnames()
 	ann_manager.save(ann_file)
-
-	class_dist_out_dir = out_dir / 'class-dist'
-	class_dist(pred_dir, ann_file, class_dist_out_dir)
 
 	classmap = ann_manager.classmap()
 	img_map = ann_manager.img_map()
 
-	pred_manager = PredictionManager(pred_dir)
+	n_images = len(img_map)
+	dataset_class_dist = ann_manager.class_distribution()
+	n_objects = 0
+	for count in dataset_class_dist.values():
+		n_objects += count
+	dataset_info = DatasetInfo(n_images, n_objects, dataset_class_dist)
+	_save_dataset_info(dataset_info, out_dir)
+
+	results = EvalResults({}, {})
+	pred_manager = Predictions(pred_dir)
 	model_names = pred_manager.get_model_names()
-	results = []
 	for model_name in model_names:
+		pred_manager.copy_to(model_name, out_dir / model_name / 'raw_predictions')
+
+		raw_pred_class_dist = pred_manager.class_distribution(model_name)
+		n_objects_predicted = 0
+		for count in raw_pred_class_dist.values():
+			n_objects_predicted += count
+
+		_filter_common_classes(ann_manager, pred_manager, out_dir / model_name)
+
 		evaluatable_classes = _filter_common_classes('groundtruth', model_name, class_dist_out_dir)
-		model_eval_out_dir = out_dir / model_name
+		model_eval_out_dir = out_dir / 'tmp' / model_name
 
 		ann_file_for_eval = _prepare_anns(ann_file, evaluatable_classes, model_eval_out_dir)
 		ground_truth = COCO(ann_file_for_eval)
@@ -47,16 +106,29 @@ def evaluate_all(pred_dir: Path, ann_file: Path, out_dir: Path):
 		)
 		detections = ground_truth.loadRes(str(pred_file_for_eval))
 
-		results_for_model = evaluate_model(ground_truth, detections, img_map)
-		results_for_model.model_name = model_name
-		results.append(results_for_model)
+		results.per_model[model_name] = ResultsPerModel(
+			n_objects_predicted,
+			raw_pred_class_dist,
 
-	print(results)
 
-	# TODO Save on json that I can parse later to get best/worst images
-	# _save_results()
+		)
 
-def _filter_common_classes(code_a, code_b, class_dist_out_dir):
+		results[model_name] = evaluate_model(ground_truth, detections, img_map)
+
+
+
+	_save_results(results, out_dir)
+	shutil.rmtree(out_dir / 'tmp')
+
+def _save_dataset_info(dataset_info: DatasetInfo, out_dir: Path):
+	dataset_info_file = out_dir / 'dataset-info.json'
+	with dataset_info_file.open('w') as f:
+		json.dump(dataset_info, f)
+
+def _filter_common_classes(ann_manager: Annotations, pred_manager: Predictions, out_dir: Path):
+	classes_in_anns = ann_manager.class_list()
+	classes_in_preds = pred_manager.class_list(model_name)
+
 	with Path(class_dist_out_dir / f"{code_a}.json").open('r') as f:
 		dist_a = json.load(f)
 
@@ -71,7 +143,7 @@ def _filter_common_classes(code_a, code_b, class_dist_out_dir):
 	return common_classes
 
 def _prepare_anns(ann_file: Path, evaluatable_classes: list, out_dir: Path):
-	ann_manager = AnnotationManager(ann_file)
+	ann_manager = Annotations(ann_file)
 	filtered_anns = ann_manager.filter_by_classes(evaluatable_classes)
 
 	filtered_anns_file = out_dir / 'annotations_used_for_eval.json'
@@ -82,7 +154,7 @@ def _prepare_anns(ann_file: Path, evaluatable_classes: list, out_dir: Path):
 	return filtered_anns_file
 
 def _prepare_preds(
-		pred_manager: PredictionManager,
+		pred_manager: Predictions,
 		model_name: str,
 		evaluatable_classes: list,
 		classmap: dict,
@@ -140,6 +212,26 @@ def evaluate_model(ground_truth, detections, img_map):
 		E.evaluate()
 		E.accumulate()
 		E.summarize()
+		import pdb; pdb.set_trace()
+		# E.evalImgs.
 		mAP_per_image[img_file_name] = round(E.stats[0], 3)
 
-	return Results(None, mAP_on_all_images, mAP_per_image)
+	return EvalResults(mAP_on_all_images, mAP_per_image)
+
+def _save_results(results_per_model: dict[str, EvalResults], out_dir: Path):
+	result_dict = {
+		'mAP_on_all_images': {},
+		'mAP_per_image': {},
+	}
+	for model_name, results in results_per_model.items():
+		result_dict['mAP_on_all_images'][model_name] = results.ap_on_all_imgs
+		
+		for img, ap_for_image in results.ap_per_image.items():
+			if img not in result_dict['mAP_per_image']:
+				result_dict['mAP_per_image'][img] = {}
+
+			result_dict['mAP_per_image'][img][model_name] = ap_for_image
+
+	results_file = out_dir / 'results.json'
+	with results_file.open('w') as f:
+		json.dump(result_dict, f)

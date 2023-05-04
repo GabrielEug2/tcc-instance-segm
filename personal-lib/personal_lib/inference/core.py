@@ -1,20 +1,15 @@
-from dataclasses import dataclass
-from pathlib import Path
 import time
 import datetime
+from pathlib import Path
 
 from tqdm import tqdm
 import cv2
-from personal_lib.parsing.predictions import PredictionManager
 
-from .predictors import MODEL_MAP, load_models
+from .predictors import MODEL_MAP, import_model
+from .pred_manager import PredManager
+from .stats_manager import StatsManager
 
 VALID_MODELS = MODEL_MAP.keys()
-
-@dataclass
-class InferenceStats():
-	n_images: str
-	time_for_model: dict[str, datetime.timedelta]
 
 def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None):
 	"""Runs inference on the requested imgs.
@@ -32,25 +27,31 @@ def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None
 		FileNotFoundError: if no images were found on the provided path.
 	"""
 	requested_models = VALID_MODELS if models is None else models
-	try:
-		load_models(requested_models)
-	except (ValueError, ImportError):
-		raise
+	_load_models(requested_models)
 
-	try:
-		img_files = _get_img_files(img_file_or_dir)
-	except FileNotFoundError:
-		raise
+	img_files = _get_img_files(img_file_or_dir)
 	if not out_dir.exists():
 		out_dir.mkdir()
 
 	_inference(img_files, out_dir, requested_models)
+
+def _load_models(models):
+	for model_name in models:
+		try:
+			import_model(model_name)
+		except ImportError as e:
+			raise ImportError(f"\"{model_name}\" is implemented on the library, but not installed properly.") from e
+		except ValueError:
+			raise ValueError(f"\"{model_name}\" is not implemented. How do you expect to run that.")
 
 def _get_img_files(img_file_or_dir: Path) -> list[Path]:
 	if not img_file_or_dir.exists():
 		raise FileNotFoundError(f"File or dir not found: \"{str(img_file_or_dir)}\"")
 
 	if img_file_or_dir.is_dir():
+		# If you're gonna run on thousands of images, keeping it a generator
+		# would probably be better, but since I only use 200, it's not really
+		# relevant
 		img_files = list(img_file_or_dir.glob("*.jpg"))
 		if len(img_files) == 0:
 			raise FileNotFoundError(f'No images found on "{str(img_file_or_dir)}"')
@@ -60,18 +61,19 @@ def _get_img_files(img_file_or_dir: Path) -> list[Path]:
 	return img_files
 
 def _inference(img_files: list[Path], out_dir: Path, models: list[str]):
-	pred_manager = PredictionManager(out_dir)
+	pred_manager = PredManager(out_dir)
+	stats_manager = StatsManager()
 	n_images = len(img_files)
-	inference_stats = InferenceStats(n_images, {})
+	stats_manager.set_n_images(n_images)
 	print(f"Running {n_images} images on models {models}...\n")
 
 	for model_name in models:
 		total_time = _run_on_all_imgs(img_files, model_name, pred_manager)
-		inference_stats.time_for_model[model_name] = total_time
+		stats_manager.set_time_for_model(model_name, total_time)
 
-	_save_stats(inference_stats, out_dir)
+	stats_manager.save(out_dir)
 
-def _run_on_all_imgs(img_files: list[Path], model_name: str, pred_manager: PredictionManager):
+def _run_on_all_imgs(img_files: list[Path], model_name: str, pred_manager: PredManager):
 	print("\n" + model_name)
 	predictor = MODEL_MAP[model_name]()
 
@@ -85,24 +87,3 @@ def _run_on_all_imgs(img_files: list[Path], model_name: str, pred_manager: Predi
 	total_time = datetime.timedelta(seconds=(time.time() - start_time))
 
 	return total_time
-
-def _save_stats(inference_stats, out_dir):
-	stats_str = _stats_to_str(inference_stats)
-
-	stats_file = out_dir / 'stats.txt'
-	with stats_file.open('w') as f:
-		f.write(stats_str)
-
-def _stats_to_str(stats: InferenceStats):
-	n_images = stats.n_images
-
-	stats_str = (
-		f"{n_images} imagens\n"
-		f"{'Modelo'.ljust(10)} {'Tempo total (s)'.ljust(20)} Tempo médio por imagem (s)\n"
-	)
-	for model_name, total_time in stats.time_for_model.items():
-		average_time = total_time / n_images
-
-		stats_str += f"{model_name.ljust(10)} {str(total_time).ljust(20)} {str(average_time)}\n"
-
-	return stats_str

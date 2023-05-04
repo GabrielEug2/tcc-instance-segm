@@ -17,18 +17,23 @@ Você também pode usar outros datasets, se quiser. Só salve as annotations no 
 	annotations.json
 ```
 
+### Navegando pelas anotações
+
+O COCO usa _um arquivo_ pro _dataset inteiro_. Isso é ótimo em termos de espaço, já que você pode comprimir algumas informações como o nome da imagem e o nome das classes, mas é _horrível_ de navegar se você só quer conferir, digamos, quantas anotações de pessoas existem na imagem X.
+
+Aqui, eu prefiro separar as anotações em um arquivo por imagem, contendo só as anotações daquela imagem, e com o nome das classes por extenso, para facilitar a interpretação. Para converter os arquivos para esse formato:
+
+```bash
+python split_annotations.py -h
+```
+
 ### Visualizando as anotações
 
 Existem inúmeras APIs para visualizar as anotações, mas eu optei pela implementada no Detectron. Não é exatamente a mais fácil de instalar, mas entre as que eu testei, eu gostei mais dessa, no geral. Você pode usar outras, se preferir, basta modificar a parte de visualização (`personal_lib/plot/`) para utilizar a API desejada.
 
 Requisitos:
-* Personal lib:
-	```bash
-	pip install -e personal-lib
-	```
-* Plot dependencies
-	* [Torch](https://pytorch.org/get-started/locally/)
-	* [Detectron2](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
+* [Torch](https://pytorch.org/get-started/locally/)
+* [Detectron2](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
 
 Para rodar:
 ```bash
