@@ -11,7 +11,8 @@
             "program": "funcionalidades/3-analises/eval.py",
             "args": [
 				"debug/predictions",
-                "debug/annotations.json",
+                "debug/annotations",
+				"debug/annotations.json",
 				"debug/eval",
             ],
             "console": "integratedTerminal",

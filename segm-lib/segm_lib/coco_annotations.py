@@ -2,7 +2,7 @@ from collections import defaultdict
 import json
 from pathlib import Path
 
-class COCOAnnParser:
+class COCOAnnotations:
 	"""Functions to work with annotations in COCO format.
 	(https://cocodataset.org/#format-data)"""
 
@@ -49,6 +49,9 @@ class COCOAnnParser:
 		return {str(id_): name for name, id_ in self.classmap().items()}
 	
 	def class_distribution(self):
+		if not hasattr(self, '_anns'):
+			self._load()
+
 		classmap_by_id = self.classmap_by_id()
 
 		class_dist = defaultdict(lambda: 0)
@@ -60,6 +63,9 @@ class COCOAnnParser:
 		return class_dist
 
 	def img_map(self):
+		if not hasattr(self, '_anns'):
+			self._load()
+
 		img_map = {}
 		for image in self._anns['images']:
 			# tanto faz a extensão, eu só considero o nome
@@ -67,6 +73,9 @@ class COCOAnnParser:
 		return img_map
 
 	def filter_by_img_id(self, img_id: int):
+		if not hasattr(self, '_anns'):
+			self._load()
+
 		relevant_anns = []
 		for ann in self._anns['annotations']:
 			if ann['image_id'] == img_id:
@@ -74,7 +83,35 @@ class COCOAnnParser:
 		return relevant_anns
 
 	def img_dimensions(self):
+		if not hasattr(self, '_anns'):
+			self._load()
+		
 		img_dimensions = {}
 		for image in self._anns['images']:
 			img_dimensions[Path(image['file_name']).stem] = (image['height'], image['width'])
 		return img_dimensions
+
+	def filter(self, classes: list[str], out_file: Path):
+		if not hasattr(self, '_anns'):
+			self._load()
+
+		cats_to_remove = []
+		cat_ids_to_remove = []
+		for cat in self._anns['categories']:
+			if cat['name'].lower() in classes:
+				cats_to_remove.append(cat)
+				cat_ids_to_remove.append(cat['id'])
+		
+		for cat in cats_to_remove:
+			self._anns['categories'].pop(cat)
+
+		anns_to_remove = []
+		for ann in self._anns['annotations']:
+			if ann['category_id'] in cat_ids_to_remove:
+				anns_to_remove.append(ann)
+		
+		for ann in anns_to_remove:
+			self._anns['annotations'].pop(ann)
+
+		with out_file.open('w') as f:
+			json.dump(self._anns, f)

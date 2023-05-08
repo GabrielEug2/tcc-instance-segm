@@ -2,7 +2,7 @@ import argparse
 import json
 from pathlib import Path
 
-from segm_lib.coco_ann_parser import COCOAnnParser
+from segm_lib.coco_annotations import COCOAnnotations
 
 parser = argparse.ArgumentParser()
 parser.add_argument('ann_dir', help='Directory where you placed the annotations')
@@ -14,7 +14,7 @@ ann_file = Path(args.ann_dir, 'instances_val2017.json')
 
 # O COCO pula alguns IDs: tem 80 classes, mas vai até o ID ~90.
 # Para simplificar, os modelos normalizam pra [0,N)
-anns = COCOAnnParser(ann_file)
+anns = COCOAnnotations(ann_file)
 default_coco_map = anns.classmap()
 model_map = anns.normalized_classmap()
 classmaps = { 'default': default_coco_map, 'model': model_map }

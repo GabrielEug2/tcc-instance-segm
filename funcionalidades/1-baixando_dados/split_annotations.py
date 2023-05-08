@@ -2,7 +2,7 @@ import argparse
 import json
 from pathlib import Path
 
-from segm_lib.coco_ann_parser import COCOAnnParser
+from segm_lib.coco_annotations import COCOAnnotations
 from segm_lib import mask_conversions
 
 parser = argparse.ArgumentParser()
@@ -13,7 +13,7 @@ args = parser.parse_args()
 ann_file = Path(args.ann_file)
 out_dir = Path(args.out_dir)
 
-ann_parser = COCOAnnParser(ann_file)
+ann_parser = COCOAnnotations(ann_file)
 
 classmap = ann_parser.classmap_by_id()
 img_map = ann_parser.img_map()

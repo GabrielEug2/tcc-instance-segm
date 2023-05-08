@@ -5,7 +5,7 @@ from pathlib import Path
 from segm_lib import mask_conversions
 
 class Annotations:
-	"""Functions to work with annotations in my custom format.
+	"""Functions to work with annotations in my segm_lib format.
 	It's basically the same as the predictions format, but
 	without confidence (since, for annotations, that's suposedly
 	100%)."""
@@ -15,6 +15,9 @@ class Annotations:
 			raise FileNotFoundError(f"Dir not found {str(ann_dir)}")
 
 		self.root_dir = ann_dir
+
+	def _all_files(self):
+		return self.root_dir.glob('*.json')
 
 	def load(self, img_file_name: str) -> dict:
 		ann_file = self.root_dir / f"{img_file_name}.json"
@@ -36,14 +39,17 @@ class Annotations:
 
 		return annotations
 
-	def get_n_images(self):
-		return len(list(self.root_dir.glob('*.json')))
+	def get_n_images(self) -> int:
+		# 1 image per file, so...
+		n_images = len(list(self._all_files))
+		return n_images
 
-	def class_distribution(self):
-		ann_files = self.root_dir.glob('*.json')
-
+	def class_distribution(self) -> dict[str, int]:
+		if hasattr(self, '_class_dist'):
+			return self._class_dist
+		
 		class_dist = defaultdict(lambda: 0)
-		for ann_file in ann_files:
+		for ann_file in self._all_files():
 			annotations = self._load_from_file(ann_file)
 
 			for ann in annotations:
@@ -52,28 +58,30 @@ class Annotations:
 		self._class_dist = class_dist
 		return class_dist
 
-	def get_n_objects(self):
+	def get_n_objects(self) -> int:
 		if hasattr(self, '_class_dist'):
-			n_objects = 0
-			for count in self._class_dist.values():
-				n_objects += count
-			return count
+			class_dist = self._class_dist
+		else:
+			class_dist = self.class_distribution()
 
-		count = 0
-		ann_files = self.root_dir.glob('*.json')
-		for ann_file in ann_files:
-			annotations = self._load_from_file(ann_file)
-
-			for ann in annotations:
-				count += 1
+		n_objects = 0
+		for count in class_dist.values():
+			n_objects += count
 		return count
 
-	def copy_to(self, out_dir: Path, classes: list[str]):
-		# TODO
-		for file in self.files:
-			shutil.copy(file, out_dir / file.name)
+	def get_classnames(self) -> list[str]:
+		return self.class_distribution().keys()
 
-	def to_coco_format(self, out_file: Path):
-		# TODO
-		with filtered_anns_file.open('w') as f:
-			json.dump(filtered_anns, f)
+	def filter(self, classes: list[str], out_dir: Path):
+		out_dir.mkdir(parents=True, exist_ok=True)
+
+		for ann_file in self._all_files():
+			annotations = self._load_from_file(ann_file)
+
+			filtered_anns = []
+			for ann in annotations:
+				if ann['classname'] in classes:
+					filtered_anns.append(ann)
+			
+			with (out_dir / ann_file.name).open('w') as f:
+				json.dump(filtered_anns, f)

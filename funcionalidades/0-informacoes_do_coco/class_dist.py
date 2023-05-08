@@ -2,7 +2,7 @@ import argparse
 import json
 from pathlib import Path
 
-from segm_lib.coco_ann_parser import COCOAnnParser
+from segm_lib.coco_annotations import COCOAnnotations
 
 parser = argparse.ArgumentParser()
 parser.add_argument('ann_dir', help='Directory where you placed the annotations')
@@ -15,7 +15,7 @@ total_class_dist = {}
 for ann_file in ann_files:
 	print(f"Processing {ann_file.name}...") # Só pra saber se é normal a demora, tipo o annotations_train
 	try:
-		file_dist = COCOAnnParser(ann_file).class_distribution()
+		file_dist = COCOAnnotations(ann_file).class_distribution()
 	except Exception as e:
 		raise ValueError(f"File \"{str(ann_file)}\" doesn't follow the expected format") from e
 

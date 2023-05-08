@@ -61,6 +61,7 @@ def plot_predictions(pred_dir: Path, img_dir: Path, out_dir: Path):
 			if len(predictions) == 0:
 				print(f"No predictions found on \"{str(pred_dir)}\" for image \"{str(img_file)}\". Skipping")
 				continue
+
 			# já está no formato que eu quero
 
 			predictions_img_file = out_dir / img_file.stem / f"{model_name}.jpg"
