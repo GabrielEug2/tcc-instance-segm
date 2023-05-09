@@ -95,23 +95,14 @@ class COCOAnnotations:
 		if not hasattr(self, '_anns'):
 			self._load()
 
-		cats_to_remove = []
-		cat_ids_to_remove = []
+		cat_ids_to_keep = []
 		for cat in self._anns['categories']:
 			if cat['name'].lower() in classes:
-				cats_to_remove.append(cat)
-				cat_ids_to_remove.append(cat['id'])
+				cat_ids_to_keep.append(cat['id'])
 		
-		for cat in cats_to_remove:
-			self._anns['categories'].pop(cat)
+		self._anns['categories'] = [c for c in self._anns['categories'] if c['id'] in cat_ids_to_keep]
+		self._anns['annotations'] = [a for a in self._anns['annotations'] if a['category_id'] in cat_ids_to_keep]
 
-		anns_to_remove = []
-		for ann in self._anns['annotations']:
-			if ann['category_id'] in cat_ids_to_remove:
-				anns_to_remove.append(ann)
-		
-		for ann in anns_to_remove:
-			self._anns['annotations'].pop(ann)
-
+		out_file.parent.mkdir(parents=True, exist_ok=True)
 		with out_file.open('w') as f:
 			json.dump(self._anns, f)

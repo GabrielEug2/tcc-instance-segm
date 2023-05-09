@@ -41,7 +41,7 @@ class Annotations:
 
 	def get_n_images(self) -> int:
 		# 1 image per file, so...
-		n_images = len(list(self._all_files))
+		n_images = len(list(self._all_files()))
 		return n_images
 
 	def class_distribution(self) -> dict[str, int]:
@@ -67,7 +67,7 @@ class Annotations:
 		n_objects = 0
 		for count in class_dist.values():
 			n_objects += count
-		return count
+		return n_objects
 
 	def get_classnames(self) -> list[str]:
 		return self.class_distribution().keys()
@@ -82,6 +82,9 @@ class Annotations:
 			for ann in annotations:
 				if ann['classname'] in classes:
 					filtered_anns.append(ann)
-			
+
+			for ann in filtered_anns:
+				ann['mask'] = mask_conversions.bin_mask_to_rle(ann['mask'])
+
 			with (out_dir / ann_file.name).open('w') as f:
 				json.dump(filtered_anns, f)

@@ -44,7 +44,7 @@ class Predictions:
 		n_images = 0
 		for pred_file in self._pred_files_for_model(model_name):
 			predictions = self._load_from_file(pred_file)
-			if len(predictions >= 1):
+			if len(predictions) >= 1:
 				n_images += 1
 		return n_images
 
@@ -71,6 +71,9 @@ class Predictions:
 			for pred in predictions:
 				class_dist[pred['classname']] += 1
 
+		if not hasattr(self, '_computed_class_dists'):
+			self._computed_class_dists = {}
+		
 		self._computed_class_dists[model_name] = class_dist
 		return class_dist
 
@@ -78,6 +81,7 @@ class Predictions:
 		return self.class_distribution(model_name).keys()
 
 	def filter(self, model_name: str, classes: list[str], out_dir: Path):
+		out_dir = out_dir / model_name
 		out_dir.mkdir(parents=True, exist_ok=True)
 
 		for pred_file in self._pred_files_for_model(model_name):
@@ -87,8 +91,11 @@ class Predictions:
 			for pred in predictions:
 				if pred['classname'] in classes:
 					filtered_preds.append(pred)
-			
-			with (out_dir / model_name / pred_file.name).open('w') as f:
+		
+			for pred in filtered_preds:
+				pred['mask'] = mask_conversions.bin_mask_to_rle(pred['mask'])
+
+			with (out_dir / pred_file.name).open('w') as f:
 				json.dump(filtered_preds, f)
 
 	def to_coco_format(self, model_name: str, img_map: dict, classmap: dict, out_file: Path):

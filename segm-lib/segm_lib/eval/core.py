@@ -1,6 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, field
 import json
 from pathlib import Path
+import numpy as np
 
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
@@ -11,21 +12,21 @@ from segm_lib.coco_annotations import COCOAnnotations
 
 @dataclass
 class DatasetInfo:
-	n_images: int
-	n_objects: int
-	class_dist: dict[str, int]
+	n_images: int = 0
+	n_objects: int = 0
+	class_dist: dict[str, int] = field(default_factory=dict)
 
 @dataclass
 class RawResults:
 	n_images_with_predictions: int = 0
 	n_objects_predicted: int = 0
-	class_dist: dict[str, int] = {}
+	class_dist: dict[str, int] = field(default_factory=dict)
 
 @dataclass
 class EvalFilters:
-	classes_considered: list[str] = []
-	pred_classes_ignored: list[str] = []
-	ann_classes_ignored: list[str] = []
+	classes_considered: list[str] = field(default_factory=list)
+	pred_classes_ignored: list[str] = field(default_factory=list)
+	ann_classes_ignored: list[str] = field(default_factory=list)
 	n_preds_considered: int = 0
 	n_anns_considered: int = 0
 
@@ -38,31 +39,39 @@ class DatasetResults:
 
 @dataclass
 class ImageResults:
-	n_objects_annotated: int
-	ann_class_dist: dict[str, int]
+	n_objects_annotated: int = 0
+	ann_class_dist: dict[str, int] = field(default_factory=dict)
 
-	n_objects_predicted: int
-	pred_class_dist: dict[str, int]
+	n_objects_predicted: int = 0
+	pred_class_dist: dict[str, int] = field(default_factory=dict)
 	
-	pred_classes_ignored: list[str]
-	ann_classes_ignored: list[str]
-	n_preds_considered: int
-	n_anns_considered: int
+	pred_classes_ignored: list[str] = field(default_factory=list)
+	ann_classes_ignored: list[str] = field(default_factory=list)
+	n_preds_considered: int = 0
+	n_anns_considered: int = 0
 
-	mAP: float
-	true_positives: list # preds
-	false_positives: list # preds
-	false_negatives: list # preds
+	mAP: float = 0.0
+	true_positives: list[dict] = field(default_factory=list)
+	false_positives: list[dict] = field(default_factory=list)
+	false_negatives: list[dict] = field(default_factory=list)
 	
 @dataclass
 class ModelResults:
 	raw_results: RawResults = None
 	eval_filters: EvalFilters = None
 	results_on_dataset: DatasetResults = None
-	results_per_image: dict[str, ImageResults] = {}
+	results_per_image: list[str, ImageResults] = field(default_factory=dict)
 
+@dataclass
+class EvalFiles:
+	filtered_pred_dir: Path
+	filtered_ann_dir: Path
+	filtered_cocopred_file: Path
+	filtered_cocoann_file: Path
 
 def evaluate_all(pred_dir: Path, ann_dir: Path, ann_file: Path, out_dir: Path):
+	out_dir.mkdir(parents=True, exist_ok=True)
+
 	ann_manager = Annotations(ann_dir)
 	dataset_info = _compute_dataset_info(ann_manager)
 	_save_dataset_info(dataset_info, out_dir)
@@ -71,6 +80,7 @@ def evaluate_all(pred_dir: Path, ann_dir: Path, ann_file: Path, out_dir: Path):
 	model_names = pred_manager.get_model_names()
 	for model_name in model_names:
 		eval_dir = out_dir / model_name
+		eval_dir.mkdir(exist_ok=True)
 		results = _evaluate_model(model_name, pred_manager, ann_manager, ann_file, eval_dir)
 		_save_results(results, eval_dir)
 
@@ -84,42 +94,36 @@ def _compute_dataset_info(ann_manager: Annotations) -> DatasetInfo:
 	return DatasetInfo(n_images, n_objects, class_dist)
 
 def _save_dataset_info(dataset_info: DatasetInfo, out_dir: Path):
+	dataset_info.class_dist = dict(dataset_info.class_dist)
+	dataset_info_dict = asdict(dataset_info)
+
 	dataset_info_file = out_dir / 'dataset-info.json'
 	with dataset_info_file.open('w') as f:
-		json.dump(dataset_info, f)
+		json.dump(dataset_info_dict, f)
 
 def _evaluate_model(model_name: str, pred_manager: Predictions, ann_manager: Annotations, ann_file: Path, out_dir: Path) -> ModelResults:
 	results = ModelResults()
 
-	results.raw_results = _compute_raw_results(pred_manager, model_name)
+	results.raw_results = _compute_raw_results(model_name, pred_manager)
 
 	ann_classes = ann_manager.get_classnames()
 	pred_classes = pred_manager.get_classnames(model_name)
 	results.eval_filters = _compute_eval_filters(ann_classes, pred_classes)
 
 	common_classes = results.eval_filters.classes_considered
+	eval_files = _prep_files_for_eval(model_name, pred_manager, ann_manager, ann_file, common_classes, out_dir)
 
-	filtered_ann_dir = out_dir / 'annotations_used'
-	filtered_pred_dir = out_dir / 'predictions_used'
-	ann_manager.filter(common_classes, filtered_ann_dir)
-	pred_manager.filter(model_name, common_classes, filtered_pred_dir)
-	# I would use my own annotation format, but the eval API uses some
-	# fields I don't save on mine, like area. It's easier to filter the
-	# original file too than modifying my format to include all those fields.
-	filtered_ann_file = out_dir / 'internal' / 'annotations.json'
-	COCOAnnotations(ann_file).filter(common_classes, filtered_ann_file)
-
-	filtered_ann_manager = Annotations(filtered_ann_dir)
-	filtered_pred_manager = Predictions(filtered_pred_dir)
+	filtered_ann_manager = Annotations(eval_files.filtered_ann_dir)
+	filtered_pred_manager = Predictions(eval_files.filtered_pred_dir)
 	results.eval_filters.n_anns_considered = filtered_ann_manager.get_n_objects()
-	results.eval_filters.n_preds_considered = filtered_pred_manager.get_n_objects()
+	results.eval_filters.n_preds_considered = filtered_pred_manager.get_n_objects(model_name)
 
-	results.results_on_dataset = _evaluate_on_dataset(model_name, filtered_pred_manager, filtered_ann_manager, filtered_ann_file, out_dir)
+	results.results_on_dataset = _evaluate_on_dataset(eval_files)
 	# results.results_per_image = _evaluate_per_image()
 
 	return results
 
-def _compute_raw_results(pred_manager: Predictions, model_name: str) -> RawResults:
+def _compute_raw_results(model_name: str, pred_manager: Predictions) -> RawResults:
 	n_images_with_predictions = pred_manager.get_n_images_with_predictions(model_name)
 	n_objects_predicted = pred_manager.get_n_objects(model_name)
 	pred_class_dist = pred_manager.class_distribution(model_name)
@@ -146,22 +150,38 @@ def _compute_eval_filters(ann_classes: list[str], pred_classes: list[str]) -> Ev
 def _filter_common(list_a: list[str], list_b: list[str]):
 	return [n for n in list_a if n in list_b]
 
-def _evaluate_on_dataset(
-		model_name: str,
-		filtered_pred_manager: Predictions,
-		filtered_ann_manager: Annotations,
-		filtered_ann_file: Path,
-		out_dir: Path
-	):
-	ann_file_for_eval = filtered_ann_file
-	filtered_coco_ann_manager = COCOAnnotations(filtered_ann_file)
-	classmap = filtered_coco_ann_manager.classmap()	
-	img_map = filtered_coco_ann_manager.img_map()
+def _prep_files_for_eval(model_name: str, pred_manager: Predictions, ann_manager: Annotations, ann_file: Path, common_classes: list[str], out_dir: Path):
+	filtered_ann_dir = out_dir / 'annotations_used'
+	filtered_pred_dir = out_dir / 'predictions_used'
+	ann_manager.filter(common_classes, filtered_ann_dir)
+	pred_manager.filter(model_name, common_classes, filtered_pred_dir)
 
-	pred_file_for_eval = out_dir / 'internal' / 'predictions.json'
-	filtered_pred_manager.to_coco_format(model_name, img_map, classmap, pred_file_for_eval)
+	# I would build the COCO-file from my own annotation format, but the eval
+	# API uses some fields which I don't save on mine, like iscrowd. It's
+	# easier to just filter the original file too than modifying my format
+	# to include all those fields.
+	filtered_cocoann_file = out_dir / 'internal' / 'annotations.json'
+	COCOAnnotations(ann_file).filter(common_classes, filtered_cocoann_file)
 
+	filtered_cocopred_file = out_dir / 'internal' / 'predictions.json'
+	filtered_cocoann_manager = COCOAnnotations(filtered_cocoann_file)
+	classmap = filtered_cocoann_manager.classmap()
+	img_map = filtered_cocoann_manager.img_map()
+	filtered_pred_manager = Predictions(filtered_pred_dir)
+	filtered_pred_manager.to_coco_format(model_name, img_map, classmap, filtered_cocopred_file)
+
+	return EvalFiles(
+		filtered_pred_dir=filtered_pred_dir,
+		filtered_ann_dir=filtered_ann_dir,
+		filtered_cocopred_file=filtered_cocopred_file,
+		filtered_cocoann_file=filtered_cocoann_file,
+	)
+
+def _evaluate_on_dataset(eval_files: EvalFiles):
+	ann_file_for_eval = eval_files.filtered_cocoann_file
 	ground_truth = COCO(ann_file_for_eval)
+
+	pred_file_for_eval = eval_files.filtered_cocopred_file
 	detections = ground_truth.loadRes(str(pred_file_for_eval))
 
 	E = COCOeval(ground_truth, detections)
@@ -170,16 +190,112 @@ def _evaluate_on_dataset(
 	E.summarize()
 	mAP_on_all_images = round(E.stats[0], 3)
 
-	import pdb; pdb.set_trace()
-	n_true_positives = 0
-	n_false_positives = 0
-	n_false_negatives = 0
+	# basically the same code as the accumulate() function, to get
+	# the intermediary results that I want:
+	# 	n_tp, n_fp, n_fn for a given IoU (0.5), areaRng (all) and maxDets (100).
+
+	# anything involving "_pe" is about parameters used on evalute()
+	# (things that WERE computed)
+	_pe = E._paramsEval
+	setK = set(_pe.catIds)
+	setA = set(map(tuple, _pe.areaRng))
+	setM = set(_pe.maxDets)
+	setI = set(_pe.imgIds)
+	I0 = len(_pe.imgIds)
+	A0 = len(_pe.areaRng)
+
+	# anything involving "p" is about the parameters I want now
+	# (things that WILL BE taken into account to calculate the mAP)
+	p = E.params
+	p.maxDets = [100]
+	p.areaRng = [p.areaRng[0]] # all
+	k_list = [n for n, k in enumerate(p.catIds)  if k in setK]
+	m_list = [m for n, m in enumerate(p.maxDets) if m in setM]
+	a_list = [n for n, a in enumerate(map(lambda x: tuple(x), p.areaRng)) if a in setA]
+	i_list = [n for n, i in enumerate(p.imgIds)  if i in setI]
+
+	n_tp_on_dataset = 0
+	n_fp_on_dataset = 0
+	n_fn_on_dataset = 0
+	for k, k0 in enumerate(k_list):
+		Nk = k0*A0*I0
+		# since I'm only interested in one areaRng and one maxDet,
+		# there's no need for those loops
+		a, a0 = 0, a_list[0]
+		Na = a0*I0
+		m, maxDet = 0, m_list[0]
+
+		# be very careful here, since I'm on a different scope
+		# "self" on their code is "E" here
+		# "E" on their code is what I called "filtered_evalImgs" here
+		filtered_evalImgs = [E.evalImgs[Nk + Na + i] for i in i_list]
+		filtered_evalImgs = [e for e in filtered_evalImgs if not e is None]
+		if len(filtered_evalImgs) == 0:
+			continue			
+		dtScores = np.concatenate([e['dtScores'][0:maxDet] for e in filtered_evalImgs])
+
+		inds = np.argsort(-dtScores, kind='mergesort')
+		dtScoresSorted = dtScores[inds]
+
+		# each "e" in evalImgs contains info that refers to one category in
+		# one image, with one areaRng (but this last one is irrelevant here).
+		# 
+		# each e['dtMatches'] is a list of lists, where each line / inner list
+		# refers to one IoU threshold (10 thresholds by default, so 10 lines).
+		# For each IoU and detection id, we have the ground truth id that best
+		# matches that detection, or 0 if there was no match.
+		# for instance "some_e['dtMatches'][0,1] = 2" means that at the
+		# first IoU threshold (index 0), the detection with id 1 was matched to the
+		# ground truth with id 2
+		#
+		# they concatenate all of those, per IoU, because it doesn't matter 
+		# from which image it is or what category it is: all that matters is
+		# whether or not there was a match
+		dtm  = np.concatenate([e['dtMatches'][:,0:maxDet] for e in filtered_evalImgs], axis=1)[:,inds]
+		dtIg = np.concatenate([e['dtIgnore'][:,0:maxDet]  for e in filtered_evalImgs], axis=1)[:,inds]
+		gtIg = np.concatenate([e['gtIgnore'] for e in filtered_evalImgs])
+		npig = np.count_nonzero(gtIg==0 )
+		if npig == 0:
+			continue
+		tps = np.logical_and(               dtm,  np.logical_not(dtIg) )
+		fps = np.logical_and(np.logical_not(dtm), np.logical_not(dtIg) )
+
+		# for each threshold, they compute the cum_sum of tp and fp
+		# (aparently it has to do with the way precision and recall is
+		# calculated, I have no idea)
+		# tp_sum[0] is the cum_sum_tp for the first threshold
+		# tp_sum[1] is the cum_sum_tp for the second threshold and so on
+		# tp_sum[tind,x] is the n_tp in the first x detections
+		# tp_sum[tind,-1], which I use below, is the n_tp for that category
+		tp_sum = np.cumsum(tps, axis=1).astype(dtype=float)
+		fp_sum = np.cumsum(fps, axis=1).astype(dtype=float)
+
+		# what I think it is
+		gtm = np.concatenate([e['gtMatches'] for e in filtered_evalImgs], axis=1)
+		my_fns = gtm
+		print("Mine", my_fns)
+
+		# what they use
+		gtIg = np.concatenate([e['gtIgnore'] for e in filtered_evalImgs])
+		npig = np.count_nonzero(gtIg==0)
+		their_fns = npig - tps
+		print("Theirs", their_fns)
+
+		# I'm counting tp/fp/fn for IoU 0.5, which is the first one,
+		# and I only care about the "total" tp/fp, which is the last item of the sum
+		n_tp_for_that_k = tp_sum[0][-1]
+		n_fp_for_That_k = fp_sum[0][-1]
+		# n_fn_for_that_k = fns[0]
+
+		n_tp_on_dataset += n_tp_for_that_k
+		n_fp_on_dataset += n_fp_for_That_k
+		# n_fn_on_dataset += n_fn_for_that_k
 
 	return DatasetResults(
 		mAP=mAP_on_all_images,
-		n_true_positives=n_true_positives,
-		n_false_positives=n_false_positives,
-		n_false_negatives=n_false_negatives,
+		n_true_positives=n_tp_on_dataset,
+		n_false_positives=n_fp_on_dataset,
+		n_false_negatives=n_fn_on_dataset,
 	)
 
 def _evaluate_per_image(
