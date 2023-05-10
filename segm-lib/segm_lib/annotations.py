@@ -54,6 +54,7 @@ class Annotations:
 
 			for ann in annotations:
 				class_dist[ann['classname']] += 1
+		class_dist = dict(class_dist)
 
 		self._class_dist = class_dist
 		return class_dist
@@ -68,6 +69,19 @@ class Annotations:
 		for count in class_dist.values():
 			n_objects += count
 		return n_objects
+
+	def get_img_file_names(self) -> list[str]:
+		return [f.stem for f in self._all_files()]
+
+	def class_dist_on_img(self, img_file_name):
+		anns = self.load(img_file_name)
+
+		img_class_dist = defaultdict(lambda: 0)
+		for ann in anns:
+			img_class_dist[ann['classname']] += 1
+		img_class_dist = dict(img_class_dist)
+
+		return img_class_dist
 
 	def get_classnames(self) -> list[str]:
 		return self.class_distribution().keys()

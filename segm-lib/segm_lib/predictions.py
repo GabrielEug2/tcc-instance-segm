@@ -70,6 +70,7 @@ class Predictions:
 
 			for pred in predictions:
 				class_dist[pred['classname']] += 1
+		class_dist = dict(class_dist)
 
 		if not hasattr(self, '_computed_class_dists'):
 			self._computed_class_dists = {}
