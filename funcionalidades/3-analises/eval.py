@@ -12,7 +12,7 @@ args = parser.parse_args()
 
 pred_dir = Path(args.pred_dir)
 ann_dir = Path(args.ann_dir)
-ann_file = Path(args.ann_file)
+original_ann_file = Path(args.ann_file)
 out_dir = Path(args.out_dir)
 
-evaluate_all(pred_dir, ann_dir, ann_file, out_dir)
+evaluate_all(pred_dir, ann_dir, original_ann_file, out_dir)

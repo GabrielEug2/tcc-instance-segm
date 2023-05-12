@@ -15,7 +15,7 @@ out_dir = Path(args.out_dir)
 
 ann_parser = COCOAnnotations(ann_file)
 
-classmap = ann_parser.classmap_by_id()
+classmap_by_id = ann_parser.classmap_by_id()
 img_map = ann_parser.img_map()
 img_dimensions = ann_parser.img_dimensions()
 
@@ -25,7 +25,7 @@ for img_name, id in img_map.items():
 
 	custom_anns = []
 	for ann in anns_for_img:
-		classname = classmap[str(ann['category_id'])]
+		classname = classmap_by_id[ann['category_id']]
 
 		img_h, img_w = img_dimensions[img_name]
 		rle_mask = mask_conversions.ann_to_rle(ann['segmentation'], img_h, img_w)

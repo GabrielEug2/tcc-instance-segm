@@ -14,12 +14,12 @@ def plot_annotations(ann_dir: Path, img_dir: Path, out_dir: Path):
 	n_images = len(list(img_dir.glob('*.jpg'))) # need to glob again cause img_files is a generator, I don't want to consume it
 
 	for img_file in tqdm(img_files, total=n_images):
-		anns = ann_manager.load(img_file.stem)
-		if len(anns) == 0:
+		annotations = ann_manager.load(img_file.stem)
+		if len(annotations) == 0:
 			print(f"No annotations found on \"{str(ann_dir)} for image \"{str(img_file)}\". Skipping")
 			continue
 
-		formatted_anns = _ann_to_plot_format(anns)
+		formatted_anns = _anns_to_plot_format(annotations)
 		
 		annotated_img_file = out_dir / img_file.stem / "groundtruth.jpg"
 		annotated_img_file.parent.mkdir(parents=True, exist_ok=True)
@@ -29,7 +29,7 @@ def plot_annotations(ann_dir: Path, img_dir: Path, out_dir: Path):
 		mask_out_dir.mkdir(parents=True, exist_ok=True)
 		plot_lib.plot_individual_masks(formatted_anns, mask_out_dir, img_file)
 
-def _ann_to_plot_format(anns):
+def _anns_to_plot_format(anns):
 	formatted_anns = []
 	for ann in anns:
 		classname = ann['classname']

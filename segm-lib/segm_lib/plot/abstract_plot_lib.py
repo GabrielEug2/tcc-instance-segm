@@ -3,7 +3,7 @@ from pathlib import Path
 
 class AbstractPlotLib(ABC):
 	@abstractmethod
-	def plot(anns_or_preds: dict, img_file: Path, out_file: Path):
+	def plot(anns_or_preds: list, img_file: Path, out_file: Path):
 		"""Plots the annotations or predictions on the image.
 
 		Args:
@@ -17,7 +17,7 @@ class AbstractPlotLib(ABC):
 		"""
 
 	@abstractmethod
-	def plot_individual_masks(anns_or_preds: dict, out_dir: Path, img_file: Path):
+	def plot_individual_masks(anns_or_preds: list, out_dir: Path, img_file: Path):
 		"""Plots each annotation or prediction separately.
 
 		Args:

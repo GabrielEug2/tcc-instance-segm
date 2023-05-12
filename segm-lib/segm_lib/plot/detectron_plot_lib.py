@@ -13,7 +13,7 @@ class DetectronPlotLib(AbstractPlotLib):
 	def __init__(self):
 		pass
 
-	def plot(self, anns_or_preds: dict, img_file: Path, out_file: Path):
+	def plot(self, anns_or_preds: list, img_file: Path, out_file: Path):
 		classnames, scores, masks, boxes = [], [], [], []
 		for pred in anns_or_preds:
 			classnames.append(pred['classname'])
@@ -51,7 +51,7 @@ class DetectronPlotLib(AbstractPlotLib):
 		out_file.parent.mkdir(parents=True, exist_ok=True)
 		cv2.imwrite(str(out_file), out_img)
 
-	def plot_individual_masks(self, anns_or_preds: dict, out_dir: Path, img_file: Path):
+	def plot_individual_masks(self, anns_or_preds: list, out_dir: Path, img_file: Path):
 		count_per_class = {}
 		for pred in anns_or_preds:
 			classname = pred['classname']

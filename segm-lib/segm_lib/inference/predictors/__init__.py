@@ -1,4 +1,7 @@
-MODEL_MAP = {
+from typing import Union
+from .abstract_predictor import Predictor as _Predictor
+
+MODEL_MAP: dict[str, Union[_Predictor, None]] = {
 	'maskrcnn': None,
 	'yolact': None,
 	'solo': None,

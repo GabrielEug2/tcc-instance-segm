@@ -6,6 +6,7 @@ from tqdm import tqdm
 import cv2
 
 from .predictors import MODEL_MAP, import_model
+from .predictors.abstract_predictor import Predictor
 from .pred_manager import PredManager
 from .stats_manager import StatsManager
 
@@ -30,9 +31,9 @@ def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None
 	_load_models(requested_models)
 
 	img_files = _get_img_files(img_file_or_dir)
+
 	if not out_dir.exists():
 		out_dir.mkdir()
-
 	_inference(img_files, out_dir, requested_models)
 
 def _load_models(models):
@@ -75,7 +76,7 @@ def _inference(img_files: list[Path], out_dir: Path, models: list[str]):
 
 def _run_on_all_imgs(img_files: list[Path], model_name: str, pred_manager: PredManager):
 	print("\n" + model_name)
-	predictor = MODEL_MAP[model_name]()
+	predictor: Predictor = MODEL_MAP[model_name]()
 
 	start_time = time.time()
 	for img_file in tqdm(img_files):
