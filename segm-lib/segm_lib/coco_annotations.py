@@ -109,3 +109,6 @@ class COCOAnnotations:
 		out_file.parent.mkdir(parents=True, exist_ok=True)
 		with out_file.open('w') as f:
 			json.dump(self._anns, f)
+
+	def get_n_objects(self):
+		return len(self._anns['annotations'])

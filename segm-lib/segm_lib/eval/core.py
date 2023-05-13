@@ -10,6 +10,7 @@ from pycocotools.cocoeval import COCOeval
 from segm_lib.annotations import Annotations
 from segm_lib.predictions import Predictions
 from segm_lib.coco_annotations import COCOAnnotations
+from segm_lib.coco_predictions import COCOPredictions
 
 @dataclass
 class ImageInfo:
@@ -419,13 +420,17 @@ def _evaluate_per_image(eval_files: EvalFiles, model_name: str):
 			# I only want dtm for IoU = 0.5, so index 0
 			for dtId, gtId in zip(dtIds, dtm_per_threshold[0]):
 				actual_dt = next(dt for dt in dts if dt['id'] == dtId)
+
 				dt_in_custom_format = Predictions.from_coco_format(actual_dt, classmap)
+
 				if gtId == 0:
 					# false positive
 					fps_on_img.append(dt_in_custom_format)
 				else:
-					# true positive					
+					# true positive
 					actual_gt = next(gt for gt in gts if gt['id'] == int(gtId)) # not sure why gtId is a float
+					actual_gt = _fix_rle(actual_gt)
+
 					gt_in_custom_format = Annotations.from_coco_format(actual_gt, classmap)
 					tps_on_img.append((dt_in_custom_format, gt_in_custom_format))
 			
@@ -433,15 +438,18 @@ def _evaluate_per_image(eval_files: EvalFiles, model_name: str):
 			# I only want gtm for IoU = 0.5, so index 0
 			for gtId, dtId in zip(gtIds, gtm_per_threshold[0]):
 				actual_gt = next(gt for gt in gts if gt['id'] == int(gtId)) # again, not sure why it's a float
+				actual_gt = _fix_rle(actual_gt)
+
 				gt_in_custom_format = Annotations.from_coco_format(actual_gt, classmap)
+
 				if dtId == 0:
 					# false negative
 					fns_on_img.append(actual_gt)
 
-		n_anns_considered = Annotations(eval_files.coco_ann_file_per_image[img_name]). \
+		n_anns_considered = COCOAnnotations(eval_files.coco_ann_file_per_image[img_name]). \
 		                    get_n_objects()
-		n_preds_considered = Predictions(eval_files.coco_pred_file_per_image[img_name]). \
-		                     get_n_objects(model_name)
+		n_preds_considered = COCOPredictions(eval_files.coco_pred_file_per_image[img_name]). \
+		                     get_n_objects()
 
 		results_per_img[img_name] = ImageResults(
 			n_anns_considered=n_anns_considered,
@@ -453,6 +461,13 @@ def _evaluate_per_image(eval_files: EvalFiles, model_name: str):
 		)
 	
 	return results_per_img
+
+def _fix_rle(dt_or_gt):
+	# not sure why it comes as bytes sometimes, should be a str
+	if type(dt_or_gt['segmentation']['counts']) == bytes:
+		dt_or_gt['segmentation']['counts'] = dt_or_gt['segmentation']['counts'].decode('utf-8')
+
+	return dt_or_gt
 
 def _save_results(results: ModelResults, out_dir: Path):
 	results_dict = asdict(results)

@@ -106,6 +106,14 @@ class Annotations:
 		return self.root_dir.glob('*.json')
 	
 	@classmethod
-	def from_coco_format(cls, preds, classmap) -> dict:
-		# TODO implement
-		return
+	def from_coco_format(cls, coco_ann, classmap) -> dict:
+		cat_id = coco_ann['category_id']
+		bbox = coco_ann['bbox']
+		mask = coco_ann['segmentation']
+
+		custom_ann = {
+			'classname': classmap[cat_id],
+			'mask': mask,
+			'bbox': bbox,
+		}
+		return custom_ann

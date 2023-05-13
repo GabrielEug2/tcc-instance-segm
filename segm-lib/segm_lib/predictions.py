@@ -125,6 +125,16 @@ class Predictions:
 		return (f.stem for f in (self.root_dir / model_name).glob('*'))
 
 	@classmethod
-	def from_coco_format(cls, preds, classmap) -> dict:
-		# TODO implement
-		return
+	def from_coco_format(cls, coco_pred, classmap) -> dict:
+		cat_id = coco_pred['category_id']
+		confidence = coco_pred['score']
+		bbox = coco_pred['bbox'].tolist()
+		rle_mask = coco_pred['segmentation']
+
+		custom_pred = {
+			'classname': classmap[cat_id],
+			'confidence': confidence,
+			'mask': rle_mask,
+			'bbox': bbox,
+		}
+		return custom_pred
