@@ -14,10 +14,10 @@ ann_file = Path(args.ann_dir, 'instances_val2017.json')
 
 # O COCO pula alguns IDs: tem 80 classes, mas vai até o ID ~90.
 # Para simplificar, os modelos normalizam pra [0,N)
-anns = COCOAnnotations(ann_file)
-default_coco_map = anns.classmap()
-model_map = anns.normalized_classmap()
-classmaps = { 'default': default_coco_map, 'model': model_map }
+coco_anns = COCOAnnotations.from_file(ann_file)
+default_map = coco_anns.classmap()
+normalized_map = coco_anns.normalized_classmap()
+classmaps = { 'default': default_map, 'normalized': normalized_map }
 
 for map_name in classmaps:
 	map_file = Path(__file__).parent / f"coco_classmap_{map_name}.json"

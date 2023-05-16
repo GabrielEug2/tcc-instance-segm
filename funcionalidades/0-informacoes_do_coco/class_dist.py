@@ -15,7 +15,7 @@ total_class_dist = {}
 for ann_file in ann_files:
 	print(f"Processing {ann_file.name}...") # Só pra saber se é normal a demora, tipo o annotations_train
 	try:
-		file_dist = COCOAnnotations(ann_file).class_distribution()
+		file_dist = COCOAnnotations.from_file(ann_file).class_distribution()
 	except FileNotFoundError as e:
 		raise
 	except Exception as e:

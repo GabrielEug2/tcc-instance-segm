@@ -7,7 +7,7 @@ import cv2
 
 from .predictors import MODEL_MAP, import_model
 from .predictors.abstract_predictor import Predictor
-from .pred_manager import PredManager
+from segm_lib.pred_manager import PredManager
 from .stats_manager import StatsManager
 
 VALID_MODELS = MODEL_MAP.keys()
@@ -64,6 +64,7 @@ def _get_img_files(img_file_or_dir: Path) -> list[Path]:
 def _inference(img_files: list[Path], out_dir: Path, models: list[str]):
 	pred_manager = PredManager(out_dir)
 	stats_manager = StatsManager()
+
 	n_images = len(img_files)
 	stats_manager.set_n_images(n_images)
 	print(f"Running {n_images} images on models {models}...\n")

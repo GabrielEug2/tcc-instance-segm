@@ -1,3 +1,4 @@
+from collections import defaultdict
 from pathlib import Path
 
 from detectron2.utils.visualizer import Visualizer
@@ -8,18 +9,24 @@ import torch
 import numpy as np
 
 from .abstract_plot_lib import AbstractPlotLib
+from segm_lib.structures import Annotation, Prediction
 
 class DetectronPlotLib(AbstractPlotLib):
 	def __init__(self):
 		pass
 
-	def plot(self, anns_or_preds: list, img_file: Path, out_file: Path):
+	def plot(
+		self,
+	  	anns_or_preds: list[Annotation]|list[Prediction],
+	  	img_file: Path,
+		out_file: Path
+	):
 		classnames, scores, masks, boxes = [], [], [], []
-		for pred in anns_or_preds:
-			classnames.append(pred['classname'])
-			scores.append(pred['confidence'])
-			masks.append(pred['mask'])
-			boxes.append(pred['bbox'])
+		for ann_or_pred in anns_or_preds:
+			classnames.append(ann_or_pred.classname)
+			scores.append(ann_or_pred.confidence if hasattr(ann_or_pred, 'confidence') else 1.0)
+			masks.append(ann_or_pred.mask)
+			boxes.append(ann_or_pred.bbox)
 		
 		class_list = list(set(classnames))
 		class_ids = []
@@ -51,18 +58,23 @@ class DetectronPlotLib(AbstractPlotLib):
 		out_file.parent.mkdir(parents=True, exist_ok=True)
 		cv2.imwrite(str(out_file), out_img)
 
-	def plot_individual_masks(self, anns_or_preds: list, out_dir: Path, img_file: Path):
-		count_per_class = {}
-		for pred in anns_or_preds:
-			classname = pred['classname']
-			mask = pred['mask']
+	def plot_individual_masks(
+		self,
+		anns_or_preds: list[Annotation]|list[Prediction],
+		out_dir: Path,
+		img_file: Path
+	):
+		count_per_class = defaultdict(lambda: 0)
+		for ann_or_pred in anns_or_preds:
+			classname = ann_or_pred.classname
 
-			count_per_class[classname] = count_per_class.get(classname, 0) + 1
+			count_per_class[classname] += 1
 			out_file_basename = f"{classname}_{count_per_class[classname]}"
 
 			bin_mask_file = out_dir / f"{out_file_basename}_bin.jpg"
+			mask = ann_or_pred.mask
 			bin_mask_np = mask.numpy().astype(np.uint8) * 255
 			cv2.imwrite(str(bin_mask_file), bin_mask_np)
 
 			plotted_mask_file = out_dir / f"{out_file_basename}_plot.jpg"
-			self.plot([pred], img_file, plotted_mask_file)
+			self.plot([ann_or_pred], img_file, plotted_mask_file)

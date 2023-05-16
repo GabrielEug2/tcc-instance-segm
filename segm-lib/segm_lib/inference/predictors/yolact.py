@@ -5,6 +5,7 @@ import torch
 
 from .abstract_predictor import Predictor
 from .config import config
+from segm_lib.pred_manager import Prediction
 
 sys.path.insert(0, config['yolact']['dir'])
 from data import set_cfg
@@ -62,13 +63,7 @@ class Yolact(Predictor):
 			h = y2 - y1
 			bbox = [x1, y1, w, h]
 
-			pred = {
-				'classname': classname,
-				'confidence': confidence,
-				'mask': mask,
-				'bbox': bbox,
-			}
-			formatted_predictions.append(pred)
+			formatted_predictions.append(Prediction(classname, confidence, mask, bbox))
 
 		return formatted_predictions
 	

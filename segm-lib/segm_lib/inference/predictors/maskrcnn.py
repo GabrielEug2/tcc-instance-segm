@@ -3,8 +3,10 @@ from detectron2.config import get_cfg
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 from detectron2.structures import Instances
+
 from .abstract_predictor import Predictor
 from .config import config
+from segm_lib.pred_manager import Prediction
 
 class Maskrcnn(Predictor):
 	def __init__(self):
@@ -43,13 +45,7 @@ class Maskrcnn(Predictor):
 			h = y2 - y1
 			bbox = [x1, y1, w, h]
 
-			pred = {
-				'classname': classname,
-				'confidence': confidence,
-				'mask': mask,
-				'bbox': bbox,
-			}
-			formatted_predictions.append(pred)
+			formatted_predictions.append(Prediction(classname, confidence, mask, bbox))
 
 		return formatted_predictions
 	
