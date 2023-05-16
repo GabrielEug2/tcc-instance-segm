@@ -3,23 +3,37 @@ import json
 from pathlib import Path
 
 class COCOPredictions:
-	def __init__(self, pred_file: Path = None):
+	def __init__(self, pred_file: Path):
+		if not pred_file.exists():
+			pred_file.parent.mkdir(parents=True, exist_ok=True)
+
+			self.file = pred_file
+			self.predictions = []
+			self.save()
+			return
+
+		with pred_file.open('r') as f:
+			preds = json.load(f)
+		# Could test keys and values too, but whatever
+
 		self.file = pred_file
+		self.predictions = preds
 
-	def save(self, coco_preds):
-		self.file.parent.mkdir(parents=True, exist_ok=True)
+	def save(self):
 		with self.file.open('w') as f:
-			json.dump(coco_preds, f)
-	
-	@classmethod
-	def from_file(out_file):
-		pass
-# 		with pred_file.open('r') as f:
-# 			preds = json.load(f)
+			json.dump(self.predictions, f)
 
-# 		# Could test keys and values too, but whatever
+	# def __iter__(self):
+	# 	self._current_index = 0
+	# 	return self
+	# def __next__(self):
+	# 	if self._current_index >= len(self._preds):
+	# 		raise StopIteration
 
-# 		self._preds = preds
+	# 	pred = self._preds[self._current_index]
+	# 	self._current_index += 1
 
-# 	def get_n_objects(self):
-# 		return len(self._preds)
+	# 	return pred
+
+	# def get_n_objects(self):
+	# 	return len(self._preds)

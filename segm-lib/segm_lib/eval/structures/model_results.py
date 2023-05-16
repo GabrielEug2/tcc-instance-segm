@@ -6,7 +6,7 @@ from segm_lib.structures import Annotation, Prediction
 class RawResults:
 	n_images_with_predictions: int = 0
 	n_objects_predicted: int = 0
-	class_dist: dict[str, int] = field(default_factory=dict)
+	class_dist_for_predictions: dict[str, int] = field(default_factory=dict)
 
 @dataclass
 class EvalFilters:

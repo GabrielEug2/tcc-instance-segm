@@ -11,10 +11,12 @@ args = parser.parse_args()
 # Não importa qual arquivo (train ou val), os dois tem as mesmas classes.
 # Eu só uso o val porque ele é menor / carrega mais rápido.
 ann_file = Path(args.ann_dir, 'instances_val2017.json')
+if not ann_file.exists():
+	raise FileNotFoundError(str(ann_file))
 
 # O COCO pula alguns IDs: tem 80 classes, mas vai até o ID ~90.
 # Para simplificar, os modelos normalizam pra [0,N)
-coco_anns = COCOAnnotations.from_file(ann_file)
+coco_anns = COCOAnnotations(ann_file)
 default_map = coco_anns.classmap()
 normalized_map = coco_anns.normalized_classmap()
 classmaps = { 'default': default_map, 'normalized': normalized_map }

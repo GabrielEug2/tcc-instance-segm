@@ -1,10 +1,8 @@
 from collections import defaultdict
-import copy
 import json
+import os
 from pathlib import Path
 from typing import Generator
-
-import torch
 
 from segm_lib.coco_annotations import COCOAnnotations
 from segm_lib import mask_conversions
@@ -13,19 +11,22 @@ from segm_lib.structures import Annotation
 class AnnManager:
 	"""Functions to work with annotations in segm_lib format."""
 
-	def __init__(self, ann_dir: Path = None):
+	def __init__(self, ann_dir: Path):
+		if not ann_dir.exists():
+			ann_dir.mkdir(parents=True)
+
 		self.root_dir = ann_dir
 
 	def from_coco_file(self, coco_file: Path):
-		if self.root_dir is None:
-			raise ValueError("Cant convert without setting a directory")
-
-		coco_anns = COCOAnnotations.from_file(coco_file)
+		coco_anns = COCOAnnotations(coco_file)
 		classmap_by_id = coco_anns.classmap_by_id()
 		img_dimensions = coco_anns.img_dimensions()
 
 		for img_file_name in coco_anns.img_file_names():
-			coco_anns_for_img = coco_anns.filter(img_file_name=img_file_name)
+			tmp_file = Path('tmp', f"{img_file_name}_coco-anns.json")
+			coco_anns.filter(tmp_file, img_file_name=img_file_name)
+			coco_anns_for_img = COCOAnnotations(tmp_file)
+			
 			img_h, img_w = img_dimensions[img_file_name]
 
 			custom_anns = []
@@ -41,20 +42,7 @@ class AnnManager:
 				custom_anns.append(Annotation(classname, mask, bbox))
 
 			self._save(custom_anns, img_file_name)
-
-	def _save(self, anns: list[Annotation], img_file_name: str):
-		serializable_anns = []
-		for ann in anns:
-			ann_dict = {}
-			ann_dict['classname'] = ann.classname
-			ann_dict['mask'] = mask_conversions.bin_mask_to_rle(ann.mask)
-			ann_dict['bbox'] = ann.bbox
-
-			serializable_anns.append(ann_dict)
-
-		out_file = self.root_dir / f"{img_file_name}.json"
-		with out_file.open('w') as f:
-			json.dump(serializable_anns, f)
+			os.remove(str(tmp_file))
 
 	def get_n_images(self) -> int:
 		# 1 image per file, so...
@@ -65,8 +53,8 @@ class AnnManager:
 		return sum(self.class_distribution().values())
 
 	def class_distribution(self) -> dict[str, int]:
-		if hasattr(self, '_class_dist'):
-			return self._class_dist
+		if hasattr(self, '_cached_class_dist'):
+			return self._cached_class_dist
 		
 		class_dist = defaultdict(lambda: 0)
 		for img_file_name in self.get_img_file_names():
@@ -75,11 +63,10 @@ class AnnManager:
 				class_dist[ann.classname] += 1
 		class_dist = dict(class_dist)
 
-		self._class_dist = class_dist
-	
+		self._cached_class_dist = class_dist
 		return class_dist
 
-	def get_img_file_names(self):
+	def get_img_file_names(self) -> Generator[str, None, None]:
 		return (f.stem for f in self.root_dir.glob('*.json'))
 
 	def class_dist_on_img(self, img_file_name: str) -> dict[str, int]:
@@ -112,7 +99,7 @@ class AnnManager:
 
 		return annotations
 	
-	def get_classnames(self) -> list[str]:
+	def get_classnames(self) -> set[str]:
 		return self.class_distribution().keys()
 	
 	def filter(self, out_dir: Path, classes: list[str] = None, img_file_name: str = None):
@@ -131,9 +118,7 @@ class AnnManager:
 		if classes is not None and img_file_name is not None:
 			raise ValueError("Filtering by both classes and img_file_name at once is not supported")
 
-		out_dir.mkdir(parents=True, exist_ok=False)
 		filtered_ann_manager = AnnManager(out_dir)
-
 		if classes is not None:
 			self._filter_by_classes(classes, filtered_ann_manager)
 		else:
@@ -143,10 +128,7 @@ class AnnManager:
 		for img_file_name in self.get_img_file_names():
 			annotations_for_img = self.load(img_file_name)
 
-			filtered_anns = []
-			for ann in annotations_for_img:
-				if ann.classname in classes:
-					filtered_anns.append(ann)
+			filtered_anns = [a for a in annotations_for_img if a.classname in classes]
 		
 			filtered_ann_manager._save(filtered_anns, img_file_name)
 
@@ -155,13 +137,16 @@ class AnnManager:
 
 		filtered_ann_manager._save(filtered_anns, img_file_name)
 
-	# def class_dist_on_img(self, img_file_name: str) -> dict[str, int]:
-	# 	annotations = self.load(img_file_name)
+	def _save(self, anns: list[Annotation], img_file_name: str):
+		serializable_anns = []
+		for ann in anns:
+			ann_dict = {}
+			ann_dict['classname'] = ann.classname
+			ann_dict['mask'] = mask_conversions.bin_mask_to_rle(ann.mask)
+			ann_dict['bbox'] = ann.bbox
 
-	# 	img_class_dist = defaultdict(lambda: 0)
-	# 	for ann in annotations:
-	# 		img_class_dist[ann['classname']] += 1
-	# 	img_class_dist = dict(img_class_dist)
+			serializable_anns.append(ann_dict)
 
-	# 	return img_class_dist
-
+		out_file = self.root_dir / f"{img_file_name}.json"
+		with out_file.open('w') as f:
+			json.dump(serializable_anns, f, indent=4)

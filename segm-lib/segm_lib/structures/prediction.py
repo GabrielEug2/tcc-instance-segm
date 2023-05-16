@@ -13,16 +13,22 @@ class Prediction(ObjectSegmentation):
 		"bbox": list, [x, y, w, h]
 	"""
 	def __init__(self, classname: str, confidence: float, mask: torch.BoolTensor, bbox: list):
+		super().__init__(classname, mask, bbox)
 		self.confidence = confidence
 
-		super().__init__(classname, mask, bbox)
+	def serializable(self):
+		return {
+			'classname': self.classname,
+			'confidence': self.confidence,
+			'mask': mask_conversions.bin_mask_to_rle(self.mask),
+			'bbox': self.bbox,
+		}
 	
 	@classmethod
 	def from_coco_format(cls, coco_pred, classmap) -> 'Prediction':
-		cat_id = coco_pred['category_id']
-		classname = classmap[cat_id]
+		classname = classmap[coco_pred['category_id']]
 		confidence = coco_pred['score']
-		bbox = coco_pred['bbox'].tolist()
+		bbox = coco_pred['bbox'] if type(coco_pred['bbox']) == list else coco_pred['bbox'].tolist()
 		mask = mask_conversions.rle_to_bin_mask(coco_pred['segmentation'])
 
 		return cls(classname, confidence, mask, bbox)

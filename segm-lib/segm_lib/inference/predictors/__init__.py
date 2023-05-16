@@ -1,8 +1,7 @@
-from typing import Union
-from .abstract_predictor import Predictor as _Predictor
+from .abstract_predictor import Predictor
 
 VALID_MODELS = ['maskrcnn', 'yolact', 'solo']
-MODEL_MAP: dict[str, _Predictor] = {}
+MODEL_MAP: dict[str, Predictor] = {}
 
 def import_model(model_name):
 	# Imports are conditional because you don't need

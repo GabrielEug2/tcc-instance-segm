@@ -5,12 +5,10 @@ from pathlib import Path
 from tqdm import tqdm
 import cv2
 
-from .predictors import MODEL_MAP, import_model
+from .predictors import VALID_MODELS, MODEL_MAP, import_model
 from .predictors.abstract_predictor import Predictor
 from segm_lib.pred_manager import PredManager
 from .stats_manager import StatsManager
-
-VALID_MODELS = MODEL_MAP.keys()
 
 def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None):
 	"""Runs inference on the requested imgs.
@@ -85,7 +83,6 @@ def _run_on_all_imgs(img_files: list[Path], model_name: str, pred_manager: PredM
 		predictions = predictor.predict(img)
 
 		pred_manager.save(predictions, img_file.stem, model_name)
-
 	total_time = datetime.timedelta(seconds=(time.time() - start_time))
 
 	return total_time

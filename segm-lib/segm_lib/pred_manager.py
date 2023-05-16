@@ -44,7 +44,7 @@ class PredManager:
 		out_file = self.root_dir / model_name / f"{img_file_name}.json"
 		out_file.parent.mkdir(parents=True, exist_ok=True)
 		with out_file.open('w') as f:
-			json.dump(serializable_preds, f)
+			json.dump(serializable_preds, f, indent=4)
 
 	# NEEDS ROOT DIR
 	def load(self, img_file_name: str, model_name: str) -> list[Prediction]:
@@ -72,7 +72,7 @@ class PredManager:
 	def get_model_names(self) -> list[str]:
 		return [f.stem for f in self.root_dir.glob('*') if f.is_dir()]		
 
-	def get_classnames(self, model_name: str) -> list[str]:
+	def get_classnames(self, model_name: str) -> set[str]:
 		return self.class_distribution(model_name).keys()
 
 	def class_distribution(self, model_name: str) -> dict[str, int]:
@@ -122,7 +122,7 @@ class PredManager:
 		if classes is not None and img_file_name is not None:
 			raise ValueError("Filtering by both classes and img at once is not supported")
 
-		out_dir.mkdir(parents=True, exist_ok=False)
+		out_dir.mkdir(parents=True, exist_ok=True)
 		filtered_pred_manager = PredManager(out_dir)
 
 		if classes is not None:
@@ -167,7 +167,9 @@ class PredManager:
 				}
 				coco_preds.append(formatted_pred)
 
-		COCOPredictions(out_file).save(coco_preds)
+		coco_pred_manager = COCOPredictions(out_file)
+		coco_pred_manager.predictions = coco_preds
+		coco_pred_manager.save()
 
 	def _img_files_for_model(self, model_name: str) -> Generator:
 		return (f.stem for f in (self.root_dir / model_name).glob('*'))

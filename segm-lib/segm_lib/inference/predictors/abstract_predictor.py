@@ -7,7 +7,7 @@ import numpy as np
 
 from segm_lib.pred_manager import Prediction
 
-COCO_CLASSMAP_FILE = Path(__file__).parent / 'coco_classmap_model.json'
+COCO_CLASSMAP_FILE = Path(__file__).parent / 'coco_classmap_normalized.json'
 with COCO_CLASSMAP_FILE.open('r') as f:
 	COCO_CLASSMAP = json.load(f)
 # Aqui eu quero pegar o nome dado um ID, então precisa inverter

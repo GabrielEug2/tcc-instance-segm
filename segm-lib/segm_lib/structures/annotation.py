@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 from segm_lib import mask_conversions
@@ -13,12 +14,18 @@ class Annotation(ObjectSegmentation):
 	"""
 	def __init__(self, classname: str, mask: torch.BoolTensor, bbox: list):
 		super().__init__(classname, mask, bbox)
-
+	
+	def serializable(self):
+		return {
+			'classname': self.classname,
+			'mask': mask_conversions.bin_mask_to_rle(self.mask),
+			'bbox': self.bbox,
+		}
+	
 	@classmethod
 	def from_coco_format(cls, coco_ann, classmap) -> 'Annotation':
-		cat_id = coco_ann['category_id']
-		classname = classmap[cat_id]
-		bbox = coco_ann['bbox'].tolist()
+		classname = classmap[coco_ann['category_id']]
+		bbox = coco_ann['bbox'] if type(coco_ann['bbox']) == list else coco_ann['bbox'].tolist()
 		mask = mask_conversions.rle_to_bin_mask(coco_ann['segmentation'])
 
 		return cls(classname, mask, bbox)

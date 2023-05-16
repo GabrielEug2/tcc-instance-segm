@@ -15,12 +15,7 @@ class DetectronPlotLib(AbstractPlotLib):
 	def __init__(self):
 		pass
 
-	def plot(
-		self,
-	  	anns_or_preds: list[Annotation]|list[Prediction],
-	  	img_file: Path,
-		out_file: Path
-	):
+	def _plot(self, anns_or_preds: list[Annotation]|list[Prediction], img_file: Path, out_file: Path):
 		classnames, scores, masks, boxes = [], [], [], []
 		for ann_or_pred in anns_or_preds:
 			classnames.append(ann_or_pred.classname)
@@ -58,12 +53,9 @@ class DetectronPlotLib(AbstractPlotLib):
 		out_file.parent.mkdir(parents=True, exist_ok=True)
 		cv2.imwrite(str(out_file), out_img)
 
-	def plot_individual_masks(
-		self,
-		anns_or_preds: list[Annotation]|list[Prediction],
-		out_dir: Path,
-		img_file: Path
-	):
+	def _plot_individual_masks(self, anns_or_preds: list[Annotation]|list[Prediction], out_dir: Path, img_file: Path):
+		out_dir.mkdir(parents=True, exist_ok=True)
+
 		count_per_class = defaultdict(lambda: 0)
 		for ann_or_pred in anns_or_preds:
 			classname = ann_or_pred.classname
@@ -72,9 +64,8 @@ class DetectronPlotLib(AbstractPlotLib):
 			out_file_basename = f"{classname}_{count_per_class[classname]}"
 
 			bin_mask_file = out_dir / f"{out_file_basename}_bin.jpg"
-			mask = ann_or_pred.mask
-			bin_mask_np = mask.numpy().astype(np.uint8) * 255
+			bin_mask_np = ann_or_pred.mask.numpy().astype(np.uint8) * 255
 			cv2.imwrite(str(bin_mask_file), bin_mask_np)
 
 			plotted_mask_file = out_dir / f"{out_file_basename}_plot.jpg"
-			self.plot([ann_or_pred], img_file, plotted_mask_file)
+			self._plot([ann_or_pred], img_file, plotted_mask_file)

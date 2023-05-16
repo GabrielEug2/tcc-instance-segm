@@ -1,11 +1,5 @@
-
 import argparse
-import json
-import random
 from pathlib import Path
-
-# Os imports do fiftyone não estão aqui porque é muito lento.
-# Se deixar no topo da arquivo, o --help também demora
 
 parser = argparse.ArgumentParser()
 parser.add_argument('n_imgs', type=int, help='Number of images to download')
@@ -15,6 +9,17 @@ args = parser.parse_args()
 n_imgs = args.n_imgs
 out_dir = Path(args.out_dir)
 
+if not out_dir.exists():
+	out_dir.mkdir(parents=True)
+else:
+	op = input(f"out_dir \"{str(out_dir)}\" exists. Do you want to overwrite it? [y/n] ").strip().lower()
+	if op != 'y':
+		print("Operation cancelled.")
+		exit()
+
+# Imports depois pro --help ser rápido
+import json
+import random
 
 import fiftyone.utils.openimages as openimages
 import fiftyone.zoo as fozoo
