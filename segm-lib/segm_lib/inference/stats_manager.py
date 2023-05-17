@@ -1,6 +1,7 @@
 from datetime import timedelta
 from pathlib import Path
 
+
 class StatsManager:
 	def __init__(self):
 		self.n_images = 0

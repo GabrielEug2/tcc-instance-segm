@@ -1,12 +1,12 @@
-from collections import defaultdict
 import json
 import os
+from collections import defaultdict
 from pathlib import Path
 from typing import Generator
 
-from segm_lib.coco_annotations import COCOAnnotations
-from segm_lib import mask_conversions
-from segm_lib.structures import Annotation
+from .. import mask_conversions
+from ..structures import Annotation
+
 
 class AnnManager:
 	"""Functions to work with annotations in segm_lib format."""
@@ -18,14 +18,16 @@ class AnnManager:
 		self.root_dir = ann_dir
 
 	def from_coco_file(self, coco_file: Path):
-		coco_anns = COCOAnnotations(coco_file)
+		from .coco_ann_manager import COCOAnnManager
+
+		coco_anns = COCOAnnManager(coco_file)
 		classmap_by_id = coco_anns.classmap_by_id()
 		img_dimensions = coco_anns.img_dimensions()
 
 		for img_file_name in coco_anns.img_file_names():
-			tmp_file = Path('tmp', f"{img_file_name}_coco-anns.json")
+			tmp_file = Path('tmp', f'{img_file_name}_coco-anns.json')
 			coco_anns.filter(tmp_file, img_file_name=img_file_name)
-			coco_anns_for_img = COCOAnnotations(tmp_file)
+			coco_anns_for_img = COCOAnnManager(tmp_file)
 			
 			img_h, img_w = img_dimensions[img_file_name]
 
@@ -114,9 +116,9 @@ class AnnManager:
 			ValueError: if invalid filtering params were given.
 		"""
 		if classes is None and img_file_name is None:
-			raise ValueError("Can't filter without specifying either classes or img_file_name")
+			raise ValueError('Cannot filter without specifying either classes or img_file_name')
 		if classes is not None and img_file_name is not None:
-			raise ValueError("Filtering by both classes and img_file_name at once is not supported")
+			raise ValueError('Filtering by both classes and img_file_name at once is not supported')
 
 		filtered_ann_manager = AnnManager(out_dir)
 		if classes is not None:
@@ -147,6 +149,6 @@ class AnnManager:
 
 			serializable_anns.append(ann_dict)
 
-		out_file = self.root_dir / f"{img_file_name}.json"
+		out_file = self.root_dir / f'{img_file_name}.json'
 		with out_file.open('w') as f:
 			json.dump(serializable_anns, f, indent=4)

@@ -1,22 +1,18 @@
-from collections import defaultdict
 import json
+from collections import defaultdict
 from pathlib import Path
 from typing import Generator
 
-from segm_lib.structures import Prediction
-from . import mask_conversions
-from segm_lib.coco_predictions import COCOPredictions
+from .. import mask_conversions
+from ..structures import Prediction
+from .coco_pred_manager import COCOPredManager
+
 
 class PredManager:
 	"""Functions to work with predictions from in segm_lib format."""
 
-	def __init__(self, pred_dir: Path = None):
+	def __init__(self, pred_dir: Path):
 		self.root_dir = pred_dir
-
-		# if not pred_dir.exists() and fail_if_not_exist:
-		# 	raise FileNotFoundError(f"Dir not found {str(pred_dir)}")
-		# else:
-		# 	pred_dir.mkdir(parents=True, exist_ok=True)
 
 	# NEEDS ROOT_DIR
 	def save(self, predictions: list[Prediction], img_file_name: str, model_name: str):
@@ -28,9 +24,6 @@ class PredManager:
 			model_name (str): name of the model used to make the
 				predictions.
 		"""
-		if self.root_dir is None:
-			raise ValueError("Cant save without setting a directory")
-
 		serializable_preds = []
 		for pred in predictions:
 			pred_dict = {}
@@ -41,14 +34,14 @@ class PredManager:
 
 			serializable_preds.append(pred_dict)
 
-		out_file = self.root_dir / model_name / f"{img_file_name}.json"
+		out_file = self.root_dir / model_name / f'{img_file_name}.json'
 		out_file.parent.mkdir(parents=True, exist_ok=True)
 		with out_file.open('w') as f:
 			json.dump(serializable_preds, f, indent=4)
 
 	# NEEDS ROOT DIR
 	def load(self, img_file_name: str, model_name: str) -> list[Prediction]:
-		pred_file = self.root_dir / model_name / f"{img_file_name}.json"
+		pred_file = self.root_dir / model_name / f'{img_file_name}.json'
 		try:
 			with pred_file.open('r') as f:
 				serializable_preds = json.load(f)
@@ -118,9 +111,9 @@ class PredManager:
 			ValueError: if invalid filtering params were given.
 		"""
 		if classes is None and img_file_name is None:
-			raise ValueError("Can't filter without specifying either classes or img_file_name")
+			raise ValueError('Cannot filter without specifying either classes or img_file_name')
 		if classes is not None and img_file_name is not None:
-			raise ValueError("Filtering by both classes and img at once is not supported")
+			raise ValueError('Filtering by both classes and img_file_name at once is not supported')
 
 		out_dir.mkdir(parents=True, exist_ok=True)
 		filtered_pred_manager = PredManager(out_dir)
@@ -167,7 +160,7 @@ class PredManager:
 				}
 				coco_preds.append(formatted_pred)
 
-		coco_pred_manager = COCOPredictions(out_file)
+		coco_pred_manager = COCOPredManager(out_file)
 		coco_pred_manager.predictions = coco_preds
 		coco_pred_manager.save()
 

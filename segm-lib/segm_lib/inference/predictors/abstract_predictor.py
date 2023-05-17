@@ -1,11 +1,11 @@
 
-from pathlib import Path
 import json
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 import numpy as np
 
-from segm_lib.pred_manager import Prediction
+from ...core.managers.pred_manager import Prediction
 
 COCO_CLASSMAP_FILE = Path(__file__).parent / 'coco_classmap_normalized.json'
 with COCO_CLASSMAP_FILE.open('r') as f:

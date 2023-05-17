@@ -1,19 +1,18 @@
 from collections import defaultdict
 from dataclasses import dataclass
-import os
 from pathlib import Path
-import sys
-import numpy as np
 
+import numpy as np
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 from tqdm import tqdm
 
-from segm_lib.ann_manager import AnnManager
-from segm_lib.pred_manager import PredManager
-from segm_lib.eval.structures.model_results import *
-from segm_lib.coco_annotations import COCOAnnotations
-from segm_lib.structures import Annotation, Prediction
+from ..core.managers.ann_manager import AnnManager
+from ..core.managers.coco_ann_manager import COCOAnnManager
+from ..core.managers.pred_manager import PredManager
+from ..core.structures import Annotation, Prediction
+from .structures.model_results import *
+
 
 @dataclass
 class EvalFilesForImg:
@@ -49,10 +48,10 @@ def prep_eval_files(
 	# easier to just filter the original file too than modifying my format
 	# to include all those fields.
 	coco_anns_file = out_dir / 'coco_anns.json'
-	COCOAnnotations(original_ann_file).filter(coco_anns_file, classes=common_classes)
+	COCOAnnManager(original_ann_file).filter(coco_anns_file, classes=common_classes)
 
 	coco_preds_file = out_dir / 'coco_preds.json'
-	filtered_coco_anns_manager = COCOAnnotations(coco_anns_file)
+	filtered_coco_anns_manager = COCOAnnManager(coco_anns_file)
 	classmap = filtered_coco_anns_manager.classmap()
 	img_map = filtered_coco_anns_manager.img_map()
 	filtered_pred_manager = PredManager(custom_preds_dir)
@@ -62,16 +61,16 @@ def prep_eval_files(
 	for img_file_name, img_id in img_map.items():
 		base_path = out_dir / 'per_image' / img_file_name
 
-		custom_ann_dir_for_img = base_path / "custom_anns"
+		custom_ann_dir_for_img = base_path / 'custom_anns'
 		AnnManager(custom_anns_dir).filter(custom_ann_dir_for_img, img_file_name=img_file_name)
 
-		custom_pred_dir_for_img = base_path / "custom_preds"
+		custom_pred_dir_for_img = base_path / 'custom_preds'
 		PredManager(custom_preds_dir).filter(custom_pred_dir_for_img, model_name, img_file_name=img_file_name)
 
-		coco_ann_file_for_img = base_path / "coco_anns.json"
+		coco_ann_file_for_img = base_path / 'coco_anns.json'
 		filtered_coco_anns_manager.filter(coco_ann_file_for_img, img_file_name=img_file_name)
 
-		coco_pred_file_for_img = base_path / "coco_preds.json"
+		coco_pred_file_for_img = base_path / 'coco_preds.json'
 		# classmap is already computed
 		img_map = { img_file_name: img_id }
 		PredManager(custom_preds_dir).to_coco_format(model_name, img_map, classmap, coco_pred_file_for_img)
@@ -245,9 +244,9 @@ def evaluate_on_dataset(eval_files: EvalFiles, model_name: str):
 		n = sum(n_per_class.values())
 
 		if not hasattr(dataset_results, metric_name):
-			raise ValueError((f"Implementation error. Object of class "
-		                      f"{dataset_results.__class__.__name__} "
-			                  f"doesn't have a {metric_name} field."))
+			raise ValueError((f'Implementation error. Object of class '
+		                      f'{dataset_results.__class__.__name__} '
+			                  f'does not have a {metric_name} field.'))
 		setattr(
 			dataset_results,
 			metric_name,
@@ -260,7 +259,7 @@ def evaluate_on_dataset(eval_files: EvalFiles, model_name: str):
 	return dataset_results
 
 def evaluate_per_image(eval_files: EvalFiles, model_name: str):
-	coco_ann_manager = COCOAnnotations(eval_files.coco_anns_file)
+	coco_ann_manager = COCOAnnManager(eval_files.coco_anns_file)
 	img_map = coco_ann_manager.img_map()
 	classmap = coco_ann_manager.classmap_by_id()
 	results_per_img = {}
@@ -404,9 +403,9 @@ def evaluate_per_image(eval_files: EvalFiles, model_name: str):
 			n = sum(n_per_class.values())
 
 			if not hasattr(img_results, metric_name):
-				raise ValueError((f"Implementation error. Object of class "
-								f"{img_results.__class__.__name__} "
-								f"doesn't have a {metric_name} field."))
+				raise ValueError((f'Implementation error. Object of class '
+								f'{img_results.__class__.__name__} '
+								f'does not have a {metric_name} field.'))
 			setattr(
 				img_results,
 				metric_name,

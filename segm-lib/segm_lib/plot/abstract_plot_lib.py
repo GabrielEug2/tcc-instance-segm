@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
+
 from tqdm import tqdm
 
-from segm_lib.structures import Annotation, Prediction
-from segm_lib.ann_manager import AnnManager
-from segm_lib.pred_manager import PredManager
+from ..core.managers.ann_manager import AnnManager
+from ..core.managers.pred_manager import PredManager
+from ..core.structures import Annotation, Prediction
+
 
 class AbstractPlotLib(ABC):
 	def __init__(self):
@@ -18,7 +20,7 @@ class AbstractPlotLib(ABC):
 		for img_file in tqdm(img_files, total=n_images):
 			annotations = ann_manager.load(img_file.stem)
 			if len(annotations) == 0:
-				print(f"No annotations found on \"{str(ann_dir)} for image \"{str(img_file)}\". Skipping")
+				print(f'No annotations found on "{str(ann_dir)}" for image "{str(img_file)}". Skipping')
 				continue
 
 			annotated_img_file = out_dir / img_file.stem / "groundtruth.jpg"
@@ -64,6 +66,7 @@ class AbstractPlotLib(ABC):
 			out_file (Path): path to the output image. If it doesn't exist, it will
 				be created. If it does, it will be overriten.
 		"""
+		pass
 
 	@abstractmethod
 	def _plot_individual_masks(anns_or_preds: list[Annotation]|list[Prediction], out_dir: Path, img_file: Path):
@@ -76,3 +79,4 @@ class AbstractPlotLib(ABC):
 				in case of a plot on the image. If it doesn't exist, it will be
 				created. If it does, it will be overriten.
 		"""
+		pass

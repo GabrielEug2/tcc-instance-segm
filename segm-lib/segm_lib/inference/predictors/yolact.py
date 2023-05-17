@@ -1,18 +1,17 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import torch
 
+from ...core.structures import Prediction
 from .abstract_predictor import Predictor
 from .config import config
-from segm_lib.pred_manager import Prediction
 
 sys.path.insert(0, config['yolact']['dir'])
-from data import set_cfg
-from data import cfg
-from yolact import Yolact as YolactLib
-from utils.augmentations import FastBaseTransform
+from data import cfg, set_cfg
 from layers.output_utils import postprocess
+from utils.augmentations import FastBaseTransform
+from yolact import Yolact as YolactLib
 
 
 class Yolact(Predictor):

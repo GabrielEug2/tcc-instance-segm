@@ -1,24 +1,26 @@
-from dataclasses import asdict
 import json
-from pathlib import Path
 import os
 import sys
+from dataclasses import asdict
+from pathlib import Path
 from typing import Any
 
-from segm_lib.ann_manager import AnnManager
-from segm_lib.pred_manager import PredManager
-from segm_lib.eval.structures.dataset_info import DatasetInfo, ImageInfo
-from segm_lib.eval.structures.model_results import RawResults, EvalFilters, ModelResults
-from segm_lib.structures import Annotation, Prediction
-from .actual_eval_code import prep_eval_files, evaluate_on_dataset, evaluate_per_image
+from ..core.managers.ann_manager import AnnManager
+from ..core.managers.pred_manager import PredManager
+from ..core.structures import Annotation, Prediction
+from .actual_eval_code import (evaluate_on_dataset, evaluate_per_image,
+                               prep_eval_files)
+from .structures.dataset_info import DatasetInfo, ImageInfo
+from .structures.model_results import EvalFilters, ModelResults, RawResults
 
-def evaluate_all(pred_dir: Path, ann_dir: Path, ann_file: Path, out_dir: Path):
+
+def evaluate_all(pred_dir: Path, ann_dir: Path, coco_ann_file: Path, out_dir: Path):
 	pred_manager = PredManager(pred_dir)
 	model_names = pred_manager.get_model_names()
 	if len(model_names) == 0:
-		print(f"No predictions found on {pred_dir}.")
+		print(f'o predictions found on "{pred_dir}".')
 		return
-	print(f"Found predictions for models {model_names}")
+	print(f'Found predictions for models {model_names}')
 
 	ann_manager = AnnManager(ann_dir)
 	dataset_info = _compute_dataset_info(ann_manager)
@@ -27,13 +29,13 @@ def evaluate_all(pred_dir: Path, ann_dir: Path, ann_file: Path, out_dir: Path):
 	for model_name in model_names:
 		eval_dir = out_dir / model_name
 		eval_dir.mkdir(exist_ok=True)
-		results = _evaluate_model(model_name, pred_manager, ann_manager, ann_file, eval_dir)
+		results = _evaluate_model(model_name, pred_manager, ann_manager, coco_ann_file, eval_dir)
 		_save_results(results, eval_dir)
 
-	# Save it per model, then parse it to per image
+	# TODO parse it to per image
 
 def _compute_dataset_info(ann_manager: AnnManager) -> DatasetInfo:
-	print(f"Computing dataset info... ")
+	print(f'Computing dataset info... ')
 
 	n_images = ann_manager.get_n_images()
 	n_objects = ann_manager.get_n_objects()
@@ -68,10 +70,10 @@ def _evaluate_model(
 	model_name: str,
 	pred_manager: PredManager,
 	ann_manager: AnnManager,
-	ann_file: Path,
+	coco_ann_file: Path,
 	out_dir: Path
 ) -> ModelResults:
-	print(f"\nEvaluating model '{model_name}'... ")
+	print(f'\nEvaluating model "{model_name}"... ')
 	results = ModelResults()
 	results.raw_results = _compute_raw_results(model_name, pred_manager)
 
@@ -80,17 +82,20 @@ def _evaluate_model(
 	results.eval_filters = _compute_eval_filters(ann_classes, pred_classes)
 
 	common_classes = results.eval_filters.classes_considered
-	eval_files = prep_eval_files(model_name, pred_manager, ann_manager, ann_file, common_classes, out_dir / 'eval-files')
+	eval_files = prep_eval_files(model_name, pred_manager, ann_manager, coco_ann_file, common_classes, out_dir / 'eval-files')
 
-	print("Evaluating on dataset... ", end='')
+	print('Evaluating on dataset... ', end='')
 	with HiddenPrints():
 		results.results_on_dataset = evaluate_on_dataset(eval_files, model_name)
-	print("done")
-	print("Evaluating per image...")
+	print('done')
+	print('Evaluating per image...')
 	with HiddenPrints():
 		results.results_per_image = evaluate_per_image(eval_files, model_name)
+	print('done')
 
 	return results
+
+
 
 class HiddenPrints:
     def __enter__(self):

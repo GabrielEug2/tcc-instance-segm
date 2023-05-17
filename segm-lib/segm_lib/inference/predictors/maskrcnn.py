@@ -1,12 +1,13 @@
 
-from detectron2.config import get_cfg
 from detectron2 import model_zoo
+from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
 from detectron2.structures import Instances
 
+from ...core.structures import Prediction
 from .abstract_predictor import Predictor
 from .config import config
-from segm_lib.pred_manager import Prediction
+
 
 class Maskrcnn(Predictor):
 	def __init__(self):

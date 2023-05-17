@@ -6,5 +6,4 @@ Requisitos:
 * Anotações do COCO ([train/val 2017](https://cocodataset.org/#download)) - não precisa das imagens.
 
 Como usar:
-* `python class_dist.py <ann_dir>`
-* `python class_map.py <ann_dir>`
+* `python process_coco_files.py <coco_ann_dir>`

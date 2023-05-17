@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field, fields
 
+
 @dataclass
 class TP_FP_FN_ShortInfo:
 	n: int

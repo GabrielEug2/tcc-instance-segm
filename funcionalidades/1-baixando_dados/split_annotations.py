@@ -2,23 +2,24 @@ import argparse
 from pathlib import Path
 
 parser = argparse.ArgumentParser()
-parser.add_argument('ann_file', help='file containing the COCO annotations')
-parser.add_argument('out_dir', help='directory to save the custom annotations')
+parser.add_argument('coco_ann_file', help='file containing the COCO annotations')
+parser.add_argument('custom_ann_dir', help='directory to save the custom annotations')
 args = parser.parse_args()
 
-ann_file = Path(args.ann_file)
-out_dir = Path(args.out_dir)
+coco_ann_file = Path(args.coco_ann_file)
+if not coco_ann_file.exists():
+	raise FileNotFoundError(str(coco_ann_file))
 
-if not ann_file.exists():
-	raise FileNotFoundError(str(ann_file))
-if not out_dir.exists():
-	out_dir.mkdir(parents=True)
+custom_ann_dir = Path(args.custom_ann_dir)
+if not custom_ann_dir.exists():
+	custom_ann_dir.mkdir(parents=True)
 else:
-	op = input(f"out_dir \"{str(out_dir)}\" exists. Do you want to overwrite it? [y/n] ").strip().lower()
+	op = input((f'custom_ann_dir "{str(custom_ann_dir)}" exists. Do you want '
+	             'to overwrite it? [y/n] ')).strip().lower()
 	if op != 'y':
-		print("Exiting")
+		print('Operation cancelled.')
 		exit()
 
 # Import depois pro --help ser rápido
-from segm_lib.ann_manager import AnnManager
-AnnManager(out_dir).from_coco_file(ann_file)
+from segm_lib.core.managers.ann_manager import AnnManager
+AnnManager(custom_ann_dir).from_coco_file(coco_ann_file)

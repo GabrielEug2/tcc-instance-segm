@@ -19,13 +19,15 @@ Você também pode usar outros datasets, se quiser. Só salve as annotations no 
 
 ### Navegando pelas anotações
 
-O COCO usa _um arquivo_ pro _dataset inteiro_. Isso é ótimo em termos de espaço, já que você pode comprimir algumas informações como o nome da imagem e o nome das classes, mas é _horrível_ de navegar se você só quer conferir, digamos, quantas anotações de pessoas existem na imagem X.
+O COCO usa _um arquivo_ pro _dataset inteiro_. Isso é ótimo em termos de espaço, já que você pode comprimir algumas informações como o nome da imagem e o nome das classes, mas é _horrível_ se você só quer conferir, digamos, quantas anotações de pessoas existem na imagem X.
 
 Aqui, eu prefiro separar as anotações em um arquivo por imagem, contendo só as anotações daquela imagem, e com o nome das classes por extenso, para facilitar a interpretação. Para converter os arquivos para esse formato:
 
 ```bash
-python split_annotations.py <ann_file> <out_dir>
+python split_annotations.py <coco_ann_file> <custom_ann_dir>
 ```
+
+Daqui em diante, sempre que eu dizer "ann_dir", eu estou falando sobre esse diretório com as anotações no meu formato.
 
 ### Visualizando as anotações
 

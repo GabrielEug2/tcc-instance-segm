@@ -1,8 +1,8 @@
 import torch
 
-from segm_lib import mask_conversions
-
+from .. import mask_conversions
 from .object_segmentation import ObjectSegmentation
+
 
 class Prediction(ObjectSegmentation):
 	"""Class representing a prediction in segm_lib format.

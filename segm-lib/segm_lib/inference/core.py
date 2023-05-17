@@ -1,14 +1,14 @@
-import time
 import datetime
+import time
 from pathlib import Path
 
-from tqdm import tqdm
 import cv2
+from tqdm import tqdm
 
-from .predictors import VALID_MODELS, MODEL_MAP, import_model
-from .predictors.abstract_predictor import Predictor
-from segm_lib.pred_manager import PredManager
+from ..core.managers.pred_manager import PredManager
+from .predictors import MODEL_MAP, VALID_MODELS, import_model
 from .stats_manager import StatsManager
+
 
 def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None):
 	"""Runs inference on the requested imgs.
@@ -39,13 +39,13 @@ def _load_models(models):
 		try:
 			import_model(model_name)
 		except ImportError as e:
-			raise ImportError(f"\"{model_name}\" is implemented on the library, but not installed properly.") from e
+			raise ImportError(f'"{model_name}" is implemented on the library, but not installed properly.') from e
 		except ValueError:
-			raise ValueError(f"\"{model_name}\" is not implemented. How do you expect to run that.")
+			raise ValueError(f'"{model_name}" is not implemented/setted up correcly. How do you expect to run that.')
 
 def _get_img_files(img_file_or_dir: Path) -> list[Path]:
 	if not img_file_or_dir.exists():
-		raise FileNotFoundError(f"File or dir not found: \"{str(img_file_or_dir)}\"")
+		raise FileNotFoundError(f'File or dir not found: "{str(img_file_or_dir)}"')
 
 	if img_file_or_dir.is_dir():
 		# If you're gonna run on thousands of images, keeping it a generator
@@ -65,7 +65,7 @@ def _inference(img_files: list[Path], out_dir: Path, models: list[str]):
 
 	n_images = len(img_files)
 	stats_manager.set_n_images(n_images)
-	print(f"Running {n_images} images on models {models}...\n")
+	print(f'Running {n_images} images on models {models}...')
 
 	for model_name in models:
 		total_time = _run_on_all_imgs(img_files, model_name, pred_manager)
@@ -74,8 +74,8 @@ def _inference(img_files: list[Path], out_dir: Path, models: list[str]):
 	stats_manager.save(out_dir)
 
 def _run_on_all_imgs(img_files: list[Path], model_name: str, pred_manager: PredManager):
-	print("\n" + model_name)
-	predictor: Predictor = MODEL_MAP[model_name]()
+	print(f'\n\n{model_name}')
+	predictor = MODEL_MAP[model_name]()
 
 	start_time = time.time()
 	for img_file in tqdm(img_files):

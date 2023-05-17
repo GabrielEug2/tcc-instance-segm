@@ -2,26 +2,29 @@ import argparse
 from pathlib import Path
 
 parser = argparse.ArgumentParser(description='Plot the annotations on the images for an easier interpretation')
-parser.add_argument('ann_dir', help='directory containing the annotations')
-parser.add_argument('img_dir', help='directory containing the images the annotations refer to')
-parser.add_argument('out_dir', help='directory to save the results')
+parser.add_argument('ann_dir', help='Directory containing the annotations')
+parser.add_argument('img_dir', help='Directory containing the images the annotations refer to')
+parser.add_argument('out_dir', help='Directory to save the results')
 args = parser.parse_args()
 
 ann_dir = Path(args.ann_dir)
-img_dir = Path(args.img_dir)
-out_dir = Path(args.out_dir)
-
 if not ann_dir.exists():
 	raise FileNotFoundError(str(ann_dir))
+
+img_dir = Path(args.img_dir)
 if not img_dir.exists():
 	raise FileNotFoundError(str(img_dir))
+
+out_dir = Path(args.out_dir)
 if not out_dir.exists():
 	out_dir.mkdir(parents=True)
 else:
-	op = input(f"out_dir \"{str(out_dir)}\" exists. Do you want to overwrite it? [y/n] ").strip().lower()
+	op = input((f'out_dir "{str(out_dir)}" exists. Do you want '
+	             'to overwrite it? [y/n] ')).strip().lower()
 	if op != 'y':
-		print("Operation cancelled.")
+		print('Operation cancelled.')
 		exit()
+
 
 # Import depois pro --help ser rápido
 from segm_lib.plot.detectron_plot_lib import DetectronPlotLib

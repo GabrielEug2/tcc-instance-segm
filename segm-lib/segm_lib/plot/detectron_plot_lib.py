@@ -1,15 +1,16 @@
 from collections import defaultdict
 from pathlib import Path
 
-from detectron2.utils.visualizer import Visualizer
-from detectron2.data.catalog import Metadata
-from detectron2.structures import Instances, Boxes
 import cv2
-import torch
 import numpy as np
+import torch
+from detectron2.data.catalog import Metadata
+from detectron2.structures import Boxes, Instances
+from detectron2.utils.visualizer import Visualizer
 
+from ..core.structures import Annotation, Prediction
 from .abstract_plot_lib import AbstractPlotLib
-from segm_lib.structures import Annotation, Prediction
+
 
 class DetectronPlotLib(AbstractPlotLib):
 	def __init__(self):
@@ -63,9 +64,9 @@ class DetectronPlotLib(AbstractPlotLib):
 			count_per_class[classname] += 1
 			out_file_basename = f"{classname}_{count_per_class[classname]}"
 
-			bin_mask_file = out_dir / f"{out_file_basename}_bin.jpg"
+			bin_mask_file = out_dir / f'{out_file_basename}_bin.jpg'
 			bin_mask_np = ann_or_pred.mask.numpy().astype(np.uint8) * 255
 			cv2.imwrite(str(bin_mask_file), bin_mask_np)
 
-			plotted_mask_file = out_dir / f"{out_file_basename}_plot.jpg"
+			plotted_mask_file = out_dir / f'{out_file_basename}_plot.jpg'
 			self._plot([ann_or_pred], img_file, plotted_mask_file)

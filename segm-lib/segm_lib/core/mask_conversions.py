@@ -1,6 +1,8 @@
 import copy
-from pycocotools import mask as coco_mask
+
 import torch
+from pycocotools import mask as coco_mask
+
 
 def bin_mask_to_rle(bin_mask: torch.BoolTensor) -> dict:
 	bin_mask_in_cocoapi_format = bin_mask.numpy().astype('uint8', order='F')

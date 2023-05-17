@@ -2,7 +2,8 @@
 import json
 from pathlib import Path
 
-class COCOPredictions:
+
+class COCOPredManager:
 	def __init__(self, pred_file: Path):
 		if not pred_file.exists():
 			pred_file.parent.mkdir(parents=True, exist_ok=True)

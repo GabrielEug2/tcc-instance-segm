@@ -1,9 +1,9 @@
 import numpy as np
 import torch
 
-from segm_lib import mask_conversions
-
+from .. import mask_conversions
 from .object_segmentation import ObjectSegmentation
+
 
 class Annotation(ObjectSegmentation):
 	"""Class representing an annotation in segm_lib format.

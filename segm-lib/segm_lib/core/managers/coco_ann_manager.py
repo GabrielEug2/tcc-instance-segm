@@ -1,8 +1,9 @@
-from collections import defaultdict
 import json
+from collections import defaultdict
 from pathlib import Path
 
-class COCOAnnotations:
+
+class COCOAnnManager:
 	"""Functions to work with annotations in COCO format.
 	(https://cocodataset.org/#format-data)"""
 
@@ -98,17 +99,17 @@ class COCOAnnotations:
 			ValueError: if invalid filtering params were given.
 		"""
 		if classes is None and img_file_name is None:
-			raise ValueError("Can't filter without specifying either classes or img_file_name")
+			raise ValueError('Cannot filter without specifying either classes or img_file_name')
 		if classes is not None and img_file_name is not None:
-			raise ValueError("Filtering by both classes and img at once is not supported")
+			raise ValueError('Filtering by both classes and img at once is not supported')
 
-		filtered_anns = COCOAnnotations(out_file)
+		filtered_anns = COCOAnnManager(out_file)
 		if classes is not None:
 			self._filter_by_classes(classes, filtered_anns)
 		else:
 			self._filter_by_img(img_file_name, filtered_anns)
 
-	def _filter_by_classes(self, classes: list[str], filtered_anns: 'COCOAnnotations'):
+	def _filter_by_classes(self, classes: list[str], filtered_anns: 'COCOAnnManager'):
 		cat_ids_to_keep = []
 		for cat_name, cat_id in self.classmap().items():
 			if cat_name.lower() in classes:
@@ -120,13 +121,13 @@ class COCOAnnotations:
 
 		filtered_anns._save()
 
-	def _filter_by_img(self, img_file_name: str, filtered_anns: 'COCOAnnotations'):
+	def _filter_by_img(self, img_file_name: str, filtered_anns: 'COCOAnnManager'):
 		img_map = self.img_map()
 		img_id = img_map[img_file_name]
 
 		img_desc = next((i for i in self.images if i['id'] == img_id), None)
 		if img_desc is None:
-			raise ValueError(f"Info for img {img_file_name} not found in annotations")
+			raise ValueError(f'Info for img {img_file_name} not found in annotations')
 		filtered_anns.images = [img_desc]
 
 		filtered_anns.annotations = [a for a in self.annotations if a['image_id'] == img_id]

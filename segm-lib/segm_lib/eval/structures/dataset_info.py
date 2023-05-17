@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 
+
 @dataclass
 class ImageInfo:
 	n_objects: int = 0
