@@ -1,6 +1,8 @@
 from dataclasses import asdict
 import json
 from pathlib import Path
+import os
+import sys
 from typing import Any
 
 from segm_lib.ann_manager import AnnManager
@@ -11,12 +13,18 @@ from segm_lib.structures import Annotation, Prediction
 from .actual_eval_code import prep_eval_files, evaluate_on_dataset, evaluate_per_image
 
 def evaluate_all(pred_dir: Path, ann_dir: Path, ann_file: Path, out_dir: Path):
+	pred_manager = PredManager(pred_dir)
+	model_names = pred_manager.get_model_names()
+	if len(model_names) == 0:
+		print(f"No predictions found on {pred_dir}.")
+		return
+	print(f"Found predictions for models {model_names}")
+
 	ann_manager = AnnManager(ann_dir)
 	dataset_info = _compute_dataset_info(ann_manager)
 	_save_dataset_info(dataset_info, out_dir)
 
-	pred_manager = PredManager(pred_dir)
-	for model_name in pred_manager.get_model_names():
+	for model_name in model_names:
 		eval_dir = out_dir / model_name
 		eval_dir.mkdir(exist_ok=True)
 		results = _evaluate_model(model_name, pred_manager, ann_manager, ann_file, eval_dir)
@@ -25,6 +33,8 @@ def evaluate_all(pred_dir: Path, ann_dir: Path, ann_file: Path, out_dir: Path):
 	# Save it per model, then parse it to per image
 
 def _compute_dataset_info(ann_manager: AnnManager) -> DatasetInfo:
+	print(f"Computing dataset info... ")
+
 	n_images = ann_manager.get_n_images()
 	n_objects = ann_manager.get_n_objects()
 	class_dist = ann_manager.class_distribution()
@@ -61,7 +71,7 @@ def _evaluate_model(
 	ann_file: Path,
 	out_dir: Path
 ) -> ModelResults:
-	print(f"\n\nEvaluating model '{model_name}'... ")
+	print(f"\nEvaluating model '{model_name}'... ")
 	results = ModelResults()
 	results.raw_results = _compute_raw_results(model_name, pred_manager)
 
@@ -72,14 +82,24 @@ def _evaluate_model(
 	common_classes = results.eval_filters.classes_considered
 	eval_files = prep_eval_files(model_name, pred_manager, ann_manager, ann_file, common_classes, out_dir / 'eval-files')
 
-	print("Evaluating on dataset... ")
-	results.results_on_dataset = evaluate_on_dataset(eval_files, model_name)
+	print("Evaluating on dataset... ", end='')
+	with HiddenPrints():
+		results.results_on_dataset = evaluate_on_dataset(eval_files, model_name)
 	print("done")
 	print("Evaluating per image...")
-	results.results_per_image = evaluate_per_image(eval_files, model_name)
-	print("done")
+	with HiddenPrints():
+		results.results_per_image = evaluate_per_image(eval_files, model_name)
 
 	return results
+
+class HiddenPrints:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
 def _compute_raw_results(model_name: str, pred_manager: PredManager) -> RawResults:
 	n_images_with_predictions = pred_manager.get_n_images_with_predictions(model_name)

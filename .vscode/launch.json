@@ -14,6 +14,7 @@
                 "debug/annotations",
 				"debug/annotations.json",
 				"debug/eval",
+				"-y",
             ],
             "console": "integratedTerminal",
             "justMyCode": false

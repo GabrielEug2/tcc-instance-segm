@@ -1,12 +1,38 @@
 from dataclasses import dataclass, field, fields
 
-from segm_lib.structures import Annotation, Prediction
+@dataclass
+class TP_FP_FN_ShortInfo:
+	n: int
+	n_per_class: dict[str, int] = field(default_factory=dict)
 
 @dataclass
-class RawResults:
-	n_images_with_predictions: int = 0
-	n_objects_predicted: int = 0
-	class_dist_for_predictions: dict[str, int] = field(default_factory=dict)
+class TP_FP_FN_DetailedInfo:
+	n: int
+	n_per_class: dict[str, int] = field(default_factory=dict)
+	list_per_class: dict[str, list] = field(default_factory=dict)
+
+@dataclass
+class AnnsOrPredsInfo:
+	n: int = 0
+	class_dist: dict[str, int] = field(default_factory=dict)
+
+@dataclass
+class CommonResults:
+	anns_considered: AnnsOrPredsInfo = None
+	preds_considered: AnnsOrPredsInfo = None
+	mAP: float = 0.0
+
+@dataclass(kw_only=True)
+class ImgResults(CommonResults):
+	true_positives: TP_FP_FN_ShortInfo = None
+	false_positives: TP_FP_FN_ShortInfo = None
+	false_negatives: TP_FP_FN_ShortInfo = None
+
+@dataclass(kw_only=True)
+class DatasetResults(CommonResults):
+	true_positives: TP_FP_FN_DetailedInfo = None
+	false_positives: TP_FP_FN_DetailedInfo = None
+	false_negatives: TP_FP_FN_DetailedInfo = None
 
 @dataclass
 class EvalFilters:
@@ -15,31 +41,17 @@ class EvalFilters:
 	ann_classes_ignored: list[str] = field(default_factory=list)
 
 @dataclass
-class DatasetResults:
-	n_anns_considered: int = 0
-	n_preds_considered: int = 0
+class RawResults:
+	n_images_with_predictions: int = 0
+	n_objects_predicted: int = 0
+	class_dist_for_predictions: dict[str, int] = field(default_factory=dict)
 
-	mAP: float = 0.0
-	n_true_positives: int = 0
-	n_false_positives: int = 0
-	n_false_negatives: int = 0
-
-@dataclass
-class ImageResults:
-	n_anns_considered: int = 0
-	n_preds_considered: int = 0
-
-	mAP: float = 0.0
-	true_positives: list[Prediction, Annotation] = field(default_factory=list)
-	false_positives: list[Prediction] = field(default_factory=list)
-	false_negatives: list[Annotation] = field(default_factory=list)
-	
 @dataclass
 class ModelResults:
 	raw_results: RawResults = None
 	eval_filters: EvalFilters = None
 	results_on_dataset: DatasetResults = None
-	results_per_image: dict[str, ImageResults] = field(default_factory=dict)
+	results_per_image: dict[str, ImgResults] = field(default_factory=dict)
 
 	@classmethod
 	def from_dict(cls, d: dict) -> "ModelResults":
