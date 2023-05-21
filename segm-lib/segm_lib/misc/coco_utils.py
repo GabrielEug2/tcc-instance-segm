@@ -27,8 +27,8 @@ def class_dist(coco_ann_dir: Path, out_file: Path, verbose: bool = True):
 	total_class_dist = defaultdict(lambda: 0)
 	for ann_file in coco_ann_files:
 		if verbose:
-			# Só pra saber se é normal a demora, tipo o instances_train.2017
-			print(f'  Processing {ann_file.name}...', end='')
+			# Só pra saber se é normal a demora, tipo o instances_train2017
+			print(f'  Processing {ann_file.name}...', end='', flush=True)
 
 		file_dist = COCOAnnManager(ann_file).class_distribution()
 		for classname in file_dist:

@@ -2,7 +2,6 @@ from collections import defaultdict
 from pathlib import Path
 
 import cv2
-import numpy as np
 import torch
 from detectron2.data.catalog import Metadata
 from detectron2.structures import Boxes, Instances
@@ -13,6 +12,8 @@ from .abstract_plot_lib import AbstractPlotLib
 
 
 class DetectronPlotLib(AbstractPlotLib):
+	lib_name = 'detectron'
+
 	def __init__(self):
 		pass
 
@@ -54,19 +55,13 @@ class DetectronPlotLib(AbstractPlotLib):
 		out_file.parent.mkdir(parents=True, exist_ok=True)
 		cv2.imwrite(str(out_file), out_img)
 
-	def _plot_individual_masks(self, anns_or_preds: list[Annotation]|list[Prediction], out_dir: Path, img_file: Path):
-		out_dir.mkdir(parents=True, exist_ok=True)
-
+	def _plot_individual_masks(self, anns_or_preds: list[Annotation]|list[Prediction], img_file: Path, out_dir: Path):
 		count_per_class = defaultdict(lambda: 0)
 		for ann_or_pred in anns_or_preds:
 			classname = ann_or_pred.classname
 
 			count_per_class[classname] += 1
-			out_file_basename = f"{classname}_{count_per_class[classname]}"
+			out_file_name = f"{classname}_{count_per_class[classname]}.jpg"
 
-			bin_mask_file = out_dir / f'{out_file_basename}_bin.jpg'
-			bin_mask_np = ann_or_pred.mask.numpy().astype(np.uint8) * 255
-			cv2.imwrite(str(bin_mask_file), bin_mask_np)
-
-			plotted_mask_file = out_dir / f'{out_file_basename}_plot.jpg'
+			plotted_mask_file = out_dir / f'{out_file_name}.jpg'
 			self._plot([ann_or_pred], img_file, plotted_mask_file)

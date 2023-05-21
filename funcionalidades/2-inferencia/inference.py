@@ -11,9 +11,7 @@ if not img_file_or_dir.exists():
 	raise FileNotFoundError(str(img_file_or_dir))
 
 out_dir = Path(args.out_dir)
-if not out_dir.exists():
-	out_dir.mkdir(parents=True)
-else:
+if out_dir.exists():
 	op = input((f'out_dir "{str(out_dir)}" exists. Do you want '
 	             'to overwrite it? [y/n] ')).strip().lower()
 	if op != 'y':

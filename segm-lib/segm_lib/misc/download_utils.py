@@ -29,6 +29,7 @@ def download_from_openimages(class_list: list[str], n_imgs: int, out_dir: Path):
 		shuffle=True,
 		seed=random.randrange(0, 1000),
 	)
+	out_dir.mkdir(parents=True, exist_ok=True)
 	dataset.export(
 		export_dir=str(out_dir),
 		dataset_type=COCODetectionDataset

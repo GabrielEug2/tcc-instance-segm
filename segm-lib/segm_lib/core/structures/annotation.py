@@ -23,8 +23,7 @@ class Annotation(ObjectSegmentation):
 		}
 	
 	@classmethod
-	def from_coco_format(cls, coco_ann, classmap) -> 'Annotation':
-		classname = classmap[coco_ann['category_id']]
+	def from_coco_format(cls, coco_ann, classname) -> 'Annotation':
 		bbox = coco_ann['bbox'] if type(coco_ann['bbox']) == list else coco_ann['bbox'].tolist()
 		mask = mask_conversions.rle_to_bin_mask(coco_ann['segmentation'])
 

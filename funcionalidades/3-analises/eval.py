@@ -22,11 +22,7 @@ if not coco_ann_file.exists():
 	raise FileNotFoundError(str(coco_ann_file))
 
 out_dir = Path(args.out_dir)
-if not out_dir.exists():
-	out_dir.mkdir(parents=True)
-elif args.overwrite:
-	pass
-else:
+if out_dir.exists() and not args.overwrite:
 	op = input((f'out_dir "{str(out_dir)}" exists. Do you want '
 	             'to overwrite it? [y/n] ')).strip().lower()
 	if op != 'y':

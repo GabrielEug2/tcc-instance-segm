@@ -25,8 +25,7 @@ class Prediction(ObjectSegmentation):
 		}
 	
 	@classmethod
-	def from_coco_format(cls, coco_pred, classmap) -> 'Prediction':
-		classname = classmap[coco_pred['category_id']]
+	def from_coco_format(cls, coco_pred, classname) -> 'Prediction':
 		confidence = coco_pred['score']
 		bbox = coco_pred['bbox'] if type(coco_pred['bbox']) == list else coco_pred['bbox'].tolist()
 		mask = mask_conversions.rle_to_bin_mask(coco_pred['segmentation'])

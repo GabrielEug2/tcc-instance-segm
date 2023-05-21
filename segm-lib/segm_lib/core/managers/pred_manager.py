@@ -14,7 +14,6 @@ class PredManager:
 	def __init__(self, pred_dir: Path):
 		self.root_dir = pred_dir
 
-	# NEEDS ROOT_DIR
 	def save(self, predictions: list[Prediction], img_file_name: str, model_name: str):
 		"""Save the predictions for a given model on a given image.
 
@@ -39,7 +38,6 @@ class PredManager:
 		with out_file.open('w') as f:
 			json.dump(serializable_preds, f, indent=4)
 
-	# NEEDS ROOT DIR
 	def load(self, img_file_name: str, model_name: str) -> list[Prediction]:
 		pred_file = self.root_dir / model_name / f'{img_file_name}.json'
 		try:
@@ -61,7 +59,6 @@ class PredManager:
 
 		return predictions
 
-	# NEEDS ROOT DIR
 	def get_model_names(self) -> list[str]:
 		return [f.stem for f in self.root_dir.glob('*') if f.is_dir()]		
 
@@ -115,9 +112,7 @@ class PredManager:
 		if classes is not None and img_file_name is not None:
 			raise ValueError('Filtering by both classes and img_file_name at once is not supported')
 
-		out_dir.mkdir(parents=True, exist_ok=True)
 		filtered_pred_manager = PredManager(out_dir)
-
 		if classes is not None:
 			self._filter_by_classes(model_name, classes, filtered_pred_manager)
 		else:

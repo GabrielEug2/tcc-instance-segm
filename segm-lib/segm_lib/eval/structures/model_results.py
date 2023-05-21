@@ -7,9 +7,7 @@ class TP_FP_FN_ShortInfo:
 	n_per_class: dict[str, int] = field(default_factory=dict)
 
 @dataclass
-class TP_FP_FN_DetailedInfo:
-	n: int
-	n_per_class: dict[str, int] = field(default_factory=dict)
+class TP_FP_FN_DetailedInfo(TP_FP_FN_ShortInfo):
 	list_per_class: dict[str, list] = field(default_factory=dict)
 
 @dataclass
@@ -25,15 +23,15 @@ class CommonResults:
 
 @dataclass(kw_only=True)
 class ImgResults(CommonResults):
-	true_positives: TP_FP_FN_ShortInfo = None
-	false_positives: TP_FP_FN_ShortInfo = None
-	false_negatives: TP_FP_FN_ShortInfo = None
-
-@dataclass(kw_only=True)
-class DatasetResults(CommonResults):
 	true_positives: TP_FP_FN_DetailedInfo = None
 	false_positives: TP_FP_FN_DetailedInfo = None
 	false_negatives: TP_FP_FN_DetailedInfo = None
+
+@dataclass(kw_only=True)
+class DatasetResults(CommonResults):
+	true_positives: TP_FP_FN_ShortInfo = None
+	false_positives: TP_FP_FN_ShortInfo = None
+	false_negatives: TP_FP_FN_ShortInfo = None
 
 @dataclass
 class EvalFilters:

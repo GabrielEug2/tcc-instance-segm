@@ -11,9 +11,7 @@ if not coco_ann_file.exists():
 	raise FileNotFoundError(str(coco_ann_file))
 
 custom_ann_dir = Path(args.custom_ann_dir)
-if not custom_ann_dir.exists():
-	custom_ann_dir.mkdir(parents=True)
-else:
+if custom_ann_dir.exists():
 	op = input((f'custom_ann_dir "{str(custom_ann_dir)}" exists. Do you want '
 	             'to overwrite it? [y/n] ')).strip().lower()
 	if op != 'y':
