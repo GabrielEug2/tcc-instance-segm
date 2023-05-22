@@ -7,7 +7,7 @@ from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
 from ..core.structures import Annotation, Prediction
-from .structures.model_results import TP_FP_FN_ShortInfo, TP_FP_FN_DetailedInfo
+from .structures.results import TP_FP_FN_ShortInfo, TP_FP_FN_DetailedInfo
 
 
 @dataclass
@@ -36,7 +36,11 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 	results = APIResults()
 
 	ground_truth = COCO(coco_anns_file)
-	detections = ground_truth.loadRes(str(coco_preds_file))
+	try:
+		detections = ground_truth.loadRes(str(coco_preds_file))
+	except IndexError:
+		# no predictions
+		return results
 
 	E = COCOeval(ground_truth, detections)
 	E.evaluate()
@@ -136,9 +140,17 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 
 		# I'm counting tp/fp/fn for IoU 0.5, which is the first one,
 		# and I only care about the "total" tp/fp, which is the last item of the sum
-		n_true_positives_per_class[classname] = int(tp_sum[0][-1])
-		n_false_positives_per_class[classname] = int(fp_sum[0][-1])
-
+		if len(tp_sum[0]):
+			n_true_positives_per_class[classname] = int(tp_sum[0][-1])
+			n_false_positives_per_class[classname] = int(fp_sum[0][-1])
+		else:
+			# if there are no detections for that k, the len of each row in dtm
+			# will be 0, which makes it so that the len of the rows in "tps",
+			# "fps", "tp_sum" and "fp_sum" all become 0, so... I can't access 
+			# it like I usually do, with index [-1]
+			n_true_positives_per_class[classname] = 0
+			n_false_positives_per_class[classname] = 0
+			
 		# Now for false negatives...
 		# Same logic I explained for e['dtMatches'] applies to e['gtMatches'].
 		# "e['gtMatches'][0,1] = 2" means that, at the first IoU threshold
@@ -161,8 +173,7 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 		n_false_negatives_per_class[classname] = int(n_fn)
 
 		if detailed:
-			# To get an actual list of tps/fps/fns, it's a bit more complicated:
-			#
+			# To get an actual list of tps/fps/fns, it's a bit more complicated.
 			# We can't concatenate, because I will need those detection indexes
 			# and ground truth indexes to find the actual detections and ground
 			# truths

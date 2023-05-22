@@ -87,6 +87,12 @@ class COCOAnnManager:
 
 		return img_dimensions
 
+	def normalize_classnames(self):
+		for cat in self.categories:
+			cat['name'] = cat['name'].lower()
+		
+		self._save()
+
 	def filter(self, out_file: Path, classes: list[str] = None, img_file_name: str = None):
 		"""Filter the annotations by the specified criteria.
 

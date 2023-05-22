@@ -95,6 +95,16 @@ class PredManager:
 	def get_n_objects(self, model_name: str) -> int:
 		return sum(self.class_distribution(model_name).values())
 
+	def normalize_classnames(self):
+		for model in self.get_model_names():
+			for img in self._img_files_for_model(model):
+				predictions = self.load(img, model)
+
+				for pred in predictions:
+					pred.classname = pred.classname.lower()
+
+				self.save(predictions, img, model)
+
 	def filter(self, out_dir: Path, model_name: str, classes: list[str] = None, img_file_name: str = None):
 		"""Filter the predictions by the specified criteria.
 

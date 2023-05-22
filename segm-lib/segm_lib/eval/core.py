@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import sys
 from dataclasses import asdict
 from pathlib import Path
@@ -14,36 +15,52 @@ from ..core.structures import Annotation, Prediction
 from . import cocoapi_wrapper
 from .structures.dataset_info import DatasetInfo, ImageInfo
 from .structures.eval_files import EvalFiles, EvalFilesForImg
-from .structures.model_results import (AnnsOrPredsInfo, DatasetResults,
-                                       EvalFilters, ImgResults, ModelResults,
-                                       RawResults)
+from .structures.results import (RawResults, EvalFilters, DatasetResults,
+				                 AnnsOrPredsInfo, ImgResults)
 
+EVAL_FILES_DIR = 'eval-files'
 
 def evaluate_all(pred_dir: Path, ann_dir: Path, coco_ann_file: Path, out_dir: Path):
-	pred_manager = PredManager(pred_dir)
+	out_dir.mkdir(parents=True, exist_ok=True)
+
+	# I make a copy because I'll need to modify a few things (like normalize
+	# the classnames) and I don't want to modify the original files
+	print("Copying necessary files... ", end='', flush=True)
+	eval_files_base_dir = out_dir / EVAL_FILES_DIR / 'base'
+	eval_pred_dir = eval_files_base_dir / 'preds'
+	eval_ann_dir = eval_files_base_dir / 'anns'
+	eval_coco_ann_file = eval_files_base_dir / 'coco_anns.json'
+	shutil.copytree(pred_dir, eval_pred_dir, dirs_exist_ok=True)
+	shutil.copytree(ann_dir, eval_ann_dir, dirs_exist_ok=True)
+	shutil.copy(coco_ann_file, eval_coco_ann_file)
+	print('done')
+
+	print("Normalizing class names... ", end='', flush=True)
+	pred_manager = PredManager(eval_pred_dir)
+	pred_manager.normalize_classnames()
+	ann_manager = AnnManager(eval_ann_dir)
+	ann_manager.normalize_classnames()
+	coco_ann_manager = COCOAnnManager(eval_coco_ann_file)
+	coco_ann_manager.normalize_classnames()
+	print('done')
+
+	print(f'Computing dataset info... ', end='', flush=True)
+	dataset_info = _compute_dataset_info(ann_manager)
+	_save(asdict(dataset_info), out_dir / 'dataset-info.json')
+	print('done')
+
 	model_names = pred_manager.get_model_names()
 	if len(model_names) == 0:
 		print(f'No predictions found on "{pred_dir}".')
 		return
 	print(f'Found predictions for models {model_names}')
 
-	out_dir.mkdir(parents=True, exist_ok=True)
-
-	ann_manager = AnnManager(ann_dir)
-	dataset_info = _compute_dataset_info(ann_manager)
-	_save_dataset_info(dataset_info, out_dir)
-
 	for model_name in model_names:
-		eval_dir = out_dir / model_name
-		eval_dir.mkdir(exist_ok=True)
-		results = _evaluate_model(model_name, pred_manager, ann_manager, coco_ann_file, eval_dir)
-		_save_results(results, eval_dir)
+		_evaluate_model(model_name, pred_manager, ann_manager, eval_coco_ann_file, out_dir)
 
 	# TODO parse it to per image
 
 def _compute_dataset_info(ann_manager: AnnManager) -> DatasetInfo:
-	print(f'Computing dataset info... ')
-
 	n_images = ann_manager.get_n_images()
 	n_objects = ann_manager.get_n_objects()
 	class_dist = ann_manager.class_distribution()
@@ -65,22 +82,14 @@ def _compute_dataset_info(ann_manager: AnnManager) -> DatasetInfo:
 		info_per_image=info_per_img
 	)
 
-def _save_dataset_info(dataset_info: DatasetInfo, out_dir: Path):
-	dataset_info_dict = asdict(dataset_info)
-	
-	dataset_info_file = out_dir / 'dataset-info.json'
-	dataset_info_file.parent.mkdir(parents=True, exist_ok=True)
-	with dataset_info_file.open('w') as f:
-		json.dump(dataset_info_dict, f, indent=4)
-
 class HiddenPrints:
-    def __enter__(self):
-        self._original_stdout = sys.stdout
-        sys.stdout = open(os.devnull, 'w')
+	def __enter__(self):
+		self._original_stdout = sys.stdout
+		sys.stdout = open(os.devnull, 'w')
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        sys.stdout.close()
-        sys.stdout = self._original_stdout
+	def __exit__(self, exc_type, exc_val, exc_tb):
+		sys.stdout.close()
+		sys.stdout = self._original_stdout
 
 def _evaluate_model(
 		model_name: str,
@@ -88,32 +97,41 @@ def _evaluate_model(
 		ann_manager: AnnManager,
 		coco_ann_file: Path,
 		out_dir: Path
-		) -> ModelResults:
-	print(f'\nEvaluating model "{model_name}"... ')
+	):
+	print(f'\nEvaluating {model_name}... ')
+	model_results_dir = out_dir / model_name
+	
+	print(f'Computing raw results... ', end='', flush=True)
+	raw_results = _compute_raw_results(model_name, pred_manager)
+	_save(asdict(raw_results), model_results_dir / 'raw-results.json')
+	print('done')
 
-	results = ModelResults()
-	results.raw_results = _compute_raw_results(model_name, pred_manager)
-	results.eval_filters = _compute_eval_filters(ann_manager, pred_manager, model_name)
+	print(f'Computing eval filters... ', end='', flush=True)
+	eval_filters = _compute_eval_filters(ann_manager, pred_manager, model_name)
+	_save(asdict(eval_filters), model_results_dir / 'eval-filters.json')
+	print('done')
 
+	print(f'Preparing files for evaluation... ', end='', flush=True)
 	eval_files = _prep_eval_files(
 		ann_manager,
 		pred_manager,
 		model_name,
-		results.eval_filters,
+		eval_filters,
 		coco_ann_file,
-		out_dir / 'eval-files'
+		out_dir / EVAL_FILES_DIR / model_name
 	)
-
-	print('Evaluating on dataset... ', end='')
-	with HiddenPrints():
-		results.results_on_dataset = evaluate_on_dataset(eval_files, model_name)
-	print('done')
-	print('Evaluating per image...')
-	with HiddenPrints():
-		results.results_per_image = evaluate_per_image(eval_files, model_name)
 	print('done')
 
-	return results
+	print('  Evaluating on dataset... ', end='', flush=True)
+	with HiddenPrints():
+		results_on_dataset = evaluate_on_dataset(eval_files, model_name)
+	_save(asdict(results_on_dataset), model_results_dir / 'results-on-dataset.json')
+	print('done')
+
+	print('  Evaluating per image...', flush=True)
+	with HiddenPrints():
+		evaluate_per_image(eval_files, model_name, model_results_dir / 'results-per-image')
+	print('done')
 
 def _compute_raw_results(model_name: str, pred_manager: PredManager) -> RawResults:
 	n_images_with_predictions = pred_manager.get_n_images_with_predictions(model_name)
@@ -161,7 +179,9 @@ def _prep_eval_files(
 	# easier to just filter the original file too than modifying my format
 	# to include all those fields.
 	coco_anns_file = out_dir / 'coco_anns.json'
-	COCOAnnManager(original_ann_file).filter(coco_anns_file, classes=classes_to_keep)
+	coco_ann_manager = COCOAnnManager(original_ann_file)
+	coco_ann_manager.normalize_classnames()
+	coco_ann_manager.filter(coco_anns_file, classes=classes_to_keep)
 
 	coco_preds_file = out_dir / 'coco_preds.json'
 	filtered_coco_anns_manager = COCOAnnManager(coco_anns_file)
@@ -238,9 +258,7 @@ def evaluate_on_dataset(eval_files: EvalFiles, model_name: str) -> DatasetResult
 
 	return dataset_results
 
-def evaluate_per_image(eval_files: EvalFiles, model_name: str) -> dict[str, ImgResults]:
-	results_per_img = {}
-
+def evaluate_per_image(eval_files: EvalFiles, model_name: str, out_dir: Path) -> dict[str, ImgResults]:
 	coco_ann_manager = COCOAnnManager(eval_files.coco_anns_file)
 	img_map = coco_ann_manager.img_map()
 
@@ -273,20 +291,16 @@ def evaluate_per_image(eval_files: EvalFiles, model_name: str) -> dict[str, ImgR
 		img_results.false_positives = results_from_coco_api.false_positives
 		img_results.false_negatives = results_from_coco_api.false_negatives
 	
-		results_per_img[img_name] = img_results
+		_save(img_results, out_dir / f'{img_name}.json')
 
-	return results_per_img
-
-def _save_results(results: ModelResults, out_dir: Path):
-	results_dict = asdict(results)
-
+def _save(result_dict: dict, out_file: Path):
 	class CustomEncoder(json.JSONEncoder):
 		def default(self, o: Any) -> Any:
 			if type(o) == Annotation or type(o) == Prediction:
 				return o.serializable()
 			else:
 				return super().default(o)
-
-	results_file = out_dir / 'results.json'
-	with results_file.open('w') as f:
-		json.dump(results_dict, f, indent=4, cls=CustomEncoder)
+			
+	out_file.parent.mkdir(parents=True, exist_ok=True)
+	with out_file.open('w') as f:
+		json.dump(result_dict, f, indent=4, cls=CustomEncoder)

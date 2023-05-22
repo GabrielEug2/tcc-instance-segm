@@ -101,6 +101,15 @@ class AnnManager:
 
 		return annotations
 	
+	def normalize_classnames(self):
+		for img in self.get_img_file_names():
+			annotations = self.load(img)
+
+			for ann in annotations:
+				ann.classname = ann.classname.lower()
+
+			self._save(annotations, img)
+	
 	def get_classnames(self) -> set[str]:
 		return self.class_distribution().keys()
 	

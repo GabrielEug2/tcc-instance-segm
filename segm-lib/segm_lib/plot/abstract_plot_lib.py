@@ -23,7 +23,6 @@ class AbstractPlotLib(ABC):
 		for img_file in tqdm(img_files, total=n_images):
 			annotations = ann_manager.load(img_file.stem)
 			if len(annotations) == 0:
-				print(f'No annotations found on "{str(ann_dir)}" for image "{str(img_file)}". Skipping')
 				continue
 
 			# no need for lib name here since I only use this on one lib
@@ -41,20 +40,19 @@ class AbstractPlotLib(ABC):
 
 		model_names = pred_manager.get_model_names()
 		if len(model_names) == 0:
-			print(f'No predictions found on {pred_dir}.')
+			print(f'  No predictions found on {pred_dir}.')
 			return
 		print(f'  Found predictions for models {model_names}')
 
 		out_dir.mkdir(parents=True, exist_ok=True)
 
 		for model_name in model_names:
-			print(f'  Plotting predictions from model {model_name}...')
+			print(f'  Plotting predictions from {model_name}...')
 			img_files = img_dir.glob('*.jpg') # needs to glob each time because it's a generator
 
 			for img_file in tqdm(img_files, total=n_images):
 				predictions = pred_manager.load(img_file.stem, model_name)
 				if len(predictions) == 0:
-					print(f'No predictions found on "{str(pred_dir)}" for image "{str(img_file)}". Skipping')
 					continue
 
 				# no need for lib name here since I only use this on one lib
