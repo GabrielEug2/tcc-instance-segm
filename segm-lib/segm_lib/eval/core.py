@@ -13,6 +13,7 @@ from ..core.managers.coco_ann_manager import COCOAnnManager
 from ..core.managers.pred_manager import PredManager
 from ..core.structures import Annotation, Prediction
 from . import cocoapi_wrapper
+from . import post_processing
 from .structures.dataset_info import DatasetInfo, ImageInfo
 from .structures.eval_files import EvalFiles, EvalFilesForImg
 from .structures.results import (RawResults, EvalFilters, DatasetResults,
@@ -40,13 +41,12 @@ def evaluate_all(pred_dir: Path, ann_dir: Path, coco_ann_file: Path, out_dir: Pa
 	pred_manager.normalize_classnames()
 	ann_manager = AnnManager(eval_ann_dir)
 	ann_manager.normalize_classnames()
-	coco_ann_manager = COCOAnnManager(eval_coco_ann_file)
-	coco_ann_manager.normalize_classnames()
 	print('done')
 
 	print(f'Computing dataset info... ', end='', flush=True)
 	dataset_info = _compute_dataset_info(ann_manager)
 	_save(asdict(dataset_info), out_dir / 'dataset-info.json')
+	del dataset_info
 	print('done')
 
 	model_names = pred_manager.get_model_names()
@@ -58,7 +58,7 @@ def evaluate_all(pred_dir: Path, ann_dir: Path, coco_ann_file: Path, out_dir: Pa
 	for model_name in model_names:
 		_evaluate_model(model_name, pred_manager, ann_manager, eval_coco_ann_file, out_dir)
 
-	# TODO parse it to per image
+	post_processing.group_results_by_img(out_dir, model_names)
 
 def _compute_dataset_info(ann_manager: AnnManager) -> DatasetInfo:
 	n_images = ann_manager.get_n_images()
@@ -123,6 +123,8 @@ def _evaluate_model(
 	print('done')
 
 	print('  Evaluating on dataset... ', end='', flush=True)
+	# "HiddenPrints" solution from here:
+	# https://stackoverflow.com/questions/8391411/how-to-block-calls-to-print
 	with HiddenPrints():
 		results_on_dataset = evaluate_on_dataset(eval_files, model_name)
 	_save(asdict(results_on_dataset), model_results_dir / 'results-on-dataset.json')
@@ -182,6 +184,7 @@ def _prep_eval_files(
 	coco_ann_manager = COCOAnnManager(original_ann_file)
 	coco_ann_manager.normalize_classnames()
 	coco_ann_manager.filter(coco_anns_file, classes=classes_to_keep)
+	del coco_ann_manager
 
 	coco_preds_file = out_dir / 'coco_preds.json'
 	filtered_coco_anns_manager = COCOAnnManager(coco_anns_file)

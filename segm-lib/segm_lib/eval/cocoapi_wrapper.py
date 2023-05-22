@@ -24,8 +24,8 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 		coco_anns_file (Path): file containing coco-formatted annotations.
 		coco_preds_file (Path): file containing coco-formatted predictions.
 		detailed (bool, optional): if False, returns the number of tp/fp/fn.
-			If True, returns a list of tp/fp/fn for each class. Defaults to
-			False.
+			If True, also returns a list of tp/fp/fn for each class. Defaults
+			to False.
 
 	Returns:
 		APIResults: has the following fields:
@@ -49,9 +49,8 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 	results.mAP = round(float(E.stats[0]), 3)
 
 	# basically the same code as the accumulate() function, with slighly
-	# adaptations to get what I want (number of tp, fp and fn for a given
-	# IoU (0.5), areaRng (all) and maxDets (100) for simple_eval and the
-	# actual list of tp, fp and fn for detailed_eval.
+	# adaptations to get what I want (true positives, false positives and
+	# false negatives for a given IoU (0.5), areaRng (all) and maxDets (100)).
 
 	# anything involving "_pe" is about parameters used on evalute()
 	# (things that WERE computed)
@@ -69,13 +68,11 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 	p.maxDets = [100]
 	p.areaRng = [p.areaRng[0]] # all
 	k_list = [n for n, k in enumerate(p.catIds)  if k in setK]
+	# I'll also want the catId for each value in k_list, so:
+	cat_ids_from_k0 = [k for n, k in enumerate(p.catIds) if k in setK]
 	m_list = [m for n, m in enumerate(p.maxDets) if m in setM]
 	a_list = [n for n, a in enumerate(map(lambda x: tuple(x), p.areaRng)) if a in setA]
 	i_list = [n for n, i in enumerate(p.imgIds)  if i in setI]
-
-	# Since nothing here is simple, 'k0' isn't the actual cat id, just
-	# the index for it in k_list. To get the actual id:
-	cat_ids_from_k0 = [k for n, k in enumerate(p.catIds) if k in setK]
 
 	n_true_positives_per_class = {}
 	n_false_positives_per_class = {}
@@ -84,7 +81,7 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 	false_positives_per_class = defaultdict(list)
 	false_negatives_per_class = defaultdict(list)
 	for k, k0 in enumerate(k_list):
-		# get cat_name from this k0
+		# get classname from this k0
 		cat_id = cat_ids_from_k0[k0]
 		classname = ground_truth.cats[cat_id]['name']
 
@@ -134,13 +131,14 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 		# tp_sum[1] is the cum_sum_tp for the second threshold
 		# and so on
 		# tp_sum[tind,x] is the n_tp in the first x detections
-		# tp_sum[tind,-1], which I use below, is the n_tp for that category
+		# tp_sum[tind,-1], which I use below, is the total number of tp
+		# for that category
 		tp_sum = np.cumsum(tps, axis=1).astype(dtype=float)
 		fp_sum = np.cumsum(fps, axis=1).astype(dtype=float)
 
 		# I'm counting tp/fp/fn for IoU 0.5, which is the first one,
 		# and I only care about the "total" tp/fp, which is the last item of the sum
-		if len(tp_sum[0]):
+		if len(tp_sum[0]) >= 1:
 			n_true_positives_per_class[classname] = int(tp_sum[0][-1])
 			n_false_positives_per_class[classname] = int(fp_sum[0][-1])
 		else:
@@ -148,6 +146,9 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 			# will be 0, which makes it so that the len of the rows in "tps",
 			# "fps", "tp_sum" and "fp_sum" all become 0, so... I can't access 
 			# it like I usually do, with index [-1]
+			# Luckly, it is also very simple to deduce that, if there are no
+			# detections for that k, there are also no true_positives nor
+			# false positives
 			n_true_positives_per_class[classname] = 0
 			n_false_positives_per_class[classname] = 0
 			
