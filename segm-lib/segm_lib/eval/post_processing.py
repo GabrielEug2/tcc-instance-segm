@@ -11,45 +11,44 @@ def group_results_by_img(eval_dir: Path, model_names: list[str]):
 	dataset_info = DatasetInfo(**dataset_info_dict)
 	n_models = len(model_names)
 	
-	results_per_img = {}
+	results_per_img = []
 	for img_name in dataset_info.info_per_image:
-		results_for_that_img = {
-			'raw': {},
-			'stats': {},
-		}
-		
+		results = {}
+		results['img_name'] = img_name
+
+		mAP_per_model = {}
 		for model in model_names:
 			results_for_that_model = _load(eval_dir / model / 'results-per-image' / f'{img_name}.json')
 			results_for_that_model = ImgResults(**results_for_that_model)
 
-			results_for_that_img['raw'][model] = results_for_that_model.mAP
+			mAP_per_model[model] = results_for_that_model.mAP
 
-		results_for_that_img['stats']['average'] = sum(results_for_that_img['raw'].values()) / n_models
+		results['per_model'] = mAP_per_model
+		results['average'] = sum(mAP_per_model.values()) / n_models
+		results['diff_between_highest_and_lowest'] = max(mAP_per_model.values()) - min(mAP_per_model.values())
 
-		min_ap = min(results_for_that_img['raw'].values())
-		max_ap = max(results_for_that_img['raw'].values())
-		results_for_that_img['stats']['difference_between_highest_and_lowest_model'] = max_ap - min_ap
+		results_per_img.append(results)
 
-		results_per_img[img_name] = results_for_that_img
+	results_per_img = sorted(results_per_img, key=lambda d: d['diff_between_highest_and_lowest'])
+	results_per_img = sorted(results_per_img, key=lambda d: d['average'], reverse=True)
+	_save(results_per_img, eval_dir / 'imgs-sorted-by-average-mAP.txt')
 
-	info_to_write = {
-		'sorted_by_average (descending)': dict(sorted(
-			results_per_img.items(),
-			key=lambda d: d[1]['stats']['average'],
-			reverse=True
-		)),
-		'sorted_by_higest_ap_average (descending)': dict(sorted(
-			results_per_img.items(),
-			key=lambda d: d[1]['stats']['difference_between_highest_and_lowest_model'],
-			reverse=True
-		)),
-	}
-
-	out_file = eval_dir / 'mAP-by-image.json'
-	with out_file.open('w') as f:
-		json.dump(info_to_write, f, indent=4)
+	results_per_img = sorted(results_per_img, key=lambda d: d['average'], reverse=True)
+	results_per_img = sorted(results_per_img, key=lambda d: d['diff_between_highest_and_lowest'])
+	_save(results_per_img, eval_dir / 'imgs-sorted-by-diff-between-highest-and-lowest-mAP.txt')
 
 def _load(file: Path) -> dict:
 	with file.open('r') as f:
 		content = json.load(f)
 	return content
+
+def _save(results_per_img: list[dict], out_file: Path):
+	with out_file.open('w') as f:
+		f.write(f'img_name | values_per_model | average | diff_between_highest_and_lowest')
+
+		for results_dict in results_per_img:
+			img_name = results_dict['img_name']
+			values_per_model = results_dict['per_model']
+			average = results_dict['average']
+			performance_diff = results_dict['diff_between_highest_and_lowest']
+			f.write(f'\n{img_name} | {values_per_model} | {average} | {performance_diff}')

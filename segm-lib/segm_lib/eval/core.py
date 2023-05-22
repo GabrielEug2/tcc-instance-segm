@@ -12,6 +12,7 @@ from ..core.managers.ann_manager import AnnManager
 from ..core.managers.coco_ann_manager import COCOAnnManager
 from ..core.managers.pred_manager import PredManager
 from ..core.structures import Annotation, Prediction
+from ..core.classname_normalization import normalize
 from . import cocoapi_wrapper
 from . import post_processing
 from .structures.dataset_info import DatasetInfo, ImageInfo
@@ -21,7 +22,7 @@ from .structures.results import (RawResults, EvalFilters, DatasetResults,
 
 EVAL_FILES_DIR = 'eval-files'
 
-def evaluate_all(pred_dir: Path, ann_dir: Path, coco_ann_file: Path, out_dir: Path):
+def evaluate_all(pred_dir: Path, ann_dir: Path, possible_classes_dir: Path, coco_ann_file: Path, out_dir: Path):
 	out_dir.mkdir(parents=True, exist_ok=True)
 
 	# I make a copy because I'll need to modify a few things (like normalize
@@ -56,9 +57,11 @@ def evaluate_all(pred_dir: Path, ann_dir: Path, coco_ann_file: Path, out_dir: Pa
 	print(f'Found predictions for models {model_names}')
 
 	for model_name in model_names:
-		_evaluate_model(model_name, pred_manager, ann_manager, eval_coco_ann_file, out_dir)
+		_evaluate_model(model_name, pred_manager, possible_classes_dir, ann_manager, eval_coco_ann_file, out_dir)
 
+	print(f'Postprocessing... ', end='', flush=True)
 	post_processing.group_results_by_img(out_dir, model_names)
+	print('done')
 
 def _compute_dataset_info(ann_manager: AnnManager) -> DatasetInfo:
 	n_images = ann_manager.get_n_images()
@@ -72,13 +75,13 @@ def _compute_dataset_info(ann_manager: AnnManager) -> DatasetInfo:
 
 		info_per_img[img] = ImageInfo(
 			n_objects=n_objects_on_img,
-			class_dist=class_dist_on_img
+			class_dist=_dict_sorted_by_key(class_dist_on_img)
 		)
 
 	return DatasetInfo(
 		n_images=n_images,
 		n_objects=n_objects,
-		class_dist=class_dist,
+		class_dist=_dict_sorted_by_key(class_dist),
 		info_per_image=info_per_img
 	)
 
@@ -94,6 +97,7 @@ class HiddenPrints:
 def _evaluate_model(
 		model_name: str,
 		pred_manager: PredManager,
+		possible_classes_dir: Path,
 		ann_manager: AnnManager,
 		coco_ann_file: Path,
 		out_dir: Path
@@ -107,7 +111,7 @@ def _evaluate_model(
 	print('done')
 
 	print(f'Computing eval filters... ', end='', flush=True)
-	eval_filters = _compute_eval_filters(ann_manager, pred_manager, model_name)
+	eval_filters = _compute_eval_filters(ann_manager, possible_classes_dir, model_name)
 	_save(asdict(eval_filters), model_results_dir / 'eval-filters.json')
 	print('done')
 
@@ -143,19 +147,21 @@ def _compute_raw_results(model_name: str, pred_manager: PredManager) -> RawResul
 	return RawResults(
 		n_images_with_predictions=n_images_with_predictions,
 		n_objects_predicted=n_objects_predicted,
-		class_dist_for_predictions=class_dist_for_predictions,
+		class_dist_for_predictions=_dict_sorted_by_key(class_dist_for_predictions),
 	)
 
-def _compute_eval_filters(ann_manager: AnnManager, pred_manager: PredManager, model_name: str) -> EvalFilters:
+def _compute_eval_filters(ann_manager: AnnManager, possible_classes_dir: Path, model_name: str) -> EvalFilters:
 	ann_classes = ann_manager.get_classnames()
-	pred_classes = pred_manager.get_classnames(model_name)
+	with (possible_classes_dir / f'{model_name}.json').open('r') as f:
+		possible_pred_classes = json.load(f)
+	possible_pred_classes = {normalize(c) for c in set(possible_pred_classes)}
 
-	common_classes = [c for c in ann_classes if c in pred_classes]
-	pred_classes_ignored = list(pred_classes - common_classes)
-	ann_classes_ignored = list(ann_classes - common_classes)
+	evaluatable_classes = {c for c in ann_classes if c in possible_pred_classes}
+	pred_classes_ignored = list(possible_pred_classes - evaluatable_classes)
+	ann_classes_ignored = list(ann_classes - evaluatable_classes)
 
 	return EvalFilters(
-		classes_considered=common_classes,
+		classes_considered=list(evaluatable_classes),
 		pred_classes_ignored=pred_classes_ignored,
 		ann_classes_ignored=ann_classes_ignored,
 	)
@@ -238,7 +244,7 @@ def evaluate_on_dataset(eval_files: EvalFiles, model_name: str) -> DatasetResult
 	class_dist_anns_considered = filtered_anns_manager.class_distribution()
 	dataset_results.anns_considered = AnnsOrPredsInfo(
 		n=n_anns_considered,
-		class_dist=class_dist_anns_considered,
+		class_dist=_dict_sorted_by_key(class_dist_anns_considered),
 	)
 
 	filtered_preds_manager = PredManager(eval_files.custom_preds_dir)
@@ -246,7 +252,7 @@ def evaluate_on_dataset(eval_files: EvalFiles, model_name: str) -> DatasetResult
 	class_dist_preds_considered = filtered_preds_manager.class_distribution(model_name)
 	dataset_results.preds_considered = AnnsOrPredsInfo(
 		n=n_preds_considered,
-		class_dist=class_dist_preds_considered,
+		class_dist=_dict_sorted_by_key(class_dist_preds_considered),
 	)
 
 	results_from_coco_api = cocoapi_wrapper.eval(
@@ -273,7 +279,7 @@ def evaluate_per_image(eval_files: EvalFiles, model_name: str, out_dir: Path) ->
 		class_dist_anns_considered = filtered_anns_manager.class_distribution()
 		img_results.anns_considered = AnnsOrPredsInfo(
 			n=n_anns_considered,
-			class_dist=class_dist_anns_considered,
+			class_dist=_dict_sorted_by_key(class_dist_anns_considered),
 		)
 				
 		filtered_preds_manager = PredManager(eval_files.per_image[img_name].custom_preds_dir)
@@ -281,7 +287,7 @@ def evaluate_per_image(eval_files: EvalFiles, model_name: str, out_dir: Path) ->
 		class_dist_preds_considered = filtered_preds_manager.class_distribution(model_name)
 		img_results.preds_considered = AnnsOrPredsInfo(
 			n=n_preds_considered,
-			class_dist=class_dist_preds_considered,
+			class_dist=_dict_sorted_by_key(class_dist_preds_considered),
 		)
 	
 		results_from_coco_api = cocoapi_wrapper.eval(
@@ -307,3 +313,6 @@ def _save(result_dict: dict, out_file: Path):
 	out_file.parent.mkdir(parents=True, exist_ok=True)
 	with out_file.open('w') as f:
 		json.dump(result_dict, f, indent=4, cls=CustomEncoder)
+
+def _dict_sorted_by_key(my_dict):
+	return dict(sorted(my_dict.items(), key=lambda i: i[0]))

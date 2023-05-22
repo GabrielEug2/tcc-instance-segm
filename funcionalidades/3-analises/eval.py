@@ -4,6 +4,7 @@ from pathlib import Path
 parser = argparse.ArgumentParser(description='Evaluates the results')
 parser.add_argument('pred_dir', help='Directory containing the predictions')
 parser.add_argument('ann_dir', help='Directory containing the annotations')
+parser.add_argument('possible_classes_dir', help='Directory containing a list of possible classes for each model')
 parser.add_argument('coco_ann_file', help='File containing the *original* annotations, in COCO-format')
 parser.add_argument('out_dir', help='directory to save the results')
 parser.add_argument('-y', '--overwrite', action='store_true')
@@ -16,6 +17,10 @@ if not pred_dir.exists():
 ann_dir = Path(args.ann_dir)
 if not ann_dir.exists():
 	raise FileNotFoundError(str(ann_dir))
+
+possible_classes_dir = Path(args.possible_classes_dir)
+if not possible_classes_dir.exists():
+	raise FileNotFoundError(str(possible_classes_dir))
 
 coco_ann_file = Path(args.coco_ann_file)
 if not coco_ann_file.exists():
@@ -31,4 +36,4 @@ if out_dir.exists() and not args.overwrite:
 
 # Import depois pro --help ser rápido
 from segm_lib.eval import evaluate_all
-evaluate_all(pred_dir, ann_dir, coco_ann_file, out_dir)
+evaluate_all(pred_dir, ann_dir, possible_classes_dir, coco_ann_file, out_dir)

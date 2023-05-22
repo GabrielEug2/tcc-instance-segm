@@ -23,18 +23,3 @@ class COCOPredManager:
 	def save(self):
 		with self.file.open('w') as f:
 			json.dump(self.predictions, f)
-
-	# def __iter__(self):
-	# 	self._current_index = 0
-	# 	return self
-	# def __next__(self):
-	# 	if self._current_index >= len(self._preds):
-	# 		raise StopIteration
-
-	# 	pred = self._preds[self._current_index]
-	# 	self._current_index += 1
-
-	# 	return pred
-
-	# def get_n_objects(self):
-	# 	return len(self._preds)
