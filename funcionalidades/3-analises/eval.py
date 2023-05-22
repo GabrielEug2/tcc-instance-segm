@@ -24,7 +24,7 @@ if not coco_ann_file.exists():
 out_dir = Path(args.out_dir)
 if out_dir.exists() and not args.overwrite:
 	op = input((f'out_dir "{str(out_dir)}" exists. Do you want '
-	             'to overwrite it? [y/n] ')).strip().lower()
+	             'to overwrite it? [y/n] ')).lower()
 	if op != 'y':
 		print('Operation cancelled.')
 		exit()

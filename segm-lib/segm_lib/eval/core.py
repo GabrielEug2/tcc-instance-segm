@@ -291,7 +291,7 @@ def evaluate_per_image(eval_files: EvalFiles, model_name: str, out_dir: Path) ->
 		img_results.false_positives = results_from_coco_api.false_positives
 		img_results.false_negatives = results_from_coco_api.false_negatives
 	
-		_save(img_results, out_dir / f'{img_name}.json')
+		_save(asdict(img_results), out_dir / f'{img_name}.json')
 
 def _save(result_dict: dict, out_file: Path):
 	class CustomEncoder(json.JSONEncoder):

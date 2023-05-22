@@ -13,7 +13,7 @@ if not coco_ann_file.exists():
 custom_ann_dir = Path(args.custom_ann_dir)
 if custom_ann_dir.exists():
 	op = input((f'custom_ann_dir "{str(custom_ann_dir)}" exists. Do you want '
-	             'to overwrite it? [y/n] ')).strip().lower()
+	             'to overwrite it? [y/n] ')).lower()
 	if op != 'y':
 		print('Operation cancelled.')
 		exit()

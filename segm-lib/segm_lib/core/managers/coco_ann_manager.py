@@ -2,6 +2,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
+from ..classname_normalization import normalize
 
 class COCOAnnManager:
 	"""Functions to work with annotations in COCO format.
@@ -88,8 +89,8 @@ class COCOAnnManager:
 		return img_dimensions
 
 	def normalize_classnames(self):
-		for cat in self.categories:
-			cat['name'] = cat['name'].lower()
+		for cat in self.categories:			
+			cat['name'] = normalize(cat['name'])
 		
 		self._save()
 
@@ -118,7 +119,7 @@ class COCOAnnManager:
 	def _filter_by_classes(self, classes: list[str], filtered_anns: 'COCOAnnManager'):
 		cat_ids_to_keep = []
 		for cat_name, cat_id in self.classmap().items():
-			if cat_name.lower() in classes:
+			if cat_name in classes:
 				cat_ids_to_keep.append(cat_id)
 
 		filtered_anns.images = self.images

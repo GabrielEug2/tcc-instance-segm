@@ -6,7 +6,7 @@ from typing import Generator
 
 from .. import mask_conversions
 from ..structures import Annotation
-
+from ..classname_normalization import normalize
 
 class AnnManager:
 	"""Functions to work with annotations in segm_lib format."""
@@ -28,7 +28,7 @@ class AnnManager:
 			tmp_file = Path('tmp', f'{img_file_name}_coco-anns.json')
 			coco_anns.filter(tmp_file, img_file_name=img_file_name)
 			coco_anns_for_img = COCOAnnManager(tmp_file)
-			
+		
 			img_h, img_w = img_dimensions[img_file_name]
 
 			custom_anns = []
@@ -47,8 +47,7 @@ class AnnManager:
 			os.remove(str(tmp_file))
 
 	def get_n_images(self) -> int:
-		# 1 image per file, so...
-		n_images = sum(1 for _ in self.root_dir.glob('*.json'))
+		n_images = sum(1 for _ in self.get_img_file_names())
 		return n_images
 
 	def get_n_objects(self) -> int:
@@ -95,9 +94,7 @@ class AnnManager:
 			mask = mask_conversions.rle_to_bin_mask(seri_ann['mask'])
 			bbox = seri_ann['bbox']
 
-			pred_obj = Annotation(classname, mask, bbox)
-
-			annotations.append(pred_obj)
+			annotations.append(Annotation(classname, mask, bbox))
 
 		return annotations
 	
@@ -106,7 +103,7 @@ class AnnManager:
 			annotations = self.load(img)
 
 			for ann in annotations:
-				ann.classname = ann.classname.lower()
+				ann.classname = normalize(ann.classname)
 
 			self._save(annotations, img)
 	

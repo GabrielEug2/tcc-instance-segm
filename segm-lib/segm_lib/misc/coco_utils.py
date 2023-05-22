@@ -72,9 +72,9 @@ def class_map(coco_ann_dir: Path, out_file: Path):
 	classmaps = { 'default': default_map, 'normalized': normalized_map }
 
 	out_dir = out_file.parent
+	out_dir.mkdir(parents=True, exist_ok=True)
 	out_file_basename = out_file.stem
 	out_file_extension = out_file.suffix # already has the trailing '.'
-	out_dir.mkdir(parents=True, exist_ok=True)
 	for map_name, classmap in classmaps.items():
 		map_file = out_dir / f"{out_file_basename}_{map_name}{out_file_extension}"
 		with map_file.open('w') as f:

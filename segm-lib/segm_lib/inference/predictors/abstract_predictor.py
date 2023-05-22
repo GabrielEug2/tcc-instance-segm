@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 
-from ...core.managers.pred_manager import Prediction
+from ...core.structures import Prediction
 
 COCO_CLASSMAP_FILE = Path(__file__).parent / 'coco_classmap_normalized.json'
 with COCO_CLASSMAP_FILE.open('r') as f:

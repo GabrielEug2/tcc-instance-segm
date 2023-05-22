@@ -5,13 +5,15 @@ from typing import Generator
 
 from .. import mask_conversions
 from ..structures import Prediction
-from .coco_pred_manager import COCOPredManager
-
+from ..classname_normalization import normalize
 
 class PredManager:
 	"""Functions to work with predictions from in segm_lib format."""
 
 	def __init__(self, pred_dir: Path):
+		if not pred_dir.exists():
+			pred_dir.mkdir(parents=True)
+
 		self.root_dir = pred_dir
 
 	def save(self, predictions: list[Prediction], img_file_name: str, model_name: str):
@@ -53,9 +55,7 @@ class PredManager:
 			mask = mask_conversions.rle_to_bin_mask(seri_pred['mask'])
 			bbox = seri_pred['bbox']
 
-			pred_obj = Prediction(classname, confidence, mask, bbox)
-
-			predictions.append(pred_obj)
+			predictions.append(Prediction(classname, confidence, mask, bbox))
 
 		return predictions
 
@@ -101,7 +101,7 @@ class PredManager:
 				predictions = self.load(img, model)
 
 				for pred in predictions:
-					pred.classname = pred.classname.lower()
+					pred.classname = normalize(pred.classname)
 
 				self.save(predictions, img, model)
 
@@ -145,6 +145,8 @@ class PredManager:
 		filtered_pred_manager.save(filtered_preds, img_file_name, model_name)
 
 	def to_coco_format(self, model_name: str, img_map: dict, classmap: dict, out_file: Path):
+		from .coco_pred_manager import COCOPredManager
+
 		coco_preds = []
 		for img_file_name in img_map:
 			predictions = self.load(img_file_name, model_name)

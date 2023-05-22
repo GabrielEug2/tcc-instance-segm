@@ -12,7 +12,7 @@ n_imgs = args.n_imgs
 out_dir = Path(args.out_dir)
 if out_dir.exists():
 	op = input((f'out_dir "{str(out_dir)}" exists. Do you want '
-	             'to overwrite it? [y/n] ')).strip().lower()
+	             'to overwrite it? [y/n] ')).lower()
 	if op != 'y':
 		print('Operation cancelled.')
 		exit()
