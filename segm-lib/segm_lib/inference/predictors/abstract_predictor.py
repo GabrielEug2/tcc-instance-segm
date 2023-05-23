@@ -17,7 +17,6 @@ class Predictor(ABC):
 	def __init__(self):
 		"""Initializes the model, loading weights and any other
 		configurations needed for it's execution."""
-		pass
 	
 	@abstractmethod
 	def predict(self, img: np.ndarray) -> list[Prediction]:
@@ -29,7 +28,6 @@ class Predictor(ABC):
 		Returns:
 			list[Prediction]: list of objects detected on the image.
 		"""
-		pass
 	
 	@classmethod
 	def cocoid_to_classname(cls, id: int) -> str:

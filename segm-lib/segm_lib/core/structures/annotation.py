@@ -20,7 +20,15 @@ class Annotation(ObjectSegmentation):
 			'mask': mask_conversions.bin_mask_to_rle(self.mask),
 			'bbox': self.bbox,
 		}
-	
+
+	@classmethod
+	def from_serializable(cls, seri_ann):
+		classname = seri_ann['classname']
+		mask = mask_conversions.rle_to_bin_mask(seri_ann['mask'])
+		bbox = seri_ann['bbox']
+
+		return cls(classname, mask, bbox)
+
 	@classmethod
 	def from_coco_format(cls, coco_ann, classname) -> 'Annotation':
 		bbox = coco_ann['bbox'] if type(coco_ann['bbox']) == list else coco_ann['bbox'].tolist()

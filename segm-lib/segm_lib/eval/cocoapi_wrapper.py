@@ -119,38 +119,15 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 		# they concatenate all of those, per IoU, because for the tp/fp/fn
 		# computations, it doesn't matter from which image it is: all that
 		# matters is whether or not there was a match.
-		dtm  = np.concatenate([e['dtMatches'][:,0:maxDet] for e in evalImgs_for_that_k], axis=1)[:,inds]
-		dtIg = np.concatenate([e['dtIgnore'][:,0:maxDet]  for e in evalImgs_for_that_k], axis=1)[:,inds]
-		tps = np.logical_and(               dtm,  np.logical_not(dtIg) )
-		fps = np.logical_and(np.logical_not(dtm), np.logical_not(dtIg) )
+		dtm = np.concatenate([e['dtMatches'][:,0:maxDet] for e in evalImgs_for_that_k], axis=1)[:,inds]
 
-		# for each threshold, they compute the cum_sum of tp and fp
-		# (aparently it has to do with the way precision and recall is
-		# calculated, I had no idea)
-		# tp_sum[0] is the cum_sum_tp for the first threshold
-		# tp_sum[1] is the cum_sum_tp for the second threshold
-		# and so on
-		# tp_sum[tind,x] is the n_tp in the first x detections
-		# tp_sum[tind,-1], which I use below, is the total number of tp
-		# for that category
-		tp_sum = np.cumsum(tps, axis=1).astype(dtype=float)
-		fp_sum = np.cumsum(fps, axis=1).astype(dtype=float)
-
-		# I'm counting tp/fp/fn for IoU 0.5, which is the first one,
-		# and I only care about the "total" tp/fp, which is the last item of the sum
-		if len(tp_sum[0]) >= 1:
-			n_true_positives_per_class[classname] = int(tp_sum[0][-1])
-			n_false_positives_per_class[classname] = int(fp_sum[0][-1])
-		else:
-			# if there are no detections for that k, the len of each row in dtm
-			# will be 0, which makes it so that the len of the rows in "tps",
-			# "fps", "tp_sum" and "fp_sum" all become 0, so... I can't access 
-			# it like I usually do, with index [-1]
-			# Luckly, it is also very simple to deduce that, if there are no
-			# detections for that k, there are also no true_positives nor
-			# false positives
-			n_true_positives_per_class[classname] = 0
-			n_false_positives_per_class[classname] = 0
+		# They calculate the number of tp/fp/fn slightly diferently, because
+		# of the way mAP is calculated, but I don't need to do that
+		n_tps_per_threshold = np.count_nonzero(dtm != 0, axis=1)
+		n_fps_per_threshold = np.count_nonzero(dtm == 0, axis=1)
+		# I'm only counting tp/fp/fn for IoU 0.5, which is the first one
+		n_true_positives_per_class[classname] = int(n_tps_per_threshold[0])
+		n_false_positives_per_class[classname] = int(n_fps_per_threshold[0])
 			
 		# Now for false negatives...
 		# Same logic I explained for e['dtMatches'] applies to e['gtMatches'].
@@ -161,17 +138,8 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 		# which img it is
 		gtm = np.concatenate([e['gtMatches'] for e in evalImgs_for_that_k], axis=1)
 		n_fns_per_threshold = np.count_nonzero(gtm == 0, axis=1)
-		n_fn = n_fns_per_threshold[0]
-		# I could also just use the values they compute. They compute recall as
-		# "recall = tp / npig", so npig *must be* "TP + FN" (that's literally the
-		# definition of recall). Since I have the n_tp, all I gotta do is subtract
-		# it.
-		# gtIg = np.concatenate([e['gtIgnore'] for e in evalImgs_for_that_k])
-		# npig = np.count_nonzero(gtIg==0 )
-		# if npig == 0:
-		# 	continue
-		# n_fn = npig - tp_sum[0][-1]
-		n_false_negatives_per_class[classname] = int(n_fn)
+		# again, I'm only interested on the first one
+		n_false_negatives_per_class[classname] = n_fns_per_threshold[0]
 
 		if detailed:
 			# To get an actual list of tps/fps/fns, it's a bit more complicated.

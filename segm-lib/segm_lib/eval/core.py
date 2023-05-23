@@ -12,7 +12,7 @@ from ..core.managers.ann_manager import AnnManager
 from ..core.managers.coco_ann_manager import COCOAnnManager
 from ..core.managers.pred_manager import PredManager
 from ..core.structures import Annotation, Prediction
-from ..core.classname_normalization import normalize
+from ..core.classname_normalization import normalize_classname
 from . import cocoapi_wrapper
 from . import post_processing
 from .structures.dataset_info import DatasetInfo, ImageInfo
@@ -86,6 +86,8 @@ def _compute_dataset_info(ann_manager: AnnManager) -> DatasetInfo:
 	)
 
 class HiddenPrints:
+	# Solution from here:
+	# https://stackoverflow.com/questions/8391411/how-to-block-calls-to-print
 	def __enter__(self):
 		self._original_stdout = sys.stdout
 		sys.stdout = open(os.devnull, 'w')
@@ -101,7 +103,7 @@ def _evaluate_model(
 		ann_manager: AnnManager,
 		coco_ann_file: Path,
 		out_dir: Path
-	):
+		):
 	print(f'\nEvaluating {model_name}... ')
 	model_results_dir = out_dir / model_name
 	
@@ -127,16 +129,14 @@ def _evaluate_model(
 	print('done')
 
 	print('  Evaluating on dataset... ', end='', flush=True)
-	# "HiddenPrints" solution from here:
-	# https://stackoverflow.com/questions/8391411/how-to-block-calls-to-print
 	with HiddenPrints():
-		results_on_dataset = evaluate_on_dataset(eval_files, model_name)
+		results_on_dataset = _evaluate_on_dataset(eval_files, model_name)
 	_save(asdict(results_on_dataset), model_results_dir / 'results-on-dataset.json')
 	print('done')
 
 	print('  Evaluating per image...', flush=True)
 	with HiddenPrints():
-		evaluate_per_image(eval_files, model_name, model_results_dir / 'results-per-image')
+		_evaluate_per_image(eval_files, model_name, model_results_dir / 'results-per-image')
 	print('done')
 
 def _compute_raw_results(model_name: str, pred_manager: PredManager) -> RawResults:
@@ -154,7 +154,7 @@ def _compute_eval_filters(ann_manager: AnnManager, possible_classes_dir: Path, m
 	ann_classes = ann_manager.get_classnames()
 	with (possible_classes_dir / f'{model_name}.json').open('r') as f:
 		possible_pred_classes = json.load(f)
-	possible_pred_classes = {normalize(c) for c in set(possible_pred_classes)}
+	possible_pred_classes = {normalize_classname(c) for c in set(possible_pred_classes)}
 
 	evaluatable_classes = {c for c in ann_classes if c in possible_pred_classes}
 	pred_classes_ignored = list(possible_pred_classes - evaluatable_classes)
@@ -236,7 +236,7 @@ def _prep_eval_files(
 		per_image=eval_files_per_img
 	)
 
-def evaluate_on_dataset(eval_files: EvalFiles, model_name: str) -> DatasetResults:
+def _evaluate_on_dataset(eval_files: EvalFiles, model_name: str) -> DatasetResults:
 	dataset_results = DatasetResults()
 
 	filtered_anns_manager = AnnManager(eval_files.custom_anns_dir)
@@ -267,7 +267,7 @@ def evaluate_on_dataset(eval_files: EvalFiles, model_name: str) -> DatasetResult
 
 	return dataset_results
 
-def evaluate_per_image(eval_files: EvalFiles, model_name: str, out_dir: Path) -> dict[str, ImgResults]:
+def _evaluate_per_image(eval_files: EvalFiles, model_name: str, out_dir: Path) -> dict[str, ImgResults]:
 	coco_ann_manager = COCOAnnManager(eval_files.coco_anns_file)
 	img_map = coco_ann_manager.img_map()
 

@@ -7,11 +7,6 @@ class RawResults:
 	n_objects_predicted: int = 0
 	class_dist_for_predictions: dict[str, int] = field(default_factory=dict)
 
-	# @classmethod
-	# def from_dict(cls, d: dict) -> "ModelResults":
-	# 	field_names = (field.name for field in fields(cls))
-	# 	return cls(**{k: v for k, v in d.items() if k in field_names})
-
 @dataclass
 class EvalFilters:
 	classes_considered: list[str] = field(default_factory=list)

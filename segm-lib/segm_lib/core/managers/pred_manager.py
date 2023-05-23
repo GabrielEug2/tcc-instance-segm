@@ -5,7 +5,7 @@ from typing import Generator
 
 from .. import mask_conversions
 from ..structures import Prediction
-from ..classname_normalization import normalize
+from ..classname_normalization import normalize_classname
 
 class PredManager:
 	"""Functions to work with predictions from in segm_lib format."""
@@ -27,13 +27,7 @@ class PredManager:
 		"""
 		serializable_preds = []
 		for pred in predictions:
-			pred_dict = {}
-			pred_dict['classname'] = pred.classname
-			pred_dict['confidence'] = pred.confidence
-			pred_dict['mask'] = mask_conversions.bin_mask_to_rle(pred.mask)
-			pred_dict['bbox'] = pred.bbox
-
-			serializable_preds.append(pred_dict)
+			serializable_preds.append(pred.serializable())
 
 		out_file = self.root_dir / model_name / f'{img_file_name}.json'
 		out_file.parent.mkdir(parents=True, exist_ok=True)
@@ -50,20 +44,12 @@ class PredManager:
 
 		predictions = []
 		for seri_pred in serializable_preds:
-			classname = seri_pred['classname']
-			confidence = seri_pred['confidence']
-			mask = mask_conversions.rle_to_bin_mask(seri_pred['mask'])
-			bbox = seri_pred['bbox']
-
-			predictions.append(Prediction(classname, confidence, mask, bbox))
+			predictions.append(Prediction.from_serializable(seri_pred))
 
 		return predictions
 
 	def get_model_names(self) -> list[str]:
 		return [f.stem for f in self.root_dir.glob('*') if f.is_dir()]		
-
-	def get_classnames(self, model_name: str) -> set[str]:
-		return self.class_distribution(model_name).keys()
 
 	def class_distribution(self, model_name: str) -> dict[str, int]:
 		if hasattr(self, '_cached_class_dists') and model_name in self._cached_class_dists:
@@ -95,16 +81,6 @@ class PredManager:
 	def get_n_objects(self, model_name: str) -> int:
 		return sum(self.class_distribution(model_name).values())
 
-	def normalize_classnames(self):
-		for model in self.get_model_names():
-			for img in self._img_files_for_model(model):
-				predictions = self.load(img, model)
-
-				for pred in predictions:
-					pred.classname = normalize(pred.classname)
-
-				self.save(predictions, img, model)
-
 	def filter(self, out_dir: Path, model_name: str, classes: list[str] = None, img_file_name: str = None):
 		"""Filter the predictions by the specified criteria.
 
@@ -128,21 +104,15 @@ class PredManager:
 		else:
 			self._filter_by_img(model_name, img_file_name, filtered_pred_manager)
 
-	def _filter_by_classes(self, model_name: str, classes: list[str], filtered_pred_manager: 'PredManager'):
-		for img_file_name in self._img_files_for_model(model_name):
-			predictions_for_img = self.load(img_file_name, model_name)
+	def normalize_classnames(self):
+		for model in self.get_model_names():
+			for img in self._img_files_for_model(model):
+				predictions = self.load(img, model)
 
-			filtered_preds = []
-			for pred in predictions_for_img:
-				if pred.classname in classes:
-					filtered_preds.append(pred)
+				for pred in predictions:
+					pred.classname = normalize_classname(pred.classname)
 
-			filtered_pred_manager.save(filtered_preds, img_file_name, model_name)
-
-	def _filter_by_img(self, model_name: str, img_file_name: str, filtered_pred_manager: 'PredManager'):
-		filtered_preds = self.load(img_file_name, model_name)
-
-		filtered_pred_manager.save(filtered_preds, img_file_name, model_name)
+				self.save(predictions, img, model)
 
 	def to_coco_format(self, model_name: str, img_map: dict, classmap: dict, out_file: Path):
 		from .coco_pred_manager import COCOPredManager
@@ -170,6 +140,22 @@ class PredManager:
 		coco_pred_manager = COCOPredManager(out_file)
 		coco_pred_manager.predictions = coco_preds
 		coco_pred_manager.save()
+
+	def _filter_by_classes(self, model_name: str, classes: list[str], filtered_pred_manager: 'PredManager'):
+		for img_file_name in self._img_files_for_model(model_name):
+			predictions_for_img = self.load(img_file_name, model_name)
+
+			filtered_preds = []
+			for pred in predictions_for_img:
+				if pred.classname in classes:
+					filtered_preds.append(pred)
+
+			filtered_pred_manager.save(filtered_preds, img_file_name, model_name)
+
+	def _filter_by_img(self, model_name: str, img_file_name: str, filtered_pred_manager: 'PredManager'):
+		filtered_preds = self.load(img_file_name, model_name)
+
+		filtered_pred_manager.save(filtered_preds, img_file_name, model_name)
 
 	def _img_files_for_model(self, model_name: str) -> Generator:
 		return (f.stem for f in (self.root_dir / model_name).glob('*'))

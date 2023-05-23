@@ -7,7 +7,7 @@ from pycocotools import mask as coco_mask
 def bin_mask_to_rle(bin_mask: torch.BoolTensor) -> dict:
 	bin_mask_in_cocoapi_format = bin_mask.numpy().astype('uint8', order='F')
 	rle = coco_mask.encode(bin_mask_in_cocoapi_format)
-	return _serializable_rle(rle)
+	return _str_rle(rle)
 
 def rle_to_bin_mask(rle: dict) -> torch.BoolTensor:
 	bin_mask_in_cocoapi_format = coco_mask.decode(_bytes_rle(rle))
@@ -31,9 +31,9 @@ def ann_to_rle(segm, h, w) -> dict:
 		# rle
 		rle = segm
 
-	return _serializable_rle(rle)
+	return _str_rle(rle)
 
-def _serializable_rle(rle):
+def _str_rle(rle):
 	# by default, "counts" is in binary, but since I only
 	# convert to RLE to *store* the masks, it's better to
 	# just return it as a str to automaticaly convert it

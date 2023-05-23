@@ -14,11 +14,11 @@ def download_from_openimages(class_list: list[str], n_imgs: int, out_dir: Path):
 	import fiftyone.zoo as fozoo
 	from fiftyone.types import COCODetectionDataset
 
-	openimages_classes = [c.lower() for c in openimages.get_segmentation_classes()]
-	common_classes = [c for c in class_list if c in openimages_classes]
+	normalized_class_list = [c.capitalize() for c in class_list]
+	openimages_classes = openimages.get_segmentation_classes() # openimage classes are capitalized
+	common_classes = [c for c in normalized_class_list if c in openimages_classes]
 
-	classes_to_download = [x.capitalize() for x in common_classes]
-	classes_to_download = classes_to_download[:10]
+	classes_to_download = common_classes[:10]
 
 	dataset = fozoo.load_zoo_dataset(
 		'open-images-v6',

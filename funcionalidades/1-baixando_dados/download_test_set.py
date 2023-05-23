@@ -30,6 +30,6 @@ dist_sorted_by_count = dict(sorted(
 	key=lambda c: c[1],
 	reverse=True
 ))
-wanted_classes_by_order = [c.lower() for c in dist_sorted_by_count]
+wanted_classes_by_order = [c for c in dist_sorted_by_count]
 
 download_utils.download_from_openimages(wanted_classes_by_order, n_imgs, out_dir)

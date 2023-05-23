@@ -6,7 +6,7 @@ from typing import Generator
 
 from .. import mask_conversions
 from ..structures import Annotation
-from ..classname_normalization import normalize
+from ..classname_normalization import normalize_classname
 
 class AnnManager:
 	"""Functions to work with annotations in segm_lib format."""
@@ -27,8 +27,8 @@ class AnnManager:
 		for img_file_name in coco_anns.img_file_names():
 			tmp_file = Path('tmp', f'{img_file_name}_coco-anns.json')
 			coco_anns.filter(tmp_file, img_file_name=img_file_name)
+
 			coco_anns_for_img = COCOAnnManager(tmp_file)
-		
 			img_h, img_w = img_dimensions[img_file_name]
 
 			custom_anns = []
@@ -45,6 +45,20 @@ class AnnManager:
 
 			self._save(custom_anns, img_file_name)
 			os.remove(str(tmp_file))
+
+	def load(self, img_file_name: str) -> list[Annotation]:
+		ann_file = self.root_dir / f"{img_file_name}.json"
+		try:
+			with ann_file.open('r') as f:
+				serializable_anns = json.load(f)
+		except FileNotFoundError:
+			return []
+
+		annotations = []
+		for seri_ann in serializable_anns:
+			annotations.append(Annotation.from_serializable(seri_ann))
+
+		return annotations
 
 	def get_n_images(self) -> int:
 		n_images = sum(1 for _ in self.get_img_file_names())
@@ -67,6 +81,9 @@ class AnnManager:
 		self._cached_class_dist = class_dist
 		return class_dist
 
+	def get_classnames(self) -> set[str]:
+		return self.class_distribution().keys()
+	
 	def get_img_file_names(self) -> Generator[str, None, None]:
 		return (f.stem for f in self.root_dir.glob('*.json'))
 
@@ -79,37 +96,7 @@ class AnnManager:
 		class_dist = dict(class_dist)
 
 		return class_dist
-
-	def load(self, img_file_name: str) -> list[Annotation]:
-		ann_file = self.root_dir / f"{img_file_name}.json"
-		try:
-			with ann_file.open('r') as f:
-				serializable_anns = json.load(f)
-		except FileNotFoundError:
-			return []
-
-		annotations = []
-		for seri_ann in serializable_anns:
-			classname = seri_ann['classname']
-			mask = mask_conversions.rle_to_bin_mask(seri_ann['mask'])
-			bbox = seri_ann['bbox']
-
-			annotations.append(Annotation(classname, mask, bbox))
-
-		return annotations
-	
-	def normalize_classnames(self):
-		for img in self.get_img_file_names():
-			annotations = self.load(img)
-
-			for ann in annotations:
-				ann.classname = normalize(ann.classname)
-
-			self._save(annotations, img)
-	
-	def get_classnames(self) -> set[str]:
-		return self.class_distribution().keys()
-	
+		
 	def filter(self, out_dir: Path, classes: list[str] = None, img_file_name: str = None):
 		"""Filter the annotations by the specified criteria.
 
@@ -131,6 +118,15 @@ class AnnManager:
 			self._filter_by_classes(classes, filtered_ann_manager)
 		else:
 			self._filter_by_img(img_file_name, filtered_ann_manager)
+	
+	def normalize_classnames(self):
+		for img in self.get_img_file_names():
+			annotations = self.load(img)
+
+			for ann in annotations:
+				ann.classname = normalize_classname(ann.classname)
+
+			self._save(annotations, img)
 
 	def _filter_by_classes(self, classes: list[str], filtered_ann_manager: 'AnnManager'):
 		for img_file_name in self.get_img_file_names():
@@ -148,12 +144,7 @@ class AnnManager:
 	def _save(self, anns: list[Annotation], img_file_name: str):
 		serializable_anns = []
 		for ann in anns:
-			ann_dict = {}
-			ann_dict['classname'] = ann.classname
-			ann_dict['mask'] = mask_conversions.bin_mask_to_rle(ann.mask)
-			ann_dict['bbox'] = ann.bbox
-
-			serializable_anns.append(ann_dict)
+			serializable_anns.append(ann.serializable())
 
 		out_file = self.root_dir / f'{img_file_name}.json'
 		with out_file.open('w') as f:

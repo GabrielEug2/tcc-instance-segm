@@ -25,6 +25,15 @@ class Prediction(ObjectSegmentation):
 		}
 	
 	@classmethod
+	def from_serializable(cls, seri_pred):
+		classname = seri_pred['classname']
+		confidence = seri_pred['confidence']
+		mask = mask_conversions.rle_to_bin_mask(seri_pred['mask'])
+		bbox = seri_pred['bbox']
+
+		return cls(classname, confidence, mask, bbox)
+	
+	@classmethod
 	def from_coco_format(cls, coco_pred, classname) -> 'Prediction':
 		confidence = coco_pred['score']
 		bbox = coco_pred['bbox'] if type(coco_pred['bbox']) == list else coco_pred['bbox'].tolist()

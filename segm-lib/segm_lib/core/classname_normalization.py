@@ -1,3 +1,3 @@
 
-def normalize(classname):
+def normalize_classname(classname):
     return classname.lower()
