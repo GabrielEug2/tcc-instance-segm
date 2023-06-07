@@ -54,3 +54,58 @@ def _save(results_per_img: list[dict], out_file: Path):
 			average = results_dict['average']
 			performance_diff = results_dict['diff_between_highest_and_lowest']
 			f.write(f'\n{img_name} | {AP_per_model} | {average} | {performance_diff}')
+
+
+def plot_tp_fp_fn(eval_dir, img_dir):
+	# something like the detectron plot function...
+	# def _plot(self, anns_or_preds: list[Annotation]|list[Prediction], img_file: Path, out_file: Path):
+	# 		classnames, scores, masks, boxes = [], [], [], []
+	# 		for ann_or_pred in anns_or_preds:
+	# 			classnames.append(ann_or_pred.classname)
+	# 			scores.append(ann_or_pred.confidence if hasattr(ann_or_pred, 'confidence') else 1.0)
+
+	# 			bin_mask = mask_conversions.rle_to_bin_mask(ann_or_pred.mask)
+	# 			masks.append(bin_mask)
+
+	# 			boxes.append(ann_or_pred.bbox)
+			
+	# 		class_list = list(set(classnames))
+	# 		class_ids = []
+	# 		for classname in classnames:
+	# 			class_ids.append(class_list.index(classname))
+	# 		metadata = Metadata()
+	# 		metadata.set(thing_classes = class_list)
+
+	# 		boxes_for_api = []
+	# 		for box in boxes:
+	# 			# pra essa API do Detectron precisa estar em [x1,y1,x2,y2]
+	# 			x1, y1, w, h = box
+	# 			x2 = x1 + w
+	# 			y2 = y1 + h
+	# 			boxes_for_api.append([x1, y1, x2, y2])
+
+	# 		img = cv2.imread(str(img_file))
+	# 		h, w, _ = img.shape
+	# 		instances = Instances((h, w))
+	# 		instances.pred_classes = torch.tensor(class_ids, dtype=torch.int)
+	# 		instances.scores = torch.tensor(scores, dtype=torch.float)
+	# 		instances.pred_masks = torch.stack(masks) if len(masks) >= 1 else torch.tensor([])
+	# 		instances.pred_boxes = Boxes(torch.tensor(boxes_for_api, dtype=torch.float))
+
+	# 		v = Visualizer(img, metadata)
+	# 		vis_out = v.draw_instance_predictions(instances)
+	# 		out_img = vis_out.get_image()
+
+	# 		out_file.parent.mkdir(parents=True, exist_ok=True)
+	# 		cv2.imwrite(str(out_file), out_img)
+
+	# but using the tp/fp/fn I saved
+	# 	changing the classes to "true_positive", "false_positive" and "false_negative"
+	#	or maybe "classname_TP", "classname_FP" amd "classname_FN" (probably this 2nd one)
+
+	# and an unique color for TP/FP/FN
+	# 	setting metadata.thing_colors
+	# 		thing_colors (list[tuple(r, g, b)]): Pre-defined color (in [0, 255])
+	# 		for each thing category. Used for visualization. If not given, random
+	# 		colors will be used.
+	pass
