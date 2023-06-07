@@ -25,7 +25,7 @@ class AbstractPlotLib(ABC):
 			if len(annotations) == 0:
 				continue
 
-			# no need for lib name here since I only use this on one lib
+			# no need for lib_name here since I only plot everything with one lib
 			annotated_img_file = out_dir / img_file.stem / "groundtruth.jpg"
 			annotated_img_file.parent.mkdir(parents=True, exist_ok=True)
 			self._plot(annotations, img_file, annotated_img_file)
@@ -55,7 +55,7 @@ class AbstractPlotLib(ABC):
 				if len(predictions) == 0:
 					continue
 
-				# no need for lib name here since I only use this on one lib
+				# no need for lib_name here since I only plot everything with one lib
 				predictions_img_file = out_dir / img_file.stem / f"{model_name}.jpg"
 				predictions_img_file.parent.mkdir(parents=True, exist_ok=True)
 				self._plot(predictions, img_file, predictions_img_file)

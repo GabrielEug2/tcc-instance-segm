@@ -27,7 +27,7 @@ Aqui, eu prefiro separar as anotações em um arquivo por imagem, contendo só a
 python split_annotations.py <coco_ann_file> <custom_ann_dir>
 ```
 
-Daqui em diante, sempre que eu dizer "ann_dir", eu estarei me referindo a esse diretório com as anotações no meu formato.
+Daqui em diante, sempre que eu disser "ann_dir", eu estarei me referindo a esse diretório com as anotações no meu formato.
 
 ### Visualizando as anotações
 

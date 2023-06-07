@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 
-from ...core.structures import Prediction
+from ..raw_prediction import RawPrediction
 
 COCO_CLASSMAP_FILE = Path(__file__).parent / 'coco_classmap_normalized.json'
 with COCO_CLASSMAP_FILE.open('r') as f:
@@ -19,14 +19,14 @@ class Predictor(ABC):
 		configurations needed for it's execution."""
 	
 	@abstractmethod
-	def predict(self, img: np.ndarray) -> list[Prediction]:
+	def predict(self, img: np.ndarray) -> list[RawPrediction]:
 		"""Segments objects on the image.
 
 		Args:
 			img (np.ndarray): image in BGR space.
 
 		Returns:
-			list[Prediction]: list of objects detected on the image.
+			list[RawPrediction]: list of objects detected on the image.
 		"""
 	
 	@classmethod

@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -17,7 +17,7 @@ class EvalFilters:
 class CommonResults:
 	anns_considered: 'AnnsOrPredsInfo' = None
 	preds_considered: 'AnnsOrPredsInfo' = None
-	mAP: float = 0.0
+	AP: float = 0.0
 
 @dataclass(kw_only=True)
 class DatasetResults(CommonResults):

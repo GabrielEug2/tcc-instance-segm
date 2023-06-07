@@ -12,7 +12,7 @@
             "args": [
 				"debug/predictions",
                 "debug/annotations",
-				"possible_classes",
+				"funcionalidades/3-analises/possible_classes",
 				"debug/annotations.json",
 				"debug/eval",
 				"-y",

@@ -5,8 +5,11 @@ from pathlib import Path
 import cv2
 from tqdm import tqdm
 
+from ..core import mask_conversions
 from ..core.managers.pred_manager import PredManager
-from .predictors import VALID_MODELS, import_model, MODEL_MAP
+from ..core.structures.prediction import Prediction
+from .predictors import MODEL_MAP, VALID_MODELS, Predictor, import_model
+from .raw_prediction import RawPrediction
 from .stats_manager import StatsManager
 
 
@@ -32,6 +35,7 @@ def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None
 
 	if not out_dir.exists():
 		out_dir.mkdir(parents=True)
+
 	_inference(img_files, out_dir, requested_models)
 
 def _load_models(models):
@@ -69,12 +73,12 @@ def _inference(img_files: list[Path], out_dir: Path, models: list[str]):
 
 	for model_name in models:
 		print(f'\n\n{model_name}')
-		total_time = _run_on_all_imgs(img_files, model_name, pred_manager)
+		total_time = _run_on_all_imgs(model_name, img_files, pred_manager)
 		stats_manager.set_time_for_model(model_name, total_time)
 
 	stats_manager.save(out_dir)
 
-def _run_on_all_imgs(img_files: list[Path], model_name: str, pred_manager: PredManager):
+def _run_on_all_imgs(model_name: str, img_files: list[Path], pred_manager: PredManager):
 	predictor = MODEL_MAP[model_name]()
 
 	start_time = time.time()
@@ -82,7 +86,16 @@ def _run_on_all_imgs(img_files: list[Path], model_name: str, pred_manager: PredM
 		img = cv2.imread(str(img_file))
 		predictions = predictor.predict(img)
 
-		pred_manager.save(predictions, img_file.stem, model_name)
+		compact_preds = []
+		for pred in predictions:
+			compact_preds.append(Prediction(
+				pred.classname,
+				pred.confidence,
+				mask_conversions.bin_mask_to_rle(pred.mask),
+				pred.bbox
+			))
+
+		pred_manager.save(compact_preds, img_file.stem, model_name)
 	total_time = datetime.timedelta(seconds=(time.time() - start_time))
 
 	return total_time

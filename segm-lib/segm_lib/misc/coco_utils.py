@@ -37,11 +37,8 @@ def class_dist(coco_ann_dir: Path, out_file: Path, verbose: bool = True):
 		if verbose:
 			print('done')
 
-	dist_sorted_by_count = dict(sorted(
-		total_class_dist.items(),
-		key=lambda c: c[1],
-		reverse=True
-	))
+	dist_sorted_by_count = dict(sorted(total_class_dist.items(), key=lambda c: c[1], reverse=True))
+
 	out_file.parent.mkdir(parents=True, exist_ok=True)
 	with out_file.open('w') as f:
 		json.dump(dist_sorted_by_count, f, indent=4)
@@ -76,6 +73,8 @@ def class_map(coco_ann_dir: Path, out_file: Path):
 	out_file_basename = out_file.stem
 	out_file_extension = out_file.suffix # already has the trailing '.'
 	for map_name, classmap in classmaps.items():
+		map_sorted_by_id = dict(sorted(classmap.items(), key=lambda c: c[1], reverse=True))
+
 		map_file = out_dir / f"{out_file_basename}_{map_name}{out_file_extension}"
 		with map_file.open('w') as f:
-			json.dump(classmap, f, indent=4)
+			json.dump(map_sorted_by_id, f, indent=4)

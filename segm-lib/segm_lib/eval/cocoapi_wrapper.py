@@ -12,13 +12,13 @@ from .structures.results import TP_FP_FN_ShortInfo, TP_FP_FN_DetailedInfo
 
 @dataclass
 class APIResults:
-	mAP: float = 0.0
+	AP: float = 0.0
 	true_positives: TP_FP_FN_ShortInfo|TP_FP_FN_DetailedInfo = None
 	false_positives: TP_FP_FN_ShortInfo|TP_FP_FN_DetailedInfo = None
 	false_negatives: TP_FP_FN_ShortInfo|TP_FP_FN_DetailedInfo = None
 
 def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResults:
-	"""Computes mAP and tp/fp/fn info for the data.
+	"""Computes AP and tp/fp/fn info for the data.
 
 	Args:
 		coco_anns_file (Path): file containing coco-formatted annotations.
@@ -29,9 +29,10 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 
 	Returns:
 		APIResults: has the following fields:
-			mAP: float
-			true_positives / false_positives / false_negatives: TP_FP_FN_ShortInfo
-			 	if detailed is False, TP_FP_FN_DetailedInfo if detailed is True
+			AP: float
+			true_positives / false_positives / false_negatives:
+				eval.structures.results.TP_FP_FN_ShortInfo if detailed is False,
+				eval.structures.results.TP_FP_FN_DetailedInfo if it is True
 	"""
 	results = APIResults()
 
@@ -46,7 +47,7 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 	E.evaluate()
 	E.accumulate()
 	E.summarize()
-	results.mAP = round(float(E.stats[0]), 3)
+	results.AP = round(float(E.stats[0]), 3)
 
 	# basically the same code as the accumulate() function, with slighly
 	# adaptations to get what I want (true positives, false positives and
@@ -63,13 +64,13 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 	A0 = len(_pe.areaRng)
 
 	# anything involving "p" is about the parameters I want now
-	# (things that WILL BE taken into account to calculate the mAP)
+	# (things that WILL BE taken into account to calculate the AP)
 	p = E.params
 	p.maxDets = [100]
 	p.areaRng = [p.areaRng[0]] # all
 	k_list = [n for n, k in enumerate(p.catIds)  if k in setK]
 	# I'll also want the catId for each value in k_list, so:
-	cat_ids_from_k0 = [k for n, k in enumerate(p.catIds) if k in setK]
+	cat_ids_from_k = [k for n, k in enumerate(p.catIds) if k in setK]
 	m_list = [m for n, m in enumerate(p.maxDets) if m in setM]
 	a_list = [n for n, a in enumerate(map(lambda x: tuple(x), p.areaRng)) if a in setA]
 	i_list = [n for n, i in enumerate(p.imgIds)  if i in setI]
@@ -81,8 +82,8 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 	false_positives_per_class = defaultdict(list)
 	false_negatives_per_class = defaultdict(list)
 	for k, k0 in enumerate(k_list):
-		# get classname from this k0
-		cat_id = cat_ids_from_k0[k0]
+		# get classname from this k
+		cat_id = cat_ids_from_k[k]
 		classname = ground_truth.cats[cat_id]['name']
 
 		Nk = k0*A0*I0
@@ -98,6 +99,7 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 		evalImgs_for_that_k = [E.evalImgs[Nk + Na + i] for i in i_list]
 		evalImgs_for_that_k = [e for e in evalImgs_for_that_k if not e is None]
 		if len(evalImgs_for_that_k) == 0:
+			# no annotations nor predictions for that k
 			continue
 		dtScores = np.concatenate([e['dtScores'][0:maxDet] for e in evalImgs_for_that_k])
 
@@ -122,7 +124,7 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 		dtm = np.concatenate([e['dtMatches'][:,0:maxDet] for e in evalImgs_for_that_k], axis=1)[:,inds]
 
 		# They calculate the number of tp/fp/fn slightly diferently, because
-		# of the way mAP is calculated, but I don't need to do that
+		# of the way AP is calculated, but I don't need to do that
 		n_tps_per_threshold = np.count_nonzero(dtm != 0, axis=1)
 		n_fps_per_threshold = np.count_nonzero(dtm == 0, axis=1)
 		# I'm only counting tp/fp/fn for IoU 0.5, which is the first one
@@ -138,8 +140,8 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 		# which img it is
 		gtm = np.concatenate([e['gtMatches'] for e in evalImgs_for_that_k], axis=1)
 		n_fns_per_threshold = np.count_nonzero(gtm == 0, axis=1)
-		# again, I'm only interested on the first one
-		n_false_negatives_per_class[classname] = n_fns_per_threshold[0]
+		# again, I'm only interested on IoU 0.5, which is the first one
+		n_false_negatives_per_class[classname] = int(n_fns_per_threshold[0])
 
 		if detailed:
 			# To get an actual list of tps/fps/fns, it's a bit more complicated.

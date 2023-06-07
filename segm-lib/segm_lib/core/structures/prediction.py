@@ -1,6 +1,5 @@
-import torch
 
-from .. import mask_conversions
+
 from .object_segmentation import ObjectSegmentation
 
 
@@ -9,10 +8,10 @@ class Prediction(ObjectSegmentation):
 	Has the following fields:
 		"classname": string,
 		"confidence": float, [0,1]
-		"mask": torch.BoolTensor,
+		"mask": RLE (use core.mask_conversions.rle_to_bin_mask() to convert when needed),
 		"bbox": list, [x, y, w, h]
 	"""
-	def __init__(self, classname: str, confidence: float, mask: torch.BoolTensor, bbox: list):
+	def __init__(self, classname: str, confidence: float, mask: dict, bbox: list):
 		super().__init__(classname, mask, bbox)
 		self.confidence = confidence
 
@@ -20,7 +19,7 @@ class Prediction(ObjectSegmentation):
 		return {
 			'classname': self.classname,
 			'confidence': self.confidence,
-			'mask': mask_conversions.bin_mask_to_rle(self.mask),
+			'mask': self.mask,
 			'bbox': self.bbox,
 		}
 	
@@ -28,7 +27,7 @@ class Prediction(ObjectSegmentation):
 	def from_serializable(cls, seri_pred):
 		classname = seri_pred['classname']
 		confidence = seri_pred['confidence']
-		mask = mask_conversions.rle_to_bin_mask(seri_pred['mask'])
+		mask = seri_pred['mask']
 		bbox = seri_pred['bbox']
 
 		return cls(classname, confidence, mask, bbox)
@@ -37,6 +36,6 @@ class Prediction(ObjectSegmentation):
 	def from_coco_format(cls, coco_pred, classname) -> 'Prediction':
 		confidence = coco_pred['score']
 		bbox = coco_pred['bbox'] if type(coco_pred['bbox']) == list else coco_pred['bbox'].tolist()
-		mask = mask_conversions.rle_to_bin_mask(coco_pred['segmentation'])
+		mask = coco_pred['segmentation']
 
 		return cls(classname, confidence, mask, bbox)

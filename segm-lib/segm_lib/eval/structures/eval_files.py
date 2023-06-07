@@ -1,19 +1,17 @@
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 
 @dataclass
 class EvalFiles:
-	custom_anns_dir: Path = None
-	custom_preds_dir: Path = None
-	coco_anns_file: Path = None
-	coco_preds_file: Path = None
-	per_image: dict[str, 'EvalFilesForImg'] = None
+	filtered_anns_dir: Path = None
+	filtered_preds_dir: Path = None
+	filtered_coco_anns_file: Path = None
+	filtered_coco_preds_file: Path = None
+	per_image: dict[str, 'EvalFilesForImg'] = field(default_factory=dict)
 
 @dataclass
 class EvalFilesForImg:
-	custom_anns_dir: Path = None
-	custom_preds_dir: Path = None
-	coco_anns_file: Path = None
-	coco_preds_file: Path = None
+	filtered_coco_anns_file: Path = None
+	filtered_coco_preds_file: Path = None

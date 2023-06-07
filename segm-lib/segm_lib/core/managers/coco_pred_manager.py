@@ -6,10 +6,10 @@ from pathlib import Path
 class COCOPredManager:
 	def __init__(self, pred_file: Path):
 		if not pred_file.exists():
-			pred_file.parent.mkdir(parents=True, exist_ok=True)
-
 			self.file = pred_file
 			self.predictions = []
+
+			pred_file.parent.mkdir(parents=True, exist_ok=True)
 			self.save()
 			return
 

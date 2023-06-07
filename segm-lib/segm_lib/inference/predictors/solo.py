@@ -5,7 +5,7 @@ from adet.config import get_cfg
 from detectron2.engine.defaults import DefaultPredictor
 from detectron2.structures import Boxes, Instances
 
-from ...core.structures import Prediction
+from ..raw_prediction import RawPrediction
 from .abstract_predictor import Predictor
 from .config import config
 
@@ -71,7 +71,7 @@ class Solo(Predictor):
 			h = y2 - y1
 			bbox = [x1, y1, w, h]
 
-			formatted_predictions.append(Prediction(classname, confidence, mask, bbox))
+			formatted_predictions.append(RawPrediction(classname, confidence, mask, bbox))
 
 		return formatted_predictions
 	

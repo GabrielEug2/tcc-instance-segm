@@ -3,7 +3,7 @@ from pathlib import Path
 
 import torch
 
-from ...core.structures import Prediction
+from ..raw_prediction import RawPrediction
 from .abstract_predictor import Predictor
 from .config import config
 
@@ -62,7 +62,7 @@ class Yolact(Predictor):
 			h = y2 - y1
 			bbox = [x1, y1, w, h]
 
-			formatted_predictions.append(Prediction(classname, confidence, mask, bbox))
+			formatted_predictions.append(RawPrediction(classname, confidence, mask, bbox))
 
 		return formatted_predictions
 	

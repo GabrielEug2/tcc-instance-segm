@@ -25,11 +25,7 @@ COCO_CLASS_DIST_FILE = Path(__file__).parent / 'coco_classdist.json'
 with COCO_CLASS_DIST_FILE.open('r') as f:
 	coco_class_dist = json.load(f)
 
-dist_sorted_by_count = dict(sorted(
-	coco_class_dist.items(),
-	key=lambda c: c[1],
-	reverse=True
-))
+dist_sorted_by_count = dict(sorted(coco_class_dist.items(), key=lambda c: c[1], reverse=True))
 wanted_classes_by_order = [c for c in dist_sorted_by_count]
 
 download_utils.download_from_openimages(wanted_classes_by_order, n_imgs, out_dir)

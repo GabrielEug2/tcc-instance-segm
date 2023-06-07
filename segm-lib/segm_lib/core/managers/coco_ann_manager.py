@@ -65,7 +65,7 @@ class COCOAnnManager:
 
 		return class_dist
 
-	def img_file_names(self) -> list[str]:
+	def img_names(self) -> list[str]:
 		return self.img_map().keys()
 
 	def img_map(self) -> dict[str, int]:
@@ -88,27 +88,27 @@ class COCOAnnManager:
 
 		return img_dimensions
 
-	def filter(self, out_file: Path, classes: list[str] = None, img_file_name: str = None):
+	def filter(self, out_file: Path, classes: list[str] = None, img_name: str = None):
 		"""Filter the annotations by the specified criteria.
 
 		Args:
 			out_file (Path): file to write the filtered annotations.
 			classes (list[str], optional): classes to keep.
-			img_file_name (str, optional): image to filter for.
+			img_name (str, optional): image to filter for.
 
 		Raises:
 			ValueError: if invalid filtering params were given.
 		"""
-		if classes is None and img_file_name is None:
-			raise ValueError('Cannot filter without specifying either classes or img_file_name')
-		if classes is not None and img_file_name is not None:
+		if classes is None and img_name is None:
+			raise ValueError('Cannot filter without specifying either classes or img_name')
+		if classes is not None and img_name is not None:
 			raise ValueError('Filtering by both classes and img at once is not supported')
 
 		filtered_anns = COCOAnnManager(out_file)
 		if classes is not None:
 			self._filter_by_classes(classes, filtered_anns)
 		else:
-			self._filter_by_img(img_file_name, filtered_anns)
+			self._filter_by_img(img_name, filtered_anns)
 
 	def normalize_classnames(self):
 		for cat in self.categories:
@@ -128,19 +128,28 @@ class COCOAnnManager:
 
 		filtered_anns._save()
 
-	def _filter_by_img(self, img_file_name: str, filtered_anns: 'COCOAnnManager'):
+	def _filter_by_img(self, img_name: str, filtered_anns: 'COCOAnnManager'):
 		img_map = self.img_map()
-		img_id = img_map[img_file_name]
+		img_id = img_map[img_name]
 
 		img_desc = next((i for i in self.images if i['id'] == img_id), None)
 		if img_desc is None:
-			raise ValueError(f'Info for img {img_file_name} not found in annotations')
+			raise ValueError(f'Info for img {img_name} not found in annotations')
 		filtered_anns.images = [img_desc]
 
 		filtered_anns.annotations = [a for a in self.annotations if a['image_id'] == img_id]
 
-		cat_ids_to_keep = {a['category_id'] for a in filtered_anns.annotations}
-		filtered_anns.categories = [c for c in self.categories if c['id'] in cat_ids_to_keep]
+		# Initially I was keeping only the categories that exist on that image,
+		# but that caused unintended effects on the evaluation. Categories that
+		# should be evaluated (ie. possible both on annotations and predictions)
+		# were not being evaluated on images that didn't have annotations for
+		# that category.
+		# 
+		# If there ARE, say, Persons in an image, but they're not annotated, the predicted
+		# Persons SHOULD be labeled as false positives. By filtering out the "Person"
+		# category, which is what I was doing, unintentionally, those predictions were
+		# actually being skipped during the evaluation.
+		filtered_anns.categories = self.categories
 
 		filtered_anns._save()
 
