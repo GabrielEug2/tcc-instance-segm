@@ -15,6 +15,10 @@ class StatsManager:
 
 	def save(self, out_dir: Path):
 		out_str = self._to_out_str()
+
+		# As it is, it will simply overwrite the previous file.
+		# If you wanna combine the stats of multiple runs, you'd have
+		# to implement that yourself.
 		out_file = out_dir / 'stats.txt'
 		with out_file.open('w') as f:
 			f.write(out_str)

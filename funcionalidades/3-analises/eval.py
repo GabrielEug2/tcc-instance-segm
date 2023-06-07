@@ -6,6 +6,9 @@ parser.add_argument('pred_dir', help='Directory containing the predictions')
 parser.add_argument('ann_dir', help='Directory containing the annotations')
 parser.add_argument('possible_classes_dir', help='Directory containing a list of possible classes for each model')
 parser.add_argument('coco_ann_file', help='File containing the *original* annotations, in COCO-format')
+parser.add_argument('img_dir', help=('Directory containing the images the predictions and '
+                    'annotations refer to, to plot true positives, false positives and '
+                    'false negatives'))
 parser.add_argument('out_dir', help='directory to save the results')
 parser.add_argument('-y', '--overwrite', action='store_true')
 args = parser.parse_args()
@@ -26,6 +29,10 @@ coco_ann_file = Path(args.coco_ann_file)
 if not coco_ann_file.exists():
 	raise FileNotFoundError(str(coco_ann_file))
 
+img_dir = Path(args.img_dir)
+if not img_dir.exists():
+	raise FileNotFoundError(str(img_dir))
+
 out_dir = Path(args.out_dir)
 if out_dir.exists() and not args.overwrite:
 	op = input((f'out_dir "{str(out_dir)}" exists. Do you want '
@@ -34,6 +41,7 @@ if out_dir.exists() and not args.overwrite:
 		print('Operation cancelled.')
 		exit()
 
+
 # Import depois pro --help ser rápido
 from segm_lib.eval import evaluate_all
-evaluate_all(pred_dir, ann_dir, possible_classes_dir, coco_ann_file, out_dir)
+evaluate_all(pred_dir, ann_dir, possible_classes_dir, coco_ann_file, img_dir, out_dir)

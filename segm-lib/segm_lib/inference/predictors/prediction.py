@@ -1,10 +1,10 @@
 
 import torch
 
-class RawPrediction():
-	"""Class representing a prediction, ONLY for inference purposes. After inference, they're
-	saved in a more compact format, and should be manipulated with the appropriated class
-	(segm_lib.core.structures.prediction.Prediction).
+class Prediction():
+	"""Class representing a prediction, ONLY for inference purposes.
+	Everywhere else, if should be manipulated as a
+	segm_lib.core.structures.Prediction.
 
 	Has the following fields:
 		"classname": string,

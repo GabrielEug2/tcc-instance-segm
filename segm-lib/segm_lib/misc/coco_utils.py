@@ -2,14 +2,14 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-from ..core.managers.coco_ann_manager import COCOAnnManager
+from segm_lib.core.managers import COCOAnnManager
 
 EXPECTED_FILENAMES = {
 	'train': 'instances_train2017.json',
 	'val': 'instances_val2017.json'
 }
 
-def class_dist(coco_ann_dir: Path, out_file: Path, verbose: bool = True):
+def class_dist(coco_ann_dir: Path, out_file: Path):
 	"""Computes the class distribution for the COCO dataset.
 
 	Args:
@@ -26,16 +26,14 @@ def class_dist(coco_ann_dir: Path, out_file: Path, verbose: bool = True):
 
 	total_class_dist = defaultdict(lambda: 0)
 	for ann_file in coco_ann_files:
-		if verbose:
-			# Só pra saber se é normal a demora, tipo o instances_train2017
-			print(f'  Processing {ann_file.name}...', end='', flush=True)
+		# Só pra saber se é normal a demora, tipo o instances_train2017
+		print(f'  Processing {ann_file.name}...', end='', flush=True)
 
 		file_dist = COCOAnnManager(ann_file).class_distribution()
 		for classname in file_dist:
 			total_class_dist[classname] += file_dist[classname]
 
-		if verbose:
-			print('done')
+		print('done')
 
 	dist_sorted_by_count = dict(sorted(total_class_dist.items(), key=lambda c: c[1], reverse=True))
 

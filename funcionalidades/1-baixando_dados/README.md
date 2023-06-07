@@ -35,8 +35,13 @@ Existem inúmeras APIs para visualizar as anotações, mas eu optei pela impleme
 
 Requisitos:
 * [Detectron2](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
+	* Instruções no link, mas instalando o meu fork ao invés do padrão, porque eu tive que fazer pequenas modificações:
+	```bash
+	# python -m pip install 'git+https://github.com/facebookresearch/detectron2.git
+	python -m pip install 'git+https://github.com/GabrielEug2/detectron2.git
+	```
 
 Para rodar:
 ```bash
-python plot_annotations.py <ann_dir> <out_dir>
+python plot_annotations.py <ann_dir> <img_dir> <out_dir>
 ```

@@ -6,7 +6,7 @@ import numpy as np
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
-from ..core.structures import Annotation, Prediction
+from segm_lib.core.structures import Annotation, Prediction
 from .structures.results import TP_FP_FN_ShortInfo, TP_FP_FN_DetailedInfo
 
 

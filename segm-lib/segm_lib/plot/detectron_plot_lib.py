@@ -5,20 +5,32 @@ import cv2
 import torch
 from detectron2.data.catalog import Metadata
 from detectron2.structures import Boxes, Instances
-from detectron2.utils.visualizer import Visualizer
+from detectron2.utils.visualizer import Visualizer, ColorMode
 
-from ..core import mask_conversions
-from ..core.structures import Annotation, Prediction
-from .abstract_plot_lib import AbstractPlotLib
+from segm_lib.core import mask_conversions
+from segm_lib.core.structures import Annotation, Prediction
+from .plot_lib import PlotLib
 
 
-class DetectronPlotLib(AbstractPlotLib):
+class DetectronPlotLib(PlotLib):
 	lib_name = 'detectron'
 
 	def __init__(self):
 		pass
 
-	def _plot(self, anns_or_preds: list[Annotation]|list[Prediction], img_file: Path, out_file: Path):
+	def plot(self, anns_or_preds: list[Annotation|Prediction], img_file: Path, out_file: Path,
+			colors: dict[str: [int, int, int]] = None
+			):
+		"""Plots the annotations or predictions on the image.
+
+		Args:
+			anns_or_preds (list): list of annotations or predictions to plot.
+			img_file (Path): path to the image the annotations will be plotted on.
+			out_file (Path): path to the output image. If it doesn't exist, it will
+				be created. If it does, it will be overriten.
+			colors (dict, optional): list of colors in RGB to use for each class. If not
+				specified, random colors will be used.
+		"""
 		classnames, scores, masks, boxes = [], [], [], []
 		for ann_or_pred in anns_or_preds:
 			classnames.append(ann_or_pred.classname)
@@ -35,6 +47,11 @@ class DetectronPlotLib(AbstractPlotLib):
 			class_ids.append(class_list.index(classname))
 		metadata = Metadata()
 		metadata.set(thing_classes = class_list)
+		if colors:
+			colors_for_api = []
+			for classname in class_list:
+				colors_for_api.append(colors[classname])
+			metadata.set(thing_colors = colors_for_api)
 
 		boxes_for_api = []
 		for box in boxes:
@@ -52,14 +69,17 @@ class DetectronPlotLib(AbstractPlotLib):
 		instances.pred_masks = torch.stack(masks) if len(masks) >= 1 else torch.tensor([])
 		instances.pred_boxes = Boxes(torch.tensor(boxes_for_api, dtype=torch.float))
 
-		v = Visualizer(img, metadata)
+		if colors is None:			
+			v = Visualizer(img, metadata)
+		else:
+			v = Visualizer(img, metadata, instance_mode=ColorMode.SEGMENTATION)
 		vis_out = v.draw_instance_predictions(instances)
 		out_img = vis_out.get_image()
 
 		out_file.parent.mkdir(parents=True, exist_ok=True)
 		cv2.imwrite(str(out_file), out_img)
 
-	def _plot_individual_masks(self, anns_or_preds: list[Annotation]|list[Prediction], img_file: Path, out_dir: Path):
+	def plot_individual_masks(self, anns_or_preds: list[Annotation|Prediction], img_file: Path, out_dir: Path):
 		count_per_class = defaultdict(lambda: 0)
 
 		for ann_or_pred in anns_or_preds:
@@ -68,4 +88,4 @@ class DetectronPlotLib(AbstractPlotLib):
 			out_file_name = f"{classname}_{count_per_class[classname]}.jpg"
 
 			plotted_mask_file = out_dir / f'{out_file_name}.jpg'
-			self._plot([ann_or_pred], img_file, plotted_mask_file)
+			self.plot([ann_or_pred], img_file, plotted_mask_file)

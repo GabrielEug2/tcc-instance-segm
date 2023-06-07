@@ -14,6 +14,7 @@
                 "debug/annotations",
 				"funcionalidades/3-analises/possible_classes",
 				"debug/annotations.json",
+				"debug/images",
 				"debug/eval",
 				"-y",
             ],

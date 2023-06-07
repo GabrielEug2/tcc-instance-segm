@@ -5,8 +5,8 @@ from adet.config import get_cfg
 from detectron2.engine.defaults import DefaultPredictor
 from detectron2.structures import Boxes, Instances
 
-from ..raw_prediction import RawPrediction
 from .abstract_predictor import Predictor
+from .prediction import Prediction
 from .config import config
 
 
@@ -21,7 +21,7 @@ class Solo(Predictor):
 
 		self._model = DefaultPredictor(cfg)
 
-	def predict(self, img):
+	def predict(self, img) -> list[Prediction]:
 		instances = self._model(img)['instances']
 		# Por algum motivo além da minha compreensão, o SOLO testa o score
 		# de classificação ANTES de ter os scores "definitivos". Isso faz
@@ -71,7 +71,7 @@ class Solo(Predictor):
 			h = y2 - y1
 			bbox = [x1, y1, w, h]
 
-			formatted_predictions.append(RawPrediction(classname, confidence, mask, bbox))
+			formatted_predictions.append(Prediction(classname, confidence, mask, bbox))
 
 		return formatted_predictions
 	

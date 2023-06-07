@@ -18,6 +18,7 @@ if custom_ann_dir.exists():
 		print('Operation cancelled.')
 		exit()
 
+
 # Import depois pro --help ser rápido
-from segm_lib.core.managers.ann_manager import AnnManager
+from segm_lib.core.managers import AnnManager
 AnnManager(custom_ann_dir).from_coco_file(coco_ann_file)

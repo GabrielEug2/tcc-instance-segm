@@ -5,13 +5,13 @@ from pathlib import Path
 import cv2
 from tqdm import tqdm
 
-from ..core import mask_conversions
-from ..core.managers.pred_manager import PredManager
-from ..core.structures.prediction import Prediction
-from .predictors import MODEL_MAP, VALID_MODELS, Predictor, import_model
-from .raw_prediction import RawPrediction
+from .predictors import VALID_MODELS, Predictor
 from .stats_manager import StatsManager
+from segm_lib.core.managers import MultiModelPredManager, SingleModelPredManager
+from segm_lib.core import mask_conversions
+from segm_lib.core.structures.prediction import Prediction
 
+MODEL_MAP: dict[str, type[Predictor]] = {}
 
 def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None):
 	"""Runs inference on the requested imgs.
@@ -41,11 +41,26 @@ def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None
 def _load_models(models):
 	for model_name in models:
 		try:
-			import_model(model_name)
+			_import_model(model_name)
 		except ImportError as e:
 			raise ImportError(f'"{model_name}" is implemented on the library, but not installed properly.') from e
 		except ValueError:
 			raise ValueError(f'"{model_name}" is not implemented/setted up correcly. How do you expect to run that.')
+
+def _import_model(model_name):
+	# Imports are conditional because you don't need
+	# to install all the models
+	match model_name:
+		case 'maskrcnn':
+			from .predictors.maskrcnn import Maskrcnn as model
+		case 'yolact':
+			from .predictors.yolact import Yolact as model
+		case 'solo':
+			from .predictors.solo import Solo as model
+		case other:
+			raise ValueError()
+		
+	MODEL_MAP[model_name] = model
 
 def _get_img_files(img_file_or_dir: Path) -> list[Path]:
 	if not img_file_or_dir.exists():
@@ -64,7 +79,7 @@ def _get_img_files(img_file_or_dir: Path) -> list[Path]:
 	return img_files
 
 def _inference(img_files: list[Path], out_dir: Path, models: list[str]):
-	pred_manager = PredManager(out_dir)
+	pred_manager = MultiModelPredManager(out_dir)
 	stats_manager = StatsManager()
 
 	n_images = len(img_files)
@@ -73,18 +88,22 @@ def _inference(img_files: list[Path], out_dir: Path, models: list[str]):
 
 	for model_name in models:
 		print(f'\n\n{model_name}')
-		total_time = _run_on_all_imgs(model_name, img_files, pred_manager)
+		model_pred_manager = pred_manager.get_manager(model_name)
+		total_time = _run_on_all_imgs(model_name, img_files, model_pred_manager)
+
 		stats_manager.set_time_for_model(model_name, total_time)
 
 	stats_manager.save(out_dir)
 
-def _run_on_all_imgs(model_name: str, img_files: list[Path], pred_manager: PredManager):
+def _run_on_all_imgs(model_name: str, img_files: list[Path], model_pred_manager: SingleModelPredManager):
 	predictor = MODEL_MAP[model_name]()
 
-	start_time = time.time()
+	total_time = datetime.timedelta(seconds=0)
 	for img_file in tqdm(img_files):
+		start_time = time.time()
 		img = cv2.imread(str(img_file))
 		predictions = predictor.predict(img)
+		total_time += datetime.timedelta(seconds=(time.time() - start_time))
 
 		compact_preds = []
 		for pred in predictions:
@@ -95,7 +114,7 @@ def _run_on_all_imgs(model_name: str, img_files: list[Path], pred_manager: PredM
 				pred.bbox
 			))
 
-		pred_manager.save(compact_preds, img_file.stem, model_name)
+		model_pred_manager.save(compact_preds, img_file.stem)
 	total_time = datetime.timedelta(seconds=(time.time() - start_time))
 
 	return total_time

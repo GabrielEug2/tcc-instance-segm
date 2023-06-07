@@ -4,9 +4,9 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Generator
 
-from .. import mask_conversions
-from ..classname_normalization import normalize_classname
-from ..structures import Annotation
+from segm_lib.core.structures import Annotation
+from segm_lib.core import mask_conversions
+from segm_lib.core.classname_normalization import normalize_classname
 
 
 class AnnManager:
@@ -36,9 +36,7 @@ class AnnManager:
 			for coco_ann in coco_anns_for_img.annotations:
 				cat_id = coco_ann['category_id']
 				classname = classmap_by_id[cat_id]
-
 				mask = mask_conversions.ann_to_rle(coco_ann['segmentation'], img_h, img_w)
-
 				bbox = coco_ann['bbox'] # Mesmo formato do COCO, [x, y, w, h]
 
 				custom_anns.append(Annotation(classname, mask, bbox))
@@ -83,27 +81,6 @@ class AnnManager:
 
 		return class_dist
 
-	def _class_dist_on_all_imgs(self) -> dict[str, int]:
-		class_dist = defaultdict(lambda: 0)
-		for img_name in self.get_img_names():
-			class_dist_on_img = self._class_dist_on_img(img_name)
-
-			for k, v in class_dist_on_img.items():
-				class_dist[k] += v
-		class_dist = dict(class_dist)
-
-		return class_dist
-	
-	def _class_dist_on_img(self, img_name: str) -> dict[str, int]:
-		annotations = self.load(img_name)
-
-		class_dist = defaultdict(lambda: 0)
-		for ann in annotations:
-			class_dist[ann.classname] += 1
-		class_dist = dict(class_dist)
-
-		return class_dist
-
 	def get_classnames(self) -> set[str]:
 		return self.class_distribution().keys()
 	
@@ -140,6 +117,25 @@ class AnnManager:
 				ann.classname = normalize_classname(ann.classname)
 
 			self._save(annotations, img)
+
+	def _class_dist_on_all_imgs(self) -> dict[str, int]:
+		class_dist = defaultdict(lambda: 0)
+		for img_name in self.get_img_names():
+			class_dist_on_img = self._class_dist_on_img(img_name)
+
+			for k, v in class_dist_on_img.items():
+				class_dist[k] += v
+
+		return dict(class_dist)
+	
+	def _class_dist_on_img(self, img_name: str) -> dict[str, int]:
+		annotations = self.load(img_name)
+
+		class_dist = defaultdict(lambda: 0)
+		for ann in annotations:
+			class_dist[ann.classname] += 1
+
+		return dict(class_dist)
 
 	def _filter_by_classes(self, classes: list[str], filtered_ann_manager: 'AnnManager'):
 		for img_name in self.get_img_names():

@@ -2,7 +2,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-from ..classname_normalization import normalize_classname
+from segm_lib.core.classname_normalization import normalize_classname
 
 class COCOAnnManager:
 	"""Functions to work with annotations in COCO format.
@@ -61,9 +61,8 @@ class COCOAnnManager:
 			cat_id = ann['category_id']
 			cat_name = classmap_by_id[cat_id]
 			class_dist[cat_name] += 1
-		class_dist = dict(class_dist)
 
-		return class_dist
+		return dict(class_dist)
 
 	def img_names(self) -> list[str]:
 		return self.img_map().keys()

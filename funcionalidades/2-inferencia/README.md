@@ -4,7 +4,11 @@ Requisitos:
 * Linux - talvez você consiga instalar os modelos no Windows, mas eu não testei.
 * Modelos:
 	* [Mask R-CNN](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
-		* Instruções no link
+		* Instruções no link, mas instalando o meu fork ao invés do padrão, porque eu tive que fazer pequenas modificações:
+		```bash
+		# python -m pip install 'git+https://github.com/facebookresearch/detectron2.git
+		python -m pip install 'git+https://github.com/GabrielEug2/detectron2.git
+		```
 	* [YOLACT](https://github.com/dbolya/yolact)
 		* [Esse fork](https://github.com/jerpint/yolact.git) roda na CPU. Pra instalar:
 		```bash
@@ -39,6 +43,11 @@ Existem inúmeras APIs para visualizar as predictions em segmentação de instâ
 
 Requisitos:
 * [Detectron2](https://detectron2.readthedocs.io/en/latest/tutorials/install.html)
+	* Instruções no link, mas instalando o meu fork ao invés do padrão, porque eu tive que fazer pequenas modificações:
+	```bash
+	# python -m pip install 'git+https://github.com/facebookresearch/detectron2.git
+	python -m pip install 'git+https://github.com/GabrielEug2/detectron2.git
+	```
 
 Para rodar:
 ```bash

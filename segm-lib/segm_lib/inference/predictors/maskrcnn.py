@@ -4,8 +4,8 @@ from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
 from detectron2.structures import Instances
 
-from ..raw_prediction import RawPrediction
 from .abstract_predictor import Predictor
+from .prediction import Prediction
 from .config import config
 
 
@@ -19,7 +19,7 @@ class Maskrcnn(Predictor):
 
 		self._model = DefaultPredictor(cfg)
 
-	def predict(self, img):
+	def predict(self, img) -> list[Prediction]:
 		instances = self._model(img)['instances']
 
 		formatted_predictions = self._to_custom_format(instances)
@@ -46,7 +46,7 @@ class Maskrcnn(Predictor):
 			h = y2 - y1
 			bbox = [x1, y1, w, h]
 
-			formatted_predictions.append(RawPrediction(classname, confidence, mask, bbox))
+			formatted_predictions.append(Prediction(classname, confidence, mask, bbox))
 
 		return formatted_predictions
 	

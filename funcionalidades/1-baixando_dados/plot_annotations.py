@@ -24,13 +24,5 @@ if out_dir.exists():
 		exit()
 
 # Import depois pro --help ser rápido
-from segm_lib.plot.detectron_plot_lib import DetectronPlotLib
-from segm_lib.plot.bin_plot_lib import BinPlotLib
-
-print('Pretty plot...')
-plot_lib = DetectronPlotLib()
-plot_lib.plot_annotations(ann_dir, img_dir, out_dir)
-
-print('\nBin plot...')
-plot_lib = BinPlotLib()
-plot_lib.plot_annotations(ann_dir, img_dir, out_dir)
+from segm_lib.misc.plot_utils import plot_annotations
+plot_annotations(ann_dir, img_dir, out_dir)

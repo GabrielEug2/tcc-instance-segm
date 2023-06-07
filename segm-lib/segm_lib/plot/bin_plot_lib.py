@@ -4,24 +4,25 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from ..core import mask_conversions
-from ..core.structures import Annotation, Prediction
-from .abstract_plot_lib import AbstractPlotLib
+from segm_lib.core import mask_conversions
+from segm_lib.core.structures import Annotation, Prediction
+from .plot_lib import PlotLib
 
 
-class BinPlotLib(AbstractPlotLib):
+class BinPlotLib(PlotLib):
 	lib_name = 'bin'
 
 	def __init__(self):
 		pass
 
-	def _plot(self, anns_or_preds: list[Annotation]|list[Prediction], img_file: Path, out_file: Path):
+	def plot(self, anns_or_preds: list[Annotation|Prediction], img_file: Path, out_file: Path):
 		# A bin image with all the anns/preds is not really useful to me
 		return
 
-	def _plot_individual_masks(self, anns_or_preds: list[Annotation]|list[Prediction], img_file: Path, out_dir: Path):
-		count_per_class = defaultdict(lambda: 0)
+	def plot_individual_masks(self, anns_or_preds: list[Annotation|Prediction], img_file: Path, out_dir: Path):
+		out_dir.mkdir(parents=True, exist_ok=True)
 
+		count_per_class = defaultdict(lambda: 0)
 		for ann_or_pred in anns_or_preds:
 			classname = ann_or_pred.classname
 			count_per_class[classname] += 1

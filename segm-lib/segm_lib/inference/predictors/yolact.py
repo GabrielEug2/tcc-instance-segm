@@ -3,8 +3,8 @@ from pathlib import Path
 
 import torch
 
-from ..raw_prediction import RawPrediction
 from .abstract_predictor import Predictor
+from .prediction import Prediction
 from .config import config
 
 sys.path.insert(0, config['yolact']['dir'])
@@ -28,7 +28,7 @@ class Yolact(Predictor):
 
 		self._model = model
 		
-	def predict(self, img):
+	def predict(self, img) -> list[Prediction]:
 		with torch.no_grad():
 			frame = torch.from_numpy(img).float()
 			batch = FastBaseTransform()(frame.unsqueeze(0))
@@ -62,7 +62,7 @@ class Yolact(Predictor):
 			h = y2 - y1
 			bbox = [x1, y1, w, h]
 
-			formatted_predictions.append(RawPrediction(classname, confidence, mask, bbox))
+			formatted_predictions.append(Prediction(classname, confidence, mask, bbox))
 
 		return formatted_predictions
 	

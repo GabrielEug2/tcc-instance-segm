@@ -19,7 +19,7 @@ CLASS_MAP_OUT_FILE = Path(__file__).parent / 'coco_classmap.json'
 from segm_lib.misc import coco_utils
 
 print('Class dist...')
-coco_utils.class_dist(coco_ann_dir, CLASS_DIST_OUT_FILE, verbose=True)
+coco_utils.class_dist(coco_ann_dir, CLASS_DIST_OUT_FILE)
 print('done')
 
 print('Class map... ', end='')
