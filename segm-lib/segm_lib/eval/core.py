@@ -81,7 +81,7 @@ def evaluate_all(
 			model_dir
 			)
 
-	print(f'Post-processing... ', end='', flush=True)
+	print('\nPost-processing... ')
 	post_processing.group_results_by_img(out_dir)
 	post_processing.plot_tp_fp_fn(out_dir, img_dir)
 	print('done')

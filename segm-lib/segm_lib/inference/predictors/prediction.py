@@ -3,7 +3,7 @@ import torch
 
 class Prediction():
 	"""Class representing a prediction, ONLY for inference purposes.
-	Everywhere else, if should be manipulated as a
+	Everywhere else, if should be treated as a
 	segm_lib.core.structures.Prediction.
 
 	Has the following fields:

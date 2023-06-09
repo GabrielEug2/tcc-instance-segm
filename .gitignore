@@ -9,3 +9,4 @@ AdelaiDet/
 # Develop
 .venv/
 debug/
+dev_scripts/

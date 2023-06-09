@@ -1,5 +1,5 @@
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
@@ -13,9 +13,9 @@ from .structures.results import TP_FP_FN_ShortInfo, TP_FP_FN_DetailedInfo
 @dataclass
 class APIResults:
 	AP: float = 0.0
-	true_positives: TP_FP_FN_ShortInfo|TP_FP_FN_DetailedInfo = None
-	false_positives: TP_FP_FN_ShortInfo|TP_FP_FN_DetailedInfo = None
-	false_negatives: TP_FP_FN_ShortInfo|TP_FP_FN_DetailedInfo = None
+	true_positives: TP_FP_FN_ShortInfo|TP_FP_FN_DetailedInfo = field(default_factory=lambda: TP_FP_FN_DetailedInfo())
+	false_positives: TP_FP_FN_ShortInfo|TP_FP_FN_DetailedInfo = field(default_factory=lambda: TP_FP_FN_DetailedInfo())
+	false_negatives: TP_FP_FN_ShortInfo|TP_FP_FN_DetailedInfo = field(default_factory=lambda: TP_FP_FN_DetailedInfo())
 
 def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResults:
 	"""Computes AP and tp/fp/fn info for the data.

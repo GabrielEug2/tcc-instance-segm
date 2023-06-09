@@ -17,7 +17,7 @@ class Solo(Predictor):
 		cfg.MODEL.WEIGHTS = str(Path(config['solo']['dir'], config['solo']['weights_file']))
 		cfg.MODEL.SOLOV2.SCORE_THR = 0.5
 		cfg.MODEL.DEVICE = 'cpu'
-		cfg.SOLVER.IMS_PER_BATCH = 1
+		cfg.SOLVER.IMS_PER_BATCH = 1 # helps reduce ram usage
 
 		self._model = DefaultPredictor(cfg)
 

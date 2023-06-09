@@ -18,7 +18,7 @@ def plot_annotations(ann_dir: Path, img_dir: Path, out_dir: Path, libs: list[str
 		out_dir (Path): directory to save the results
 		libs (list[str], optional): list of libs to use. See VALID_LIBRARIES in
 			this same module for a list of valid libraries. By default, uses all
-			of the available.
+			of them.
 	"""
 	requested_libs = VALID_LIBRARIES if libs is None else libs
 	try:
@@ -55,7 +55,6 @@ def plot_predictions(pred_dir: Path, img_dir: Path, out_dir: Path, libs: list[st
 		raise
 
 	pred_manager = MultiModelPredManager(pred_dir)
-
 	model_names = pred_manager.get_model_names()
 	if len(model_names) == 0:
 		print(f'  No predictions found on {pred_dir}.')
@@ -66,7 +65,7 @@ def plot_predictions(pred_dir: Path, img_dir: Path, out_dir: Path, libs: list[st
 	print(f'Plotting with libraries {requested_libs}...')
 
 	for lib_name in requested_libs:
-		print(f'{lib_name} lib...')
+		print(f'\n{lib_name} lib...')
 		lib_instance = LIBRARY_MAP[lib_name]()
 
 		for model_name in model_names:
@@ -75,8 +74,8 @@ def plot_predictions(pred_dir: Path, img_dir: Path, out_dir: Path, libs: list[st
 
 			_plot_everything(model_pred_manager, img_dir, lib_instance, out_dir, model_name, lib_name)
 
-def _load_libs(libs):
-	for lib_name in libs:
+def _load_libs(requested_libs):
+	for lib_name in requested_libs:
 		try:
 			_import_plot_lib(lib_name)
 		except ImportError as e:

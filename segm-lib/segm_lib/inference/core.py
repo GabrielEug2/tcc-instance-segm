@@ -29,7 +29,10 @@ def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None
 		FileNotFoundError: if no images were found on the provided path.
 	"""
 	requested_models = VALID_MODELS if models is None else models
-	_load_models(requested_models)
+	try:
+		_load_models(requested_models)
+	except:
+		raise
 
 	img_files = _get_img_files(img_file_or_dir)
 
@@ -38,8 +41,8 @@ def run_inference(img_file_or_dir: Path, out_dir: Path, models: list[str] = None
 
 	_inference(img_files, out_dir, requested_models)
 
-def _load_models(models):
-	for model_name in models:
+def _load_models(requested_models):
+	for model_name in requested_models:
 		try:
 			_import_model(model_name)
 		except ImportError as e:

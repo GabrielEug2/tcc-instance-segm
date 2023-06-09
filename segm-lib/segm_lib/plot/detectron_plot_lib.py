@@ -39,7 +39,11 @@ class DetectronPlotLib(PlotLib):
 			bin_mask = mask_conversions.rle_to_bin_mask(ann_or_pred.mask)
 			masks.append(bin_mask)
 
-			boxes.append(ann_or_pred.bbox)
+			# pra essa API do Detectron precisa estar em [x1,y1,x2,y2]
+			x1, y1, w, h = ann_or_pred.bbox
+			x2 = x1 + w
+			y2 = y1 + h
+			boxes.append([x1, y1, x2, y2])
 		
 		class_list = list(set(classnames))
 		class_ids = []
@@ -53,21 +57,13 @@ class DetectronPlotLib(PlotLib):
 				colors_for_api.append(colors[classname])
 			metadata.set(thing_colors = colors_for_api)
 
-		boxes_for_api = []
-		for box in boxes:
-			# pra essa API do Detectron precisa estar em [x1,y1,x2,y2]
-			x1, y1, w, h = box
-			x2 = x1 + w
-			y2 = y1 + h
-			boxes_for_api.append([x1, y1, x2, y2])
-
 		img = cv2.imread(str(img_file))
 		h, w, _ = img.shape
 		instances = Instances((h, w))
 		instances.pred_classes = torch.tensor(class_ids, dtype=torch.int)
 		instances.scores = torch.tensor(scores, dtype=torch.float)
 		instances.pred_masks = torch.stack(masks) if len(masks) >= 1 else torch.tensor([])
-		instances.pred_boxes = Boxes(torch.tensor(boxes_for_api, dtype=torch.float))
+		instances.pred_boxes = Boxes(torch.tensor(boxes, dtype=torch.float))
 
 		if colors is None:			
 			v = Visualizer(img, metadata)

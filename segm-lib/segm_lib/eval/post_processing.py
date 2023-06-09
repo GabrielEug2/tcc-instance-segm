@@ -3,6 +3,8 @@ from enum import Enum
 import json
 from pathlib import Path
 
+from tqdm import tqdm
+
 from segm_lib.core.structures import Prediction, Annotation
 from segm_lib.plot.detectron_plot_lib import DetectronPlotLib
 
@@ -46,25 +48,28 @@ def group_results_by_img(eval_dir: Path):
 
 class Colors(Enum):
 	GREEN = (11, 181, 85)
-	BLACK = (80, 80, 80)
+	GREY = (140, 140, 140)
 	BLUE = (44, 144, 232)
 	RED = (230, 25, 25)
 
 def plot_tp_fp_fn(eval_dir: Path, img_dir: Path):
 	model_names = _model_names_from_eval_dir(eval_dir)
 	detectron_plot_lib = DetectronPlotLib()
-	out_dir = eval_dir / 'plot'
-	out_dir.mkdir(parents=True, exist_ok=True)
 
+	print("Plotting tp/fp/fn...")
 	for model in model_names:
+		print(f'  \n{model}...')
 		model_dir = eval_dir / model
-		img_result_files = (model_dir / 'results-per-image').glob('*.json')
+		out_dir = model_dir / 'TP_FP_FN_plot'
+		out_dir.mkdir(parents=True, exist_ok=True)
 
-		for img_result_file in img_result_files:
+		img_result_files = (model_dir / 'results-per-image').glob('*.json')
+		n_imgs = sum(1 for f in (model_dir / 'results-per-image').glob('*.json'))
+
+		for img_result_file in tqdm(img_result_files, total=n_imgs):
 			results_for_that_img = _load_img_results(img_result_file)
 
 			objs_to_plot = []
-			# TODO: see if this looks nice, then try without TP_ann
 			for classname, tp_list in results_for_that_img.true_positives.list_per_class.items():
 				for tp in tp_list:
 					classname_for_plot = f'{classname}_TP_det'
@@ -99,7 +104,7 @@ def plot_tp_fp_fn(eval_dir: Path, img_dir: Path):
 				if classname.endswith('_TP_det'):
 					colors_for_plot[classname] = Colors.GREEN.value
 				elif classname.endswith('_TP_ann'):
-					colors_for_plot[classname] = Colors.BLACK.value
+					colors_for_plot[classname] = Colors.GREY.value
 				elif classname.endswith('_FP'):
 					colors_for_plot[classname] = Colors.BLUE.value
 				else: # _FN
@@ -111,25 +116,6 @@ def plot_tp_fp_fn(eval_dir: Path, img_dir: Path):
 			out_file = out_dir / img_file.name
 			detectron_plot_lib.plot(objs_to_plot, img_file, out_file, colors=colors_for_plot)
 
-
-def _load_img_results(file: Path) -> ImgResults:
-	with file.open('r') as f:
-		img_results = json.load(f, cls=CustomDecoder)
-	return img_results
-
-def _save_results_per_img(results_per_img: list[dict], out_file: Path):
-	with out_file.open('w') as f:
-		f.write(f'img_name | AP_per_model | average | diff_between_highest_and_lowest')
-
-		for results_dict in results_per_img:
-			img_name = results_dict['img_name']
-			AP_per_model = results_dict['AP_per_model']
-			average = results_dict['average']
-			performance_diff = results_dict['diff_between_highest_and_lowest']
-			f.write(f'\n{img_name} | {AP_per_model} | {average} | {performance_diff}')
-
-def _model_names_from_eval_dir(eval_dir):
-	return [f.name for f in eval_dir.glob('*') if f.is_dir() and f.name not in ['base_files', 'plot']]
 
 class CustomDecoder(json.JSONDecoder):
 	IMG_RESULT_KEYS = {'anns_considered', 'preds_considered', 'AP', 'true_positives', 'false_positives', 'false_negatives'}
@@ -162,3 +148,23 @@ class CustomDecoder(json.JSONDecoder):
 			return Annotation(**unknown_dict)
 		else:
 			return unknown_dict
+
+def _load_img_results(file: Path) -> ImgResults:
+	with file.open('r') as f:
+		img_results = json.load(f, cls=CustomDecoder)
+	return img_results
+
+def _save_results_per_img(results_per_img: list[dict], out_file: Path):
+	with out_file.open('w') as f:
+		f.write(f'img_name | AP_per_model | average | diff_between_highest_and_lowest')
+
+		for results_dict in results_per_img:
+			img_name = results_dict['img_name']
+			AP_per_model = results_dict['AP_per_model']
+			average = results_dict['average']
+			performance_diff = results_dict['diff_between_highest_and_lowest']
+			f.write(f'\n{img_name} | {AP_per_model} | {average} | {performance_diff}')
+
+def _model_names_from_eval_dir(eval_dir):
+	return [f.name for f in eval_dir.glob('*') if f.is_dir() and f.name not in ['base_files', 'plot']]
+

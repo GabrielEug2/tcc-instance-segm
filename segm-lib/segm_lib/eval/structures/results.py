@@ -13,23 +13,24 @@ class EvalFilters:
 	pred_classes_ignored: list[str] = field(default_factory=list)
 	ann_classes_ignored: list[str] = field(default_factory=list)
 
+
 @dataclass
 class CommonResults:
-	anns_considered: 'AnnsOrPredsInfo' = None
-	preds_considered: 'AnnsOrPredsInfo' = None
+	anns_considered: 'AnnsOrPredsInfo' = field(default_factory=lambda: AnnsOrPredsInfo())
+	preds_considered: 'AnnsOrPredsInfo' = field(default_factory=lambda: AnnsOrPredsInfo())
 	AP: float = 0.0
 
 @dataclass(kw_only=True)
 class DatasetResults(CommonResults):
-	true_positives: 'TP_FP_FN_ShortInfo' = None
-	false_positives: 'TP_FP_FN_ShortInfo' = None
-	false_negatives: 'TP_FP_FN_ShortInfo' = None
+	true_positives: 'TP_FP_FN_ShortInfo' = field(default_factory=lambda: TP_FP_FN_ShortInfo())
+	false_positives: 'TP_FP_FN_ShortInfo' = field(default_factory=lambda: TP_FP_FN_ShortInfo())
+	false_negatives: 'TP_FP_FN_ShortInfo' = field(default_factory=lambda: TP_FP_FN_ShortInfo())
 
 @dataclass(kw_only=True)
 class ImgResults(CommonResults):
-	true_positives: 'TP_FP_FN_DetailedInfo' = None
-	false_positives: 'TP_FP_FN_DetailedInfo' = None
-	false_negatives: 'TP_FP_FN_DetailedInfo' = None
+	true_positives: 'TP_FP_FN_DetailedInfo' = field(default_factory=lambda: TP_FP_FN_DetailedInfo())
+	false_positives: 'TP_FP_FN_DetailedInfo' = field(default_factory=lambda: TP_FP_FN_DetailedInfo())
+	false_negatives: 'TP_FP_FN_DetailedInfo' = field(default_factory=lambda: TP_FP_FN_DetailedInfo())
 
 @dataclass
 class AnnsOrPredsInfo:
@@ -38,7 +39,7 @@ class AnnsOrPredsInfo:
 
 @dataclass
 class TP_FP_FN_ShortInfo:
-	n: int
+	n: int = 0
 	n_per_class: dict[str, int] = field(default_factory=dict)
 
 @dataclass
