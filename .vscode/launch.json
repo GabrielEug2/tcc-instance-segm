@@ -21,5 +21,22 @@
             "console": "integratedTerminal",
             "justMyCode": false
         },
+        {
+            "name": "Debug 200",
+            "type": "python",
+            "request": "launch",
+            "program": "funcionalidades/3-analises/eval.py",
+            "args": [
+				"../openimages-200/predictions",
+                "../openimages-200/annotations",
+				"funcionalidades/3-analises/possible_classes",
+				"../openimages-200/annotations.json",
+				"../openimages-200/images",
+				"debug/200-eval",
+				"-y",
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
 	]
 }

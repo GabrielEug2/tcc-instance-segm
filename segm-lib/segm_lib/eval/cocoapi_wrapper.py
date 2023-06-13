@@ -1,5 +1,4 @@
 from collections import defaultdict
-from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
@@ -7,47 +6,85 @@ from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
 from segm_lib.core.structures import Annotation, Prediction
-from .structures.results import TP_FP_FN_ShortInfo, TP_FP_FN_DetailedInfo
+from segm_lib.core.mask_conversions import ann_to_rle
 
+class APIResults:	
+	def __init__(self, detailed: bool):
+		self.AP = 0.0
 
-@dataclass
-class APIResults:
-	AP: float = 0.0
-	true_positives: TP_FP_FN_ShortInfo|TP_FP_FN_DetailedInfo = field(default_factory=lambda: TP_FP_FN_DetailedInfo())
-	false_positives: TP_FP_FN_ShortInfo|TP_FP_FN_DetailedInfo = field(default_factory=lambda: TP_FP_FN_DetailedInfo())
-	false_negatives: TP_FP_FN_ShortInfo|TP_FP_FN_DetailedInfo = field(default_factory=lambda: TP_FP_FN_DetailedInfo())
+		# just for type hinting, the actual initialization is below
+		self.true_positives = {}
+		self.false_positives = {}
+		self.false_negatives = {}
+
+		for attrname in ['true_positives', 'false_positives', 'false_negatives']:
+			setattr(self, attrname, {
+				'n': 0,
+				'n_per_class': {},
+			})
+
+			if detailed:
+				getattr(self, attrname)['list_per_class'] = {}
 
 def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResults:
-	"""Computes AP and tp/fp/fn info for the data.
+	"""Evaluates the data.
 
 	Args:
 		coco_anns_file (Path): file containing coco-formatted annotations.
 		coco_preds_file (Path): file containing coco-formatted predictions.
-		detailed (bool, optional): if False, returns the number of tp/fp/fn.
-			If True, also returns a list of tp/fp/fn for each class. Defaults
-			to False.
+		detailed (bool, optional): if True, returns extensive info about
+		 	the data. Use only when the anns and preds refer to *one* image.
 
 	Returns:
-		APIResults: has the following fields:
+		APIResults object with following fields:
 			AP: float
-			true_positives / false_positives / false_negatives:
-				eval.structures.results.TP_FP_FN_ShortInfo if detailed is False,
-				eval.structures.results.TP_FP_FN_DetailedInfo if it is True
+			true_positives / false_positives / false_negatives: dict with keys:
+				n: int
+				n_per_class: dict[str, int]
+				(if detailed) list_per_class: dict[str, list[things]] (see below)
+					* tuple[pred,ann] for true positives
+					* preds for false positives
+					* anns for false negatives
 	"""
-	results = APIResults()
-
 	ground_truth = COCO(coco_anns_file)
 	try:
 		detections = ground_truth.loadRes(str(coco_preds_file))
 	except IndexError:
 		# no predictions
+		# every ground_truth is a false negative
+		n_fns_per_class = defaultdict(lambda: 0)
+		if detailed:
+			list_fns_per_class = defaultdict(list)
+
+		for gt_in_coco_format in ground_truth.anns.values():
+			classname = ground_truth.cats[gt_in_coco_format['category_id']]['name']
+
+			img_id = gt_in_coco_format['image_id']
+			h, w = ground_truth.imgs[img_id]['height'], ground_truth.imgs[img_id]['width']
+			gt_in_coco_format['segmentation'] = ann_to_rle(gt_in_coco_format['segmentation'], h, w)
+			gt_in_custom_format = Annotation.from_coco_format(gt_in_coco_format, classname)
+
+			n_fns_per_class[classname] += 1
+			if detailed:
+				list_fns_per_class[classname].append(
+					gt_in_custom_format
+				)
+
+		n_fn = sum(n_fns_per_class.values())
+
+		results = APIResults(detailed)
+		results.false_negatives['n'] = n_fn
+		results.false_negatives['n_per_class'] = dict(n_fns_per_class)
+		if detailed:
+			results.false_negatives['list_per_class'] = dict(list_fns_per_class)
+
 		return results
 
 	E = COCOeval(ground_truth, detections)
 	E.evaluate()
 	E.accumulate()
 	E.summarize()
-	results.AP = round(float(E.stats[0]), 3)
+	average_precision = round(float(E.stats[0]), 3)
 
 	# basically the same code as the accumulate() function, with slighly
 	# adaptations to get what I want (true positives, false positives and
@@ -75,12 +112,12 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 	a_list = [n for n, a in enumerate(map(lambda x: tuple(x), p.areaRng)) if a in setA]
 	i_list = [n for n, i in enumerate(p.imgIds)  if i in setI]
 
-	n_true_positives_per_class = {}
-	n_false_positives_per_class = {}
-	n_false_negatives_per_class = {}
-	true_positives_per_class = defaultdict(list)
-	false_positives_per_class = defaultdict(list)
-	false_negatives_per_class = defaultdict(list)
+	n_tps_per_class = {}
+	n_fps_per_class = {}
+	n_fns_per_class = {}
+	list_tps_per_class = defaultdict(list)
+	list_fps_per_class = defaultdict(list)
+	list_fns_per_class = defaultdict(list)
 	for k, k0 in enumerate(k_list):
 		# get classname from this k
 		cat_id = cat_ids_from_k[k]
@@ -128,9 +165,9 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 		n_tps_per_threshold = np.count_nonzero(dtm != 0, axis=1)
 		n_fps_per_threshold = np.count_nonzero(dtm == 0, axis=1)
 		# I'm only counting tp/fp/fn for IoU 0.5, which is the first one
-		n_true_positives_per_class[classname] = int(n_tps_per_threshold[0])
-		n_false_positives_per_class[classname] = int(n_fps_per_threshold[0])
-			
+		n_tps_per_class[classname] = int(n_tps_per_threshold[0])
+		n_fps_per_class[classname] = int(n_fps_per_threshold[0])
+		
 		# Now for false negatives...
 		# Same logic I explained for e['dtMatches'] applies to e['gtMatches'].
 		# "e['gtMatches'][0,1] = 2" means that, at the first IoU threshold
@@ -141,7 +178,7 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 		gtm = np.concatenate([e['gtMatches'] for e in evalImgs_for_that_k], axis=1)
 		n_fns_per_threshold = np.count_nonzero(gtm == 0, axis=1)
 		# again, I'm only interested on IoU 0.5, which is the first one
-		n_false_negatives_per_class[classname] = int(n_fns_per_threshold[0])
+		n_fns_per_class[classname] = int(n_fns_per_threshold[0])
 
 		if detailed:
 			# To get an actual list of tps/fps/fns, it's a bit more complicated.
@@ -165,7 +202,7 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 					gtId = int(gtId) # not sure why they store matched ids as floats
 					if gtId == 0:
 						# false positive
-						false_positives_per_class[classname].append(
+						list_fps_per_class[classname].append(
 							dt_in_custom_format
 						)
 					else:
@@ -174,7 +211,7 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 						_fix_rle(gt_in_coco_format)
 						gt_in_custom_format = Annotation.from_coco_format(gt_in_coco_format, classname)
 
-						true_positives_per_class[classname].append(
+						list_tps_per_class[classname].append(
 							(dt_in_custom_format, gt_in_custom_format)
 						)
 
@@ -192,37 +229,25 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 					dtId = int(dtId) # again, not sure why they store matched ids as floats
 					if dtId == 0:
 						# false negative
-						false_negatives_per_class[classname].append(
+						list_fns_per_class[classname].append(
 							gt_in_custom_format
 						)
 					# else:
 						# true positive, already saved
 
-	computed_values = {
-		'true_positives': (n_true_positives_per_class, true_positives_per_class),
-		'false_positives': (n_false_positives_per_class, false_positives_per_class),
-		'false_negatives': (n_false_negatives_per_class, false_negatives_per_class)
-	}
-	for metric_name, (n_per_class, list_per_class) in computed_values.items():
+	results = APIResults(detailed)
+	results.AP = average_precision
+	for attrname, n_per_class, list_per_class in [
+			['true_positives', n_tps_per_class, list_tps_per_class],
+			['false_positives', n_fps_per_class, list_fps_per_class],
+			['false_negatives', n_fns_per_class, list_fns_per_class],
+			]:
 		n = sum(n_per_class.values())
 
+		getattr(results, attrname)['n'] = n
+		getattr(results, attrname)['n_per_class'] = n_per_class
 		if detailed:
-			metric_values = TP_FP_FN_DetailedInfo(
-				n=n,
-				n_per_class=n_per_class,
-				list_per_class=dict(list_per_class)
-			)
-		else:
-			metric_values = TP_FP_FN_ShortInfo(
-				n=n,
-				n_per_class=n_per_class,
-			)
-
-		if not hasattr(results, metric_name):
-			raise ValueError((f'Implementation error. Object of class '
-		                      f'{results.__class__.__name__} does not '
-							  f'have a "{metric_name}" field.'))
-		setattr(results, metric_name, metric_values)
+			getattr(results, attrname)['list_per_class'] = dict(list_per_class)
 
 	return results
 

@@ -10,8 +10,6 @@ from .plot_lib import PlotLib
 
 
 class BinPlotLib(PlotLib):
-	lib_name = 'bin'
-
 	def __init__(self):
 		pass
 

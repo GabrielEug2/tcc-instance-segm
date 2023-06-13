@@ -13,8 +13,6 @@ from .plot_lib import PlotLib
 
 
 class DetectronPlotLib(PlotLib):
-	lib_name = 'detectron'
-
 	def __init__(self):
 		pass
 

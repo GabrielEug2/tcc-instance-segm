@@ -54,7 +54,7 @@ class SingleModelPredManager:
 
 		return n_images_with_preds
 
-	def get_img_names(self) -> Generator:
+	def get_img_names(self) -> Generator[str, None, None]:
 		return (f.stem for f in self.model_dir.glob('*'))
 	
 	def get_n_objects(self, img_name: str = None) -> int:
@@ -78,6 +78,9 @@ class SingleModelPredManager:
 		
 		return class_dist
 
+	def get_classnames(self) -> set[str]:
+		return self.class_distribution().keys()
+	
 	def filter(self, out_dir: Path, classes: list[str] = None, img_name: str = None):
 		"""Filter the predictions by the specified criteria.
 
@@ -100,19 +103,29 @@ class SingleModelPredManager:
 		else:
 			self._filter_by_img(img_name, filtered_pred_manager)
 
-	def to_coco_format(self, img_map: dict, classmap: dict, out_file: Path):
+	def to_coco_format(self, img_map: dict[str, int], classmap: dict[str, int], out_file: Path):
+		"""Converts the annotations to COCO-format. Predictions for images
+		that are not on the img_map and of classes that are not on the
+		classmap will be ignored.
+
+		Args:
+			img_map (dict[str, int]): map of filenames to img_ids
+			classmap (dict[str, int]): map of classnames to cat_ids
+			out_file (Path): file where the COCO-predictions will
+				be written to.
+		"""
 		from .coco_pred_manager import COCOPredManager
 
 		coco_preds = []
-		for img_name in img_map:
+		for img_name in self._get_img_names():
+			if img_name not in img_map:
+				continue
+
 			predictions = self.load(img_name)
 
 			for pred in predictions:
 				classname = pred.classname
 				if classname not in classmap:
-					# would have to give a new id, but since there's no annotations
-					# it doesn't make sense to keep them in my case (I only use
-					# the coco format to evaluate)
 					continue
 
 				formatted_pred = {
@@ -126,6 +139,9 @@ class SingleModelPredManager:
 		coco_pred_manager = COCOPredManager(out_file)
 		coco_pred_manager.predictions = coco_preds
 		coco_pred_manager.save()
+
+	def _get_img_names(self) -> Generator[str, None, None]:
+		return (f.stem for f in self.model_dir.glob('*.json'))
 
 	def _class_dist_on_all_imgs(self) -> dict[str, int]:
 		class_dist = defaultdict(lambda: 0)
