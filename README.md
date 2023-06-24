@@ -2,7 +2,7 @@
 
 Código relacionado ao meu TCC, sobre segmentação de objetos. _(colocar o link da UTF aqui depois)_.
 
-Comece instalando:
+Se você quer rodar o código, comece instalando:
 * Python (a versão mais recente)
 * [Torch](https://pytorch.org/get-started/locally/)
 * Segm lib:

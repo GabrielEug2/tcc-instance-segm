@@ -34,7 +34,7 @@ Requisitos:
 	* Para usar com outros modelos, veja `segm_lib/inference/predictors/base_predictor.py` para a interface necessária.
 
 Como usar:
-* Edite no arquivo `segm_lib/inference/predictors/config.yaml` o local onde você instalou os modelos. É, eu sei. Eu vou simplificar esse processo depois.
+* Edite no arquivo `segm_lib/inference/predictors/config.yaml` o local onde você instalou os modelos. É, eu sei. Eu vou simplificar esse processo depois... provavelmente.
 * `python inference.py <img_file_or_dir> <out_dir>`
 
 ### Visualizando as predictions

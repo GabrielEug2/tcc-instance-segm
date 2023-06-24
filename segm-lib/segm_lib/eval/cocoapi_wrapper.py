@@ -139,9 +139,7 @@ def eval(coco_anns_file: Path, coco_preds_file: Path, detailed=False) -> APIResu
 			# no annotations nor predictions for that k
 			continue
 		dtScores = np.concatenate([e['dtScores'][0:maxDet] for e in evalImgs_for_that_k])
-
 		inds = np.argsort(-dtScores, kind='mergesort')
-		dtScoresSorted = dtScores[inds]
 
 		# each "e" in evalImgs contains info that refers to one category in
 		# one image, with one areaRng (but this last one is irrelevant here).

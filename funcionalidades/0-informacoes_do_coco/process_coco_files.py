@@ -1,8 +1,6 @@
 import argparse
 from pathlib import Path
 
-# My path to just copy-paste when needed
-# /mnt/e/Desktop/TCC/Dados/COCO/annotations/
 parser = argparse.ArgumentParser(description='Parse useful information from the COCO dataset.')
 parser.add_argument('coco_ann_dir', help='Directory where you placed the COCO annotations')
 args = parser.parse_args()

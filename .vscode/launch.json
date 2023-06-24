@@ -22,7 +22,7 @@
             "justMyCode": false
         },
         {
-            "name": "Debug 200",
+            "name": "Eval 200",
             "type": "python",
             "request": "launch",
             "program": "funcionalidades/3-analises/eval.py",
