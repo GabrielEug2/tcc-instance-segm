@@ -1,6 +1,6 @@
 # TCC - Instance segmentation
 
-Código relacionado ao meu TCC, sobre segmentação de objetos. _(colocar o link da UTF aqui depois)_.
+Código relacionado ao meu TCC, sobre segmentação de objetos. O texto também está incluso aqui no repositório.
 
 Se você quer rodar o código, comece instalando:
 * Python (a versão mais recente)
